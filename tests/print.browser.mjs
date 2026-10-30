@@ -27,6 +27,9 @@ try {
         else await element.fill(value);
         await element.dispatchEvent('change');
       }
+      // A change listener on the last active field can fire when it loses focus.
+      // Commit that edit before capturing the print snapshot.
+      await page.locator('#print').focus();
       await page.evaluate(()=>document.fonts.ready);
       const previewCount=await page.locator('.sheet-page').count();
       assert.equal(previewCount,scenario.pages,'preview page count');
@@ -53,7 +56,9 @@ try {
       const info=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
       const actualPages=Number(info.match(/^Pages:\s+(\d+)/m)?.[1]);
       assert.equal(actualPages,scenario.pages,'PDF page count');
-      assert.match(info,/Page size:\s+595(?:\.\d+)? x 842(?:\.\d+)? pts/);
+      const a4=info.match(/Page size:\s+([\d.]+) x ([\d.]+) pts/);
+      assert.ok(a4,'PDF page size is reported');
+      assert.ok(Math.abs(Number(a4[1])-595.276)<1 && Math.abs(Number(a4[2])-841.89)<1,'PDF must be A4');
       await page.emulateMedia({media:'screen'});
       console.log('PASS',scenario.name,actualPages,'PDF pages');
     } catch(error) {
