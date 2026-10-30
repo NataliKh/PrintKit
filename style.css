@@ -107,3 +107,31 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
    print-color-adjust:exact;
  }
 }
+
+/* Individually paginated A4 sheets. Desktop scaling is only a preview transform. */
+#paper{width:210mm;min-height:0;padding:0;background:transparent;box-shadow:none;display:flex;flex-direction:column;gap:22px}
+#paper .sheet-page{position:relative;flex:0 0 auto;width:210mm;height:297mm;padding:18mm;background:#fff;box-shadow:0 13px 36px #3428541f;overflow:hidden;overflow-wrap:anywhere}
+#paper .sheet-page h2{overflow-wrap:anywhere}
+#paper .cards article,#paper .labels article{overflow-wrap:anywhere;min-width:0;min-height:0}
+#paper .cards article{height:42mm;padding:12px}
+#paper .cards b{font-size:19px;line-height:1.25}
+#paper .cards small{line-height:1.4}
+#paper .labels article{height:38mm;padding:9px}
+#paper .labels b{font-size:15px;line-height:1.35}
+#paper .labels small{line-height:1.3}
+#paper .problems{row-gap:17px}
+#paper .problems div{min-width:0;overflow-wrap:anywhere}
+#paper .diploma{height:260mm;min-height:0;max-height:260mm;padding:14px;overflow-wrap:anywhere}
+#paper .diploma b{overflow-wrap:anywhere}
+#paper .schedule-table th,#paper .schedule-table td{overflow-wrap:anywhere;word-break:normal}
+#paper .schedule-table tr{height:21mm}
+#paper .schedule-table th,#paper .schedule-table td{padding:6px 4px}
+#paper .habit th.habit-name{overflow-wrap:anywhere}
+#paper .habit tr{break-inside:avoid}
+@media print{
+ @page{size:A4;margin:0}
+ html,body{width:210mm!important;min-width:0!important;margin:0!important;padding:0!important;background:white!important}
+ #paper{display:block!important;width:210mm!important;min-height:0!important;height:auto!important;padding:0!important;margin:0!important;transform:none!important;background:#fff!important}
+ #paper .sheet-page{display:block;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;overflow:hidden!important;box-shadow:none!important;break-after:page;page-break-after:always;break-inside:avoid;page-break-inside:avoid}
+ #paper .sheet-page:last-child{break-after:auto;page-break-after:auto}
+}
