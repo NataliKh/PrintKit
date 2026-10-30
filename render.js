@@ -58,11 +58,19 @@ if(mode==="schedule"){
   }).join("")+'</tbody></table>','schedule-page'));
 }
 if(mode==="habits"){
- const n=clamp(get("days"),31),habits=lines(get("items")).slice(0,15);
+ const months=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+ const month=months.indexOf(get("month"));
+ const yearValue=Number(get("year"));
+ const year=Number.isInteger(yearValue)&&yearValue>=1900&&yearValue<=2100?yearValue:2026;
+ const dated=month>=0;
+ const n=dated?new Date(Date.UTC(year,month+1,0)).getUTCDate():clamp(get("days"),31);
+ const habits=lines(get("items")).slice(0,15);
  const cols='<colgroup><col class="habit-name-col">'+Array.from({length:n},()=>'<col class="habit-day-col">').join("")+'</colgroup>';
- const head='<thead><tr><th scope="col" class="habit-name-heading">Привычка</th>'+Array.from({length:n},(_,i)=>'<th scope="col" class="habit-day-heading">'+(i+1)+'</th>').join("")+'</tr></thead>';
- const row=x=>'<tr><th scope="row" class="habit-name">'+e(x)+'</th>'+Array.from({length:n},()=>'<td class="habit-day"><span class="habit-box" aria-hidden="true"></span></td>').join("")+'</tr>';
- for(let i=0;i<Math.max(1,habits.length);i+=7)parts.push(page(heading(title,'Месяц: __________________')+
+ const weekend=i=>dated&&[0,6].includes(new Date(Date.UTC(year,month,i+1)).getUTCDay());
+ const head='<thead><tr><th scope="col" class="habit-name-heading">Привычка</th>'+Array.from({length:n},(_,i)=>'<th scope="col" class="habit-day-heading'+(weekend(i)?' habit-weekend':'')+'">'+(i+1)+'</th>').join("")+'</tr></thead>';
+ const row=x=>'<tr><th scope="row" class="habit-name">'+e(x)+'</th>'+Array.from({length:n},(_,i)=>'<td class="habit-day'+(weekend(i)?' habit-weekend':'')+'"><span class="habit-box" aria-hidden="true"></span></td>').join("")+'</tr>';
+ const subtitle=dated?months[month]+' '+year:'Месяц: __________________';
+ for(let i=0;i<Math.max(1,habits.length);i+=7)parts.push(page(heading(title,subtitle)+
   '<table class="habit" aria-label="Трекер привычек на '+n+' дней">'+cols+head+'<tbody>'+habits.slice(i,i+7).map(row).join("")+'</tbody></table>','habits-page'));
 }
 return parts.join("");
