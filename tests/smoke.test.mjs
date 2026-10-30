@@ -123,3 +123,30 @@ test('untrusted layout values never become CSS classes',()=>{
  assert.doesNotMatch(html,/<script>/);
  assert.match(html,/class="diploma diploma--formal"/);
 });
+
+test('label sizes paginate without dropping items',()=>{
+ const cases=[
+  ['Стандартные 54 × 38 мм',12,3],
+  ['Маленькие 40 × 22 мм',32,1],
+  ['Крупные 80 × 48 мм',8,4]
+ ];
+ for(const [size,perPage,pages] of cases){
+  const html=render('labels',key=>({...vals,size,count:'27'})[key]??'',escape,lines,clamp);
+  assert.equal((html.match(/class="sheet-page labels-page"/g)||[]).length,pages);
+  assert.equal((html.match(/<article>/g)||[]).length,27);
+  const chunks=html.split(/(?=<section class="sheet-page labels-page">)/).filter(Boolean);
+  assert.ok(chunks.every(x=>(x.match(/<article>/g)||[]).length<=perPage));
+ }
+});
+test('labels cap count at 96 and do not inject arbitrary layout CSS',()=>{
+ const html=render('labels',key=>({...vals,count:'9999',size:'\"><img src=x onerror=alert(1)>'})[key]??'',escape,lines,clamp);
+ assert.equal((html.match(/<article>/g)||[]).length,96);
+ assert.match(html,/labels--size-standard/);
+ assert.doesNotMatch(html,/<img/);
+});
+test('print label sizes are expressed in millimetres',()=>{
+ const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
+ for(const [size,width,height] of [['standard',54,38],['small',40,22],['large',80,48]]){
+  assert.ok(css.includes('labels--size-'+size+' article{width:'+width+'mm;height:'+height+'mm'));
+ }
+});
