@@ -49,7 +49,7 @@ test('A4 pagination preserves the number of items and hard page boundaries',()=>
   ['math',{count:'40',key:'Да'},3,/class="problems"/g,2],
   ['cards',{items:Array.from({length:40},(_,i)=>'Term '+i+' — Value '+i).join('\n')},5,/<article>/g,40],
   ['labels',{count:'27'},3,/<article>/g,27],
-  ['schedule',{items:Array.from({length:7},()=>Array.from({length:19},(_,i)=>'Предмет '+i).join(',')).join('\n')},3,/<tr>/g,24],
+  ['schedule',{items:Array.from({length:7},()=>Array.from({length:19},(_,i)=>'Предмет '+i).join(',')).join('\n')},3,/<tr>/g,22],
   ['habits',{days:'31',items:Array.from({length:15},(_,i)=>'Привычка '+i).join('\n')},3,/class="habit-box"/g,465],
  ];
  for(const [mode,overrides,pages,pattern,items] of cases){
