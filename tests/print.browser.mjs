@@ -74,6 +74,32 @@ try {
       await page.emulateMedia({media:'screen'});
     }
   }
+  // Editor UX: preview must update while typing and printing must refuse clipped text.
+  try{
+    await page.locator('[data-tab="cards"]').click();
+    await page.locator('#f-items').fill(['кот — cat','собака — dog','дом — house','окно — window'].join('\\n'));
+    await page.waitForFunction(()=>document.querySelectorAll('#paper .cards article').length===4);
+    assert.equal(await page.locator('#paper .cards article').count(),4,'live card preview');
+
+    await page.locator('#f-items').fill(Array.from({length:41},(_,i)=>'Слово '+i+' — перевод').join('\n'));
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===true);
+    assert.match(await page.locator('#print-status').innerText(),/40 карточек/,'warn before truncating entries');
+    await page.locator('#reset').click();
+    assert.equal(await page.locator('#f-items').inputValue(),'cat — кошка\ndog — собака\nsun — солнце','reset restores defaults');
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
+
+    await page.locator('[data-tab="labels"]').click();
+    await page.locator('#f-name').fill('ОченьДлинноеИмя'.repeat(80));
+    await page.locator('#print').focus();
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===true);
+    assert.match(await page.locator('#print-status').innerText(),/не помещается/,'warn about physically clipped text');
+    await page.locator('#reset').click();
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
+    console.log('PASS live editor, limits, clipping warning and reset');
+  }catch(error){
+    failed=true;
+    console.error('FAIL editor usability',error);
+  }
 } finally {
   await finishVisualReport();
   await browser.close();
