@@ -37,7 +37,11 @@ if(mode==="schedule"){
 }
 if(mode==="habits"){
  const n=clamp(get("days"),31);
- html='<h2>'+title+'</h2><p class="sub">Месяц: __________________</p><table class="habit"><tr><th>Привычка</th>'+Array.from({length:n},(_,i)=>'<th>'+(i+1)+'</th>').join("")+'</tr>'+lines(get("items")).slice(0,15).map(x=>'<tr><td>'+e(x)+'</td>'+Array.from({length:n},()=>'<td>□</td>').join("")+'</tr>').join("")+'</table>';
+ const habits=lines(get("items")).slice(0,15);
+ const cols='<colgroup><col class="habit-name-col">'+Array.from({length:n},()=>'<col class="habit-day-col">').join("")+'</colgroup>';
+ const head='<thead><tr><th scope="col" class="habit-name-heading">Привычка</th>'+Array.from({length:n},(_,i)=>'<th scope="col" class="habit-day-heading">'+(i+1)+'</th>').join("")+'</tr></thead>';
+ const body='<tbody>'+habits.map(x=>'<tr><th scope="row" class="habit-name">'+e(x)+'</th>'+Array.from({length:n},()=>'<td class="habit-day"><span class="habit-box" aria-hidden="true"></span></td>').join("")+'</tr>').join("")+'</tbody>';
+ html='<h2>'+title+'</h2><p class="sub">Месяц: __________________</p><table class="habit" aria-label="Трекер привычек на '+n+' дней">'+cols+head+body+'</table>';
 }
 return html;
 }
