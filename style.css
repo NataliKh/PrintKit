@@ -11,3 +11,20 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
 @media(max-width:760px){.header-inner{min-height:70px;padding:12px 18px}.header-note{display:none}.header-link{font-size:11px;padding:10px}.hero{grid-template-columns:1fr;padding:46px 0 15px;gap:5px}.hero h1{letter-spacing:-2.4px}.hero-art{height:275px;max-width:420px;width:100%;margin:0 auto}.paper-one{top:28px;left:46px;transform:rotate(-10deg) scale(.83);transform-origin:top left}.paper-two{top:49px;right:35px;transform:rotate(12deg) scale(.83);transform-origin:top right}main{padding:0 17px 50px}.layout{grid-template-columns:1fr}.section-head h2{font-size:25px}.tools-counter{display:none}nav#tabs{grid-template-columns:repeat(2,minmax(0,1fr))}nav#tabs button{min-height:61px;padding:12px 8px}.scroll{padding:14px 9px}.preview-bottom{flex-direction:column}.bottom-banner{margin-top:35px;flex-direction:column;align-items:flex-start;padding:27px}.bottom-banner h2{font-size:20px}.footer-inner{flex-wrap:wrap}}
 @media(max-width:420px){.header-link{display:none}.hero h1{font-size:42px}.hero-benefits{gap:10px}.hero-art{height:235px}.paper-one{left:8px}.paper-two{right:5px}.editor-panel{padding:20px}.preview-top{padding:20px}}
 @media print{@page{size:A4;margin:0}body{background:#fff}header,.hero,.section-head,nav#tabs,.editor-panel,.preview-top,.preview-bottom,.bottom-banner,footer{display:none!important}main{padding:0;margin:0;max-width:none}.workspace{padding:0}.layout,.preview{display:block;padding:0;border:0;box-shadow:none}.scroll{padding:0;min-height:0;overflow:visible;background:#fff;display:block;border:0}#paper{box-shadow:none;width:210mm;min-height:297mm;height:297mm;margin:0;transform:none!important;flex:none}}
+
+/* PrintKit worksheets and award templates */
+.award-medal{display:grid;place-items:center;font-size:55px;width:95px;height:95px;border:2px solid #d7b66f;border-radius:50%;color:#ad853b;margin-bottom:16px;background:#fffaf0}
+.award-kicker{font-size:11px!important;letter-spacing:4px;color:#a18b66;font-weight:bold}
+.diploma{border:9px double #bf9b52;background:linear-gradient(145deg,#fffdf6,#fff,#fffdf6);position:relative}
+.diploma h2{font-family:Georgia,serif;letter-spacing:2px;text-transform:uppercase;color:#9e7938!important}
+.diploma .issuer{margin-top:55px!important;font-size:15px!important}
+.answer-page{margin-top:35mm;border-top:2px solid #e4d9f0;padding-top:15mm}
+.answer-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;font-size:16px}
+.answer-grid span{border-bottom:1px dashed #ccc;padding:6px}
+.cards article,.labels article,.problems div{break-inside:avoid}
+@media print{
+ #paper:has(.answer-page){height:auto;min-height:297mm}
+ .answer-page{break-before:page;page-break-before:always;margin:0;padding:22mm 0 0;border:0;min-height:260mm}
+ .diploma{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ .labels article{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}
