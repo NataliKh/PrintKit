@@ -7,6 +7,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 concurrency:
@@ -21,11 +22,36 @@ jobs:
         run: node --test tests/*.test.mjs
       - name: Install browser test tools
         run: |
-          npm install --no-save --no-package-lock playwright@1.56.1
+          npm install --no-save --no-package-lock playwright@1.56.1 pngjs@7.0.0 pixelmatch@5.3.0
           npx playwright install --with-deps chromium
           sudo apt-get install -y poppler-utils
+      - name: Retrieve last main visual snapshots
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p artifacts/printkit-baseline
+          artifact_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=printkit-visual&per_page=100" \
+            --jq '[.artifacts[] | select(.expired == false and .workflow_run.head_branch == "main")] | sort_by(.created_at) | last | .id // empty' || true)
+          if [[ -n "$artifact_id" ]]; then
+            gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" > /tmp/printkit-baseline.zip
+            unzip -q /tmp/printkit-baseline.zip -d artifacts/printkit-baseline
+            echo "Using previous main snapshots: artifact $artifact_id"
+          else
+            echo "No previous main screenshots; this run will generate the first baseline."
+          fi
       - name: Verify real A4 PDFs in Chromium
+        env:
+          PRINTKIT_VISUAL_BASELINE: artifacts/printkit-baseline
         run: node tests/print.browser.mjs
+      - name: Keep PDFs, page previews and visual diff report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: printkit-visual
+          path: artifacts/printkit-visual/
+          retention-days: 30
+          if-no-files-found: warn
   deploy:
     needs: verify
     if: github.event_name != 'pull_request'
