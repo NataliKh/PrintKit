@@ -11,6 +11,7 @@ const scenarios = [
   {id:'labels-standard',name:'27 standard labels',mode:'labels',fields:{count:'27'},pages:3},
   {id:'labels-small',name:'27 small labels',mode:'labels',fields:{count:'27',size:'Маленькие 40 × 22 мм'},pages:1},
   {id:'labels-large',name:'27 large labels',mode:'labels',fields:{count:'27',size:'Крупные 80 × 48 мм'},pages:4},
+  {id:'schedule',name:'weekly schedule',mode:'schedule',fields:{title:'Расписание уроков',items:Array.from({length:7},()=>Array.from({length:19},(_,i)=>'Урок '+(i+1)).join(',')).join('\n')},pages:3},
   {id:'habits',name:'31-day tracker',mode:'habits',fields:{month:'Октябрь',year:'2026',items:Array.from({length:15},(_,i)=>'Привычка '+i).join('\n')},pages:3},
   {id:'award',name:'children award',mode:'diploma',fields:{layout:'Детский',name:'Анна Иванова'},pages:1}
 ];

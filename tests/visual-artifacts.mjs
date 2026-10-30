@@ -85,7 +85,11 @@ export async function finishVisualReport(){
   await writeFile(join(outputDir,'index.html'),html);
   const rows=report.map(s=>{
     const changes=s.images.filter(i=>i.status==='changed'||i.status==='different dimensions').length;
-    return '| '+s.name+' | '+s.pages+' | '+(hasBaseline?changes+' из '+s.pages:'эталон создан')+' |';
+    const newPages=s.images.filter(i=>i.status==='new').length;
+    const compare=hasBaseline
+      ?(changes+' изменено'+(newPages?', '+newPages+' новых страниц':''))
+      :'эталон создан';
+    return '| '+s.name+' | '+s.pages+' | '+compare+' |';
   }).join('\n');
   const markdown='### PrintKit · PDF и визуальные снимки\n\n'+
     '| Сценарий | Страниц PDF | Изменения изображений |\n| --- | ---: | --- |\n'+rows+'\n\n'+
