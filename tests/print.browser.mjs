@@ -23,7 +23,8 @@ try {
       await page.locator('[data-tab="'+scenario.mode+'"]').click();
       for (const [key,value] of Object.entries(scenario.fields)) {
         const element=page.locator('#f-'+key);
-        await element.fill(value);
+        if(await element.evaluate(el=>el.tagName)==='SELECT') await element.selectOption({label:value});
+        else await element.fill(value);
         await element.dispatchEvent('change');
       }
       await page.evaluate(()=>document.fonts.ready);
