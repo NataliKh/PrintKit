@@ -18,6 +18,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Verify generators
+        run: node --test tests/*.test.mjs
       - uses: actions/configure-pages@v5
         with:
           enablement: true
