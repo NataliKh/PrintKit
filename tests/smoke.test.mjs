@@ -47,10 +47,10 @@ test('habit tracker reserves a name column and 31 checkbox columns',()=>{
 test('A4 pagination preserves the number of items and hard page boundaries',()=>{
  const cases=[
   ['math',{count:'40',key:'Да'},3,/class="problems"/g,2],
-  ['cards',{items:Array.from({length:40},(_,i)=>'Term '+i+' — Value '+i).join('\\n')},5,/<article>/g,40],
+  ['cards',{items:Array.from({length:40},(_,i)=>'Term '+i+' — Value '+i).join('\n')},5,/<article>/g,40],
   ['labels',{count:'27'},3,/<article>/g,27],
-  ['schedule',{items:Array.from({length:7},()=>Array.from({length:19},(_,i)=>'Предмет '+i).join(',')).join('\\n')},3,/<tr>/g,22],
-  ['habits',{days:'31',items:Array.from({length:15},(_,i)=>'Привычка '+i).join('\\n')},3,/class="habit-box"/g,465],
+  ['schedule',{items:Array.from({length:7},()=>Array.from({length:19},(_,i)=>'Предмет '+i).join(',')).join('\n')},3,/<tr>/g,24],
+  ['habits',{days:'31',items:Array.from({length:15},(_,i)=>'Привычка '+i).join('\n')},3,/class="habit-box"/g,465],
  ];
  for(const [mode,overrides,pages,pattern,items] of cases){
   const html=render(mode,k=>({...vals,...overrides})[k]??'',escape,lines,clamp);
@@ -59,7 +59,7 @@ test('A4 pagination preserves the number of items and hard page boundaries',()=>
  }
 });
 test('31-day habit tracker keeps the 27% name column on each sheet',()=>{
- const html=render('habits',k=>({title:'Трекер',days:'31',items:Array.from({length:15},()=> 'Пить достаточно воды и регулярно читать').join('\\n')})[k]??'',escape,lines,clamp);
+ const html=render('habits',k=>({title:'Трекер',days:'31',items:Array.from({length:15},()=> 'Пить достаточно воды и регулярно читать').join('\n')})[k]??'',escape,lines,clamp);
  assert.equal((html.match(/<col class="habit-name-col">/g)||[]).length,3);
  assert.equal((html.match(/class="habit-day-col"/g)||[]).length,93);
  assert.equal((html.match(/class="habit-box"/g)||[]).length,465);
@@ -70,14 +70,14 @@ test('math page breaks keep exactly twenty questions per sheet without regenerat
  assert.equal(pages.length,3);
  assert.equal((pages[0].match(/= ______/g)||[]).length,20);
  assert.equal((pages[1].match(/= ______/g)||[]).length,20);
- assert.equal((pages[2].match(/<span>\\d+\\. /g)||[]).length,40);
+ assert.equal((pages[2].match(/<span>\d+\. /g)||[]).length,40);
  const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
- assert.match(app,/window\\.print\\(\\)/);
- assert.doesNotMatch(app,/\\$\\("print"\\)\\.onclick=\\(\\)=>\\{[^}]*generate\\(/);
+ assert.match(app,/window\.print\(\)/);
+ assert.doesNotMatch(app,/\$\("print"\)\.onclick=\(\)=>\{[^}]*generate\(/);
 });
 test('print stylesheet defines exact sized sheets with page breaks',()=>{
  const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
- assert.match(css,/#paper \\.sheet-page\\{[^}]*width:210mm;[^}]*height:297mm;/);
+ assert.match(css,/#paper \.sheet-page\{[^}]*width:210mm;[^}]*height:297mm;/);
  assert.match(css,/break-after:page/);
- assert.match(css,/\.sheet-page:last-child\\{break-after:auto/);
+ assert.match(css,/\.sheet-page:last-child\{break-after:auto/);
 });
