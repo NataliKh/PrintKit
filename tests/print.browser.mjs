@@ -77,7 +77,7 @@ try {
   // Editor UX: preview must update while typing and printing must refuse clipped text.
   try{
     await page.locator('[data-tab="cards"]').click();
-    await page.locator('#f-items').fill(['кот — cat','собака — dog','дом — house','окно — window'].join('\\n'));
+    await page.locator('#f-items').fill(['кот — cat','собака — dog','дом — house','окно — window'].join('\n'));
     await page.waitForFunction(()=>document.querySelectorAll('#paper .cards article').length===4);
     assert.equal(await page.locator('#paper .cards article').count(),4,'live card preview');
 
