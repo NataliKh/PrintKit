@@ -28,3 +28,17 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
  .diploma{print-color-adjust:exact;-webkit-print-color-adjust:exact}
  .labels article{print-color-adjust:exact;-webkit-print-color-adjust:exact}
 }
+
+/* Four print-ready visual themes */
+#paper{--sheet-accent:#7859b7;--sheet-pale:#f7f2ff;--sheet-border:#cbb7e5}
+#paper[data-theme="mint"]{--sheet-accent:#267d70;--sheet-pale:#edfaf5;--sheet-border:#91c9b7}
+#paper[data-theme="peach"]{--sheet-accent:#ac6250;--sheet-pale:#fff2e9;--sheet-border:#edb79a}
+#paper[data-theme="minimal"]{--sheet-accent:#242436;--sheet-pale:#fff;--sheet-border:#9b9b9b}
+#paper .labels article{background:var(--sheet-pale);border-color:var(--sheet-border)}
+#paper .cards article{background:var(--sheet-pale);border-color:var(--sheet-border)}
+#paper .cards b,#paper .labels b{color:var(--sheet-accent)}
+#paper .diploma{border-color:var(--sheet-border);background:var(--sheet-pale)}
+#paper .diploma h2{color:var(--sheet-accent)!important}
+#paper .award-medal{color:var(--sheet-accent);border-color:var(--sheet-border);background:#fff}
+#paper th{background:var(--sheet-pale);color:var(--sheet-accent)}
+@media print{#paper .cards article,#paper .labels article,#paper th,#paper .diploma{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
