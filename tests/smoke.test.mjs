@@ -81,3 +81,20 @@ test('print stylesheet defines exact sized sheets with page breaks',()=>{
  assert.match(css,/break-after:page/);
  assert.match(css,/\.sheet-page:last-child\{break-after:auto/);
 });
+
+test('calendar tracker follows month length including leap years',()=>{
+ for(const [month,year,days] of [['Февраль','2028',29],['Февраль','2027',28],['Апрель','2026',30],['Октябрь','2026',31]]){
+  const html=render('habits',key=>({title:'План',items:'Читать',month,year,days:'5'})[key]??'',escape,lines,clamp);
+  assert.equal((html.match(/class="habit-day-col"/g)||[]).length,days);
+  assert.equal((html.match(/class="habit-box"/g)||[]).length,days);
+  assert.match(html,new RegExp(month+' '+year));
+ }
+});
+test('calendar weekends highlighted; undated tracker stays compatible',()=>{
+ const dated=render('habits',key=>({title:'План',items:'Читать',month:'Ноябрь',year:'2026'})[key]??'',escape,lines,clamp);
+ assert.equal((dated.match(/class="habit-day-heading habit-weekend"/g)||[]).length,9);
+ assert.equal((dated.match(/class="habit-day habit-weekend"/g)||[]).length,9);
+ const undated=render('habits',key=>({title:'План',items:'Читать',days:'31'})[key]??'',escape,lines,clamp);
+ assert.doesNotMatch(undated,/habit-weekend/);
+ assert.equal((undated.match(/class="habit-box"/g)||[]).length,31);
+});
