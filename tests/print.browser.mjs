@@ -96,7 +96,36 @@ try {
     await page.locator('#reset').click();
     await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
     console.log('PASS live editor, limits, clipping warning and reset');
+    // Quick starts apply curated content without replacing personal data.
+    await page.locator('[data-tab="labels"]').click();
+    await page.locator('#f-name').fill('Мария Соколова');
+    await page.locator('#f-name').dispatchEvent('change');
+    await page.locator('[data-starter="stationery"]').click();
+    assert.equal(await page.locator('#f-name').inputValue(),'Мария Соколова','name must survive preset');
+    assert.equal(await page.locator('#f-size').inputValue(),'Маленькие 40 × 22 мм');
+    assert.equal(await page.locator('#paper .labels article').count(),32);
+    assert.equal(await page.locator('#paper .sheet-page').count(),1);
+    assert.match(await page.locator('#starter-status').innerText(),/Для мелочей/);
+    assert.equal(await page.locator('[data-starter="stationery"]').getAttribute('aria-pressed'),'true');
+    await page.locator('#f-subtitle').fill('Индивидуальная подпись');
+    await page.waitForFunction(()=>document.querySelector('[data-starter="stationery"]').getAttribute('aria-pressed')==='false');
+    await page.locator('[data-tab="diploma"]').click();
+    await page.locator('#f-name').fill('Алексей Соколов');
+    await page.locator('#f-issuer').fill('Мария Петровна');
+    await page.locator('#f-issuer').dispatchEvent('change');
+    await page.locator('[data-starter="reader"]').click();
+    assert.equal(await page.locator('#f-name').inputValue(),'Алексей Соколов');
+    assert.equal(await page.locator('#f-issuer').inputValue(),'Мария Петровна');
+    assert.match(await page.locator('.diploma .award-reason').innerText(),/любовь к чтению/);
+    console.log('PASS 18 starter kits present, instant application and private field preservation');
     await page.setViewportSize({width:390,height:844});
+    assert.equal(await page.locator('#starter-grid .starter-card').count(),3,'mobile starter kit cards');
+    assert.equal(await page.locator('#nav-preview').isVisible(),true,'mobile navigation should be visible');
+    await page.locator('#nav-preview').click();
+    await page.waitForFunction(()=>document.querySelector('#print-preview').getBoundingClientRect().top<130);
+    await page.locator('#nav-settings').click();
+    await page.waitForFunction(()=>document.querySelector('#editor-controls').getBoundingClientRect().top<130);
+    console.log('PASS mobile editor to preview navigation');
     await page.locator('[data-tab="habits"]').click();
     await page.waitForFunction(()=>{
       const p=document.querySelector('#paper');
