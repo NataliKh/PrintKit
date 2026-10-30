@@ -43,10 +43,12 @@ if(mode==="cards"){
 }
 if(mode==="labels"){
  const layout=layoutClass(get("layout"),{"Классический":"classic","Школьный":"school","Нежный":"soft"});
+ const size=layoutClass(get("size"),{"Стандартные 54 × 38 мм":"standard","Маленькие 40 × 22 мм":"small","Крупные 80 × 48 мм":"large"});
+ const perPage={standard:12,small:32,large:8}[size];
  const icon=layout==="school"?"✎":layout==="soft"?"✿":"✦";
- const items=Array.from({length:clamp(get("count"),27)},()=>'<article><span class="label-mark" aria-hidden="true">'+icon+'</span><b>'+e(get("name"))+'</b><small>'+e(get("subtitle"))+'</small></article>');
- for(let i=0;i<items.length;i+=12)parts.push(page(heading('Именные наклейки')+
-  '<div class="labels labels--'+layout+'">'+items.slice(i,i+12).join("")+'</div>','labels-page'));
+ const items=Array.from({length:clamp(get("count"),96)},()=>'<article><span class="label-mark" aria-hidden="true">'+icon+'</span><b>'+e(get("name"))+'</b><small>'+e(get("subtitle"))+'</small></article>');
+ for(let i=0;i<items.length;i+=perPage)parts.push(page(heading('Именные наклейки')+
+  '<div class="labels labels--'+layout+' labels--size-'+size+'">'+items.slice(i,i+perPage).join("")+'</div>','labels-page'));
 }
 if(mode==="diploma"){
  const layout=layoutClass(get("layout"),{"Торжественный":"formal","Современный":"modern","Детский":"kids"});
