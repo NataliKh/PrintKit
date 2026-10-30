@@ -1,18 +1,18 @@
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {fileURLToPath} from 'node:url';
+import {captureVisual,finishVisualReport} from './visual-artifacts.mjs';
 import {chromium} from 'playwright';
 
 const url = new URL('../index.html', import.meta.url).href;
 const browser = await chromium.launch({headless: true});
 const scenarios = [
-  {name:'math and answers',mode:'math',fields:{count:'40',key:'Да'},pages:3},
-  {name:'40 flashcards',mode:'cards',fields:{items:Array.from({length:40},(_,i)=>'Слово '+i+' — перевод '+i).join('\n')},pages:5},
-  {name:'27 standard labels',mode:'labels',fields:{count:'27'},pages:3},
-  {name:'27 small labels',mode:'labels',fields:{count:'27',size:'Маленькие 40 × 22 мм'},pages:1},
-  {name:'27 large labels',mode:'labels',fields:{count:'27',size:'Крупные 80 × 48 мм'},pages:4},
-  {name:'31-day tracker',mode:'habits',fields:{month:'Октябрь',year:'2026',items:Array.from({length:15},(_,i)=>'Привычка '+i).join('\n')},pages:3},
-  {name:'children award',mode:'diploma',fields:{layout:'Детский',name:'Анна Иванова'},pages:1}
+  {id:'math',name:'math and answers',mode:'math',fields:{count:'40',key:'Да'},pages:3},
+  {id:'cards',name:'40 flashcards',mode:'cards',fields:{items:Array.from({length:40},(_,i)=>'Слово '+i+' — перевод '+i).join('\n')},pages:5},
+  {id:'labels-standard',name:'27 standard labels',mode:'labels',fields:{count:'27'},pages:3},
+  {id:'labels-small',name:'27 small labels',mode:'labels',fields:{count:'27',size:'Маленькие 40 × 22 мм'},pages:1},
+  {id:'labels-large',name:'27 large labels',mode:'labels',fields:{count:'27',size:'Крупные 80 × 48 мм'},pages:4},
+  {id:'habits',name:'31-day tracker',mode:'habits',fields:{month:'Октябрь',year:'2026',items:Array.from({length:15},(_,i)=>'Привычка '+i).join('\n')},pages:3},
+  {id:'award',name:'children award',mode:'diploma',fields:{layout:'Детский',name:'Анна Иванова'},pages:1}
 ];
 let failed = false;
 try {
@@ -20,6 +20,11 @@ try {
   await page.goto(url);
   for (const scenario of scenarios) {
     try {
+      // Seed random math questions so PNG comparisons are reproducible.
+      await page.evaluate(()=>{
+        let seed=0xC0FFEE;
+        Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+      });
       await page.locator('[data-tab="'+scenario.mode+'"]').click();
       for (const [key,value] of Object.entries(scenario.fields)) {
         const element=page.locator('#f-'+key);
@@ -59,6 +64,7 @@ try {
       const a4=info.match(/Page size:\s+([\d.]+) x ([\d.]+) pts/);
       assert.ok(a4,'PDF page size is reported');
       assert.ok(Math.abs(Number(a4[1])-595.276)<1 && Math.abs(Number(a4[2])-841.89)<1,'PDF must be A4');
+      await captureVisual(scenario.id,scenario.name,page,pdf,scenario.pages);
       await page.emulateMedia({media:'screen'});
       console.log('PASS',scenario.name,actualPages,'PDF pages');
     } catch(error) {
@@ -68,6 +74,7 @@ try {
     }
   }
 } finally {
+  await finishVisualReport();
   await browser.close();
 }
 if(failed)process.exitCode=1;
