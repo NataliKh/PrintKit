@@ -192,3 +192,12 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
 #paper .labels--size-large article{width:80mm;height:48mm}
 #paper .labels--size-large b{font-size:20px}
 #paper .labels--size-large small{font-size:12px}
+
+/* Editor feedback belongs to the UI only; printed A4 sheets keep their dimensions. */
+.action-secondary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:stretch}
+.actions #regenerate{min-width:0;padding:13px 10px}
+.actions #reset{width:auto;padding:13px 12px;background:#fff;border:1px solid #e5dfec;color:#82778d;font-size:11px}
+.actions #reset:hover{background:#f7f5fb;color:#5942af}
+.actions #print:disabled{background:#c6c1d1;box-shadow:none;cursor:not-allowed}
+.print-status{margin:13px 0 0;padding:11px 12px;border-radius:10px;font-size:11px;line-height:1.65;color:#276651;background:#eff9f3;outline-offset:2px}
+.print-status.is-warning{color:#9a501d;background:#fff5e8;border:1px solid #f4d9b6}

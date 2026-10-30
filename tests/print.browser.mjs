@@ -74,6 +74,47 @@ try {
       await page.emulateMedia({media:'screen'});
     }
   }
+  // Editor UX: preview must update while typing and printing must refuse clipped text.
+  try{
+    await page.locator('[data-tab="cards"]').click();
+    await page.locator('#f-items').fill(['кот — cat','собака — dog','дом — house','окно — window'].join('\n'));
+    await page.waitForFunction(()=>document.querySelectorAll('#paper .cards article').length===4);
+    assert.equal(await page.locator('#paper .cards article').count(),4,'live card preview');
+
+    await page.locator('#f-items').fill(Array.from({length:41},(_,i)=>'Слово '+i+' — перевод').join('\n'));
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===true);
+    assert.match(await page.locator('#print-status').innerText(),/40 карточек/,'warn before truncating entries');
+    await page.locator('#reset').click();
+    assert.equal(await page.locator('#f-items').inputValue(),'cat — кошка\ndog — собака\nsun — солнце','reset restores defaults');
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
+
+    await page.locator('[data-tab="labels"]').click();
+    await page.locator('#f-name').fill('ОченьДлинноеИмя'.repeat(80));
+    await page.locator('#print').focus();
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===true);
+    assert.match(await page.locator('#print-status').innerText(),/не помещается/,'warn about physically clipped text');
+    await page.locator('#reset').click();
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
+    console.log('PASS live editor, limits, clipping warning and reset');
+    await page.setViewportSize({width:390,height:844});
+    await page.locator('[data-tab="habits"]').click();
+    await page.waitForFunction(()=>{
+      const p=document.querySelector('#paper');
+      return p && p.getBoundingClientRect().width<390;
+    });
+    const mobile=await page.evaluate(()=>{
+      const paper=document.querySelector('#paper').getBoundingClientRect();
+      const box=document.querySelector('.scroll').getBoundingClientRect();
+      return {left:paper.left,right:paper.right,boxLeft:box.left,boxRight:box.right,documentWidth:document.documentElement.scrollWidth,viewport:window.innerWidth};
+    });
+    assert.ok(mobile.left>=mobile.boxLeft-3 && mobile.right<=mobile.boxRight+3,'A4 preview should fit narrow screen '+JSON.stringify(mobile));
+    assert.ok(mobile.documentWidth<=mobile.viewport+3,'no mobile horizontal page scrolling '+JSON.stringify(mobile));
+    await page.setViewportSize({width:1440,height:900});
+    console.log('PASS mobile A4 preview at 390px');
+  }catch(error){
+    failed=true;
+    console.error('FAIL editor usability',error);
+  }
 } finally {
   await finishVisualReport();
   await browser.close();
