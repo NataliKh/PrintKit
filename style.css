@@ -233,3 +233,12 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
 @media print{
  .mobile-workspace-nav{display:none!important}
 }
+
+
+/* Prevent horizontally scrolling quick-start cards from widening the page grid. */
+@media(max-width:760px){
+ .layout{grid-template-columns:minmax(0,1fr)}
+ .editor-panel,.preview,.starter-section,.starter-grid{min-width:0;max-width:100%}
+ .starter-section{overflow:hidden}
+ .starter-grid{width:100%;overflow-x:auto}
+}
