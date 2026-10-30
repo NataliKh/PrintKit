@@ -98,3 +98,28 @@ test('calendar weekends highlighted; undated tracker stays compatible',()=>{
  assert.doesNotMatch(undated,/habit-weekend/);
  assert.equal((undated.match(/class="habit-box"/g)||[]).length,31);
 });
+
+test('three label layouts keep all 27 labels on three A4 sheets',()=>{
+ for(const layout of ['Классический','Школьный','Нежный']){
+  const html=render('labels',key=>({...vals,count:'27',layout,name:'Аня <script>'})[key]??'',escape,lines,clamp);
+  assert.equal((html.match(/class="sheet-page labels-page"/g)||[]).length,3);
+  assert.equal((html.match(/<article>/g)||[]).length,27);
+  assert.doesNotMatch(html,/<script>/);
+  assert.match(html,/Аня &lt;script&gt;/);
+  assert.equal((html.match(/class="label-mark"/g)||[]).length,27);
+ }
+});
+test('three diploma layouts keep award content escaped on one A4 sheet',()=>{
+ for(const layout of ['Торжественный','Современный','Детский']){
+  const html=render('diploma',key=>({...vals,layout,name:'Пётр & Мария',reason:'Отличные успехи!'})[key]??'',escape,lines,clamp);
+  assert.equal((html.match(/class="sheet-page diploma-page"/g)||[]).length,1);
+  assert.match(html,/Пётр &amp; Мария/);
+  assert.match(html,/Отличные успехи!/);
+  assert.match(html,/class="diploma diploma--(formal|modern|kids)"/);
+ }
+});
+test('untrusted layout values never become CSS classes',()=>{
+ const html=render('diploma',key=>({...vals,layout:'"><script>alert(1)</script>'})[key]??'',escape,lines,clamp);
+ assert.doesNotMatch(html,/<script>/);
+ assert.match(html,/class="diploma diploma--formal"/);
+});
