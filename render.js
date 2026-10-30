@@ -3,6 +3,7 @@ const title=e(get("title"));
 const page=(body,kind="")=>'<section class="sheet-page '+kind+'">'+body+'</section>';
 const heading=(text,subtitle="")=>'<h2>'+text+'</h2>'+(subtitle?'<p class="sub">'+subtitle+'</p>':'');
 const parts=[];
+const layoutClass=(value,allowed)=>allowed[value]||allowed[Object.keys(allowed)[0]];
 if(mode==="math"){
  const max=Math.max(2,Math.min(200,Number(get("max"))||20)),total=clamp(get("count"),40),level=get("level");
  const random=(lo,hi)=>lo+Math.floor(Math.random()*(hi-lo+1));
@@ -41,11 +42,17 @@ if(mode==="cards"){
   '<div class="cards">'+cards.slice(i,i+8).join("")+'</div>','cards-page'));
 }
 if(mode==="labels"){
- const items=Array.from({length:clamp(get("count"),27)},()=>'<article><b>'+e(get("name"))+'</b><small>'+e(get("subtitle"))+'</small></article>');
+ const layout=layoutClass(get("layout"),{"Классический":"classic","Школьный":"school","Нежный":"soft"});
+ const icon=layout==="school"?"✎":layout==="soft"?"✿":"✦";
+ const items=Array.from({length:clamp(get("count"),27)},()=>'<article><span class="label-mark" aria-hidden="true">'+icon+'</span><b>'+e(get("name"))+'</b><small>'+e(get("subtitle"))+'</small></article>');
  for(let i=0;i<items.length;i+=12)parts.push(page(heading('Именные наклейки')+
-  '<div class="labels">'+items.slice(i,i+12).join("")+'</div>','labels-page'));
+  '<div class="labels labels--'+layout+'">'+items.slice(i,i+12).join("")+'</div>','labels-page'));
 }
-if(mode==="diploma")parts.push(page('<div class="diploma"><div class="award-medal">✦</div><p class="award-kicker">ВРУЧАЕТСЯ</p><h2>'+e(get("kind"))+'</h2><p>Награждается</p><b>'+e(get("name"))+'</b><p>'+e(get("reason"))+'</p><p class="issuer">'+e(get("issuer"))+'</p><small>Дата: ______________</small></div>','diploma-page'));
+if(mode==="diploma"){
+ const layout=layoutClass(get("layout"),{"Торжественный":"formal","Современный":"modern","Детский":"kids"});
+ const medal=layout==="kids"?"★":layout==="modern"?"✧":"✦";
+ parts.push(page('<div class="diploma diploma--'+layout+'"><div class="award-medal" aria-hidden="true">'+medal+'</div><p class="award-kicker">ВРУЧАЕТСЯ</p><h2>'+e(get("kind"))+'</h2><p>Награждается</p><b>'+e(get("name"))+'</b><p class="award-reason">'+e(get("reason"))+'</p><p class="issuer">'+e(get("issuer"))+'</p><small>Дата: ______________</small></div>','diploma-page'));
+}
 if(mode==="schedule"){
  const days=["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"];
  const data=lines(get("items")).slice(0,7).map(x=>x.split(",").map(y=>y.trim()));
