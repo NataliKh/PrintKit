@@ -19,6 +19,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify generators
         run: node --test tests/*.test.mjs
+      - name: Install browser test tools
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y poppler-utils
+      - name: Verify real A4 PDFs in Chromium
+        run: node tests/print.browser.mjs
   deploy:
     needs: verify
     if: github.event_name != 'pull_request'
