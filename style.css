@@ -176,3 +176,19 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
 @media print{
  #paper .labels--soft article,#paper .labels--school article,#paper .diploma--kids,#paper .diploma--modern{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+
+/* Physical dimensions: measured on the unscaled 210 × 297 mm print page. */
+#paper .labels{justify-content:center}
+#paper .labels--size-standard{grid-template-columns:repeat(3,54mm);column-gap:6mm;row-gap:5mm}
+#paper .labels--size-standard article{width:54mm;height:38mm}
+#paper .labels--size-small{grid-template-columns:repeat(4,40mm);column-gap:4mm;row-gap:3mm}
+#paper .labels--size-small article{width:40mm;height:22mm;padding:3mm 2mm;gap:0;border-radius:6px}
+#paper .labels--size-small b{font-size:12px;line-height:1.2}
+#paper .labels--size-small small{font-size:9px;margin-top:2px;line-height:1.1}
+#paper .labels--size-small .label-mark{font-size:10px;line-height:1}
+#paper .labels--size-small.labels--soft .label-mark{font-size:11px}
+#paper .labels--size-small.labels--school .label-mark{margin-left:0;align-self:center}
+#paper .labels--size-large{grid-template-columns:repeat(2,80mm);column-gap:10mm;row-gap:6mm}
+#paper .labels--size-large article{width:80mm;height:48mm}
+#paper .labels--size-large b{font-size:20px}
+#paper .labels--size-large small{font-size:12px}
