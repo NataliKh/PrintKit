@@ -154,3 +154,25 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
 @media print{
  #paper .habit .habit-weekend{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+
+/* Print-ready collections: no image assets or external fonts required. */
+#paper .labels article{position:relative;gap:2px}
+#paper .labels .label-mark{display:block;font-size:17px;color:var(--sheet-accent);line-height:1.1}
+#paper .labels--classic .label-mark{font-size:11px}
+#paper .labels--school article{border-radius:6px;border-style:dashed;border-width:1.5px;background:#fff;box-shadow:inset 0 0 0 4px var(--sheet-pale)}
+#paper .labels--school b{font-family:Arial,sans-serif;font-size:17px}
+#paper .labels--school .label-mark{align-self:flex-start;margin-left:12px}
+#paper .labels--soft article{border-radius:20px;border-width:1px;background:linear-gradient(140deg,#fff 12%,var(--sheet-pale) 90%)}
+#paper .labels--soft .label-mark{font-size:22px}
+#paper .labels--soft small{letter-spacing:.25px}
+#paper .diploma--modern{border:3px solid var(--sheet-border);background:#fff}
+#paper .diploma--modern:before{content:"";position:absolute;inset:11px;border:1px solid var(--sheet-border);pointer-events:none}
+#paper .diploma--modern h2{font-family:Arial,sans-serif;letter-spacing:5px;font-size:38px}
+#paper .diploma--modern .award-medal{border-radius:15px;transform:rotate(-8deg)}
+#paper .diploma--kids{border:8px dashed var(--sheet-border);border-radius:20px;background:var(--sheet-pale)}
+#paper .diploma--kids h2{font-family:Georgia,serif;font-size:42px;letter-spacing:1px}
+#paper .diploma--kids .award-medal{font-size:58px;border:0;background:#fff;border-radius:30px}
+#paper .diploma .award-reason{max-width:95%;overflow-wrap:anywhere}
+@media print{
+ #paper .labels--soft article,#paper .labels--school article,#paper .diploma--kids,#paper .diploma--modern{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
