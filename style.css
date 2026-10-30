@@ -42,3 +42,68 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
 #paper .award-medal{color:var(--sheet-accent);border-color:var(--sheet-border);background:#fff}
 #paper th{background:var(--sheet-pale);color:var(--sheet-accent)}
 @media print{#paper .cards article,#paper .labels article,#paper th,#paper .diploma{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+/* Habit tracker: readable first column and stable A4 proportions */
+#paper table.habit{width:100%;border-collapse:collapse;table-layout:fixed}
+#paper .habit col.habit-name-col{width:27%}
+#paper .habit col.habit-day-col{width:auto}
+#paper .habit th,#paper .habit td{
+  border:1px solid #c8c2d2;
+  vertical-align:middle;
+  box-sizing:border-box;
+}
+#paper .habit th.habit-name-heading,
+#paper .habit th.habit-name{
+  width:auto;
+  min-width:0;
+  padding:10px 9px;
+  font-size:11px;
+  line-height:1.35;
+  font-weight:700;
+  text-align:left;
+  white-space:normal;
+  word-break:normal;
+  overflow-wrap:break-word;
+  color:#3b344c;
+}
+#paper .habit th.habit-name-heading{
+  font-size:10px;
+  color:var(--sheet-accent);
+  background:var(--sheet-pale);
+  white-space:nowrap;
+}
+#paper .habit th.habit-name{
+  background:#fcfbfe;
+  hyphens:none;
+}
+#paper .habit tr:nth-child(even) th.habit-name{background:#f8f7fb}
+#paper .habit th.habit-day-heading{
+  padding:6px 0;
+  font-size:8px;
+  font-weight:700;
+  line-height:1.2;
+  text-align:center;
+  white-space:nowrap;
+}
+#paper .habit td.habit-day{
+  height:37px;
+  padding:0;
+  text-align:center;
+  background:#fff;
+}
+#paper .habit .habit-box{
+  display:inline-block;
+  width:9px;
+  height:9px;
+  border:1px solid #90859e;
+  border-radius:2px;
+  vertical-align:middle;
+}
+@media print{
+ #paper .habit tr{break-inside:avoid;page-break-inside:avoid}
+ #paper .habit th.habit-name,
+ #paper .habit th.habit-name-heading{
+   -webkit-print-color-adjust:exact;
+   print-color-adjust:exact;
+ }
+}
