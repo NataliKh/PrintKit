@@ -33,3 +33,13 @@ test('math results stay inside the selected range',()=>{
   }
  }
 });
+
+test('habit tracker reserves a name column and 31 checkbox columns',()=>{
+ const getter=k=>({title:'Мои привычки',items:'Читать\nЗарядка\nПить воду',days:'31'})[k]??'';
+ const html=render('habits',getter,escape,lines,clamp);
+ assert.match(html,/<colgroup><col class="habit-name-col">/);
+ assert.equal((html.match(/class="habit-day-col"/g)||[]).length,31);
+ assert.equal((html.match(/class="habit-name"/g)||[]).length,3);
+ assert.equal((html.match(/class="habit-box"/g)||[]).length,93);
+ assert.match(html,/>Пить воду<\/th>/);
+});
