@@ -122,7 +122,9 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
 #paper .problems{row-gap:17px}
 #paper .problems div{min-width:0;overflow-wrap:anywhere}
 #paper .diploma{height:260mm;min-height:0;max-height:260mm;padding:14px;overflow-wrap:anywhere}
-#paper .diploma b{overflow-wrap:anywhere}\n#paper .sheet-page .cards article,#paper .sheet-page .labels article{font-size:inherit}\n#paper .sheet-page .cards small,#paper .sheet-page .labels small{overflow-wrap:anywhere}
+#paper .diploma b{overflow-wrap:anywhere}
+#paper .sheet-page .cards article,#paper .sheet-page .labels article{font-size:inherit}
+#paper .sheet-page .cards small,#paper .sheet-page .labels small{overflow-wrap:anywhere}
 #paper .schedule-table th,#paper .schedule-table td{overflow-wrap:anywhere;word-break:normal}
 #paper .schedule-table tr{height:21mm}
 #paper .schedule-table th,#paper .schedule-table td{padding:6px 4px}
@@ -142,4 +144,13 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
  .preview{overflow:visible!important}
  .layout{display:block!important}
  #paper .sheet-page{margin:0!important;padding:18mm!important}
+}
+
+/* Calendar habit tracking: weekends remain visible even in monochrome print. */
+#paper .habit th.habit-day-heading.habit-weekend{background:#ece6f6;color:#50416c}
+#paper .habit td.habit-day.habit-weekend{background:#f3eff8}
+#paper[data-theme="minimal"] .habit th.habit-day-heading.habit-weekend{background:#e8e8e8;color:#242436}
+#paper[data-theme="minimal"] .habit td.habit-day.habit-weekend{background:#f3f3f3}
+@media print{
+ #paper .habit .habit-weekend{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
