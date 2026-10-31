@@ -31,3 +31,11 @@ const starterKits={
     {id:"week",icon:"☀️",title:"Маленькая неделя",description:"7 дней · простой старт",values:{title:"Моя неделя",items:"Зарядка\nЧтение\nРанний сон",days:"7",month:"Без календаря",theme:"Персиковый"}}
   ]
 };
+
+// Additional ready-to-print ideas for the visual gallery.
+starterKits.math.push({id:"second-grade",icon:"📐",title:"Устный счёт",description:"2 класс · 20 примеров до 50",values:{grade:"2 класс",count:"20",level:"Несколько действий",max:"50",key:"Да"}});
+starterKits.cards.push({id:"greetings",icon:"👋",title:"Английские фразы",description:"8 фраз для начинающих",values:{title:"Английский · общение",items:"Hello! — Привет!\nGood morning! — Доброе утро!\nThank you! — Спасибо!\nPlease — Пожалуйста\nGoodbye! — До свидания!\nHow are you? — Как дела?\nI'm fine — У меня всё хорошо\nSee you! — Увидимся!",theme:"Мятный"}});
+starterKits.labels.push({id:"art",icon:"🎨",title:"Для творчества",description:"12 наклеек для коробок и альбомов",values:{subtitle:"Творчество",count:"12",layout:"Нежный",size:"Стандартные 54 × 38 мм",theme:"Персиковый"}});
+starterKits.diploma.push({id:"kindness",icon:"💛",title:"За доброту",description:"Грамота за хорошие поступки",values:{kind:"Грамота",reason:"За доброту, отзывчивость и заботу о других!",layout:"Детский",theme:"Персиковый"}});
+starterKits.schedule.push({id:"morning",icon:"🌤️",title:"Утро без спешки",description:"5 дней · утренние дела",values:{title:"Моё доброе утро",items:"Проснуться, Умыться, Завтрак, Собрать рюкзак\nПроснуться, Зарядка, Завтрак, Проверить вещи\nПроснуться, Умыться, Завтрак, Пойти в школу\nПроснуться, Зарядка, Завтрак, Собрать рюкзак\nПроснуться, Умыться, Завтрак, Проверить вещи",theme:"Мятный"}});
+starterKits.habits.push({id:"reading",icon:"📚",title:"Марафон чтения",description:"14 дней · маленькие шаги",values:{title:"14 дней с книгой",items:"Читать 10 минут\nПересказать прочитанное\nЗаписать новое слово",days:"14",month:"Без календаря",theme:"Лавандовый"}});
