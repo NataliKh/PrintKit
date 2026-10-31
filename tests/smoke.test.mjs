@@ -168,3 +168,49 @@ test('school notebook labels show only the name and practical caption',()=>{
  assert.match(css,/#paper \.labels--size-small\.labels--school article\{/);
  assert.doesNotMatch(css,/#paper \.labels--school article::before/);
 });
+
+test('school kit prints selected subjects in the requested quantities and order',()=>{
+ const subjects=[{name:'Математика',selected:true,qty:2},{name:'Русский язык',selected:true,qty:3},
+ {name:'География',selected:false,qty:2},{name:'Чтение',selected:true,qty:1}];
+ const data={...vals,kit:'Школьный комплект',layout:'Школьный',size:'Стандартные 54 × 38 мм',
+  name:'Аня',subjects:JSON.stringify(subjects),count:'27'};
+ const html=render('labels',key=>data[key]??'',escape,lines,clamp);
+ assert.match(html,/Школьный комплект наклеек/);
+ assert.equal((html.match(/<article>/g)||[]).length,6,'2 + 3 + 1 labels');
+ assert.equal((html.match(/<small>Математика<\/small>/g)||[]).length,2);
+ assert.equal((html.match(/<small>Русский язык<\/small>/g)||[]).length,3);
+ assert.equal((html.match(/<small>Чтение<\/small>/g)||[]).length,1);
+ assert.doesNotMatch(html,/География/);
+ assert.ok(html.indexOf('Математика')<html.indexOf('Русский язык'));
+ assert.ok(html.indexOf('Русский язык')<html.indexOf('Чтение'));
+ assert.equal((html.match(/class="sheet-page /g)||[]).length,1);
+});
+test('school kit stays A4-paginated for three label sizes',()=>{
+ const subjects=[{name:'Математика',selected:true,qty:24},{name:'Русский язык',selected:true,qty:24},
+ {name:'История',selected:true,qty:24},{name:'Английский',selected:true,qty:24}];
+ for(const [size,perPage] of [
+  ['Стандартные 54 × 38 мм',12],['Маленькие 40 × 22 мм',32],['Крупные 80 × 48 мм',8]
+ ]){
+  const data={...vals,kit:'Школьный комплект',layout:'Школьный',size,subjects:JSON.stringify(subjects)};
+  const html=render('labels',key=>data[key]??'',escape,lines,clamp);
+  assert.equal((html.match(/<article>/g)||[]).length,96);
+  assert.equal((html.match(/class="sheet-page /g)||[]).length,96/perPage);
+ }
+});
+test('school kit escapes custom subjects and rejects malformed records',()=>{
+ const data={...vals,kit:'Школьный комплект',layout:'Школьный',
+  subjects:JSON.stringify([{name:'<img src=x onerror=alert(1)>',selected:true,qty:1}])};
+ const html=render('labels',key=>data[key]??'',escape,lines,clamp);
+ assert.doesNotMatch(html,/<img/);
+ assert.match(html,/&lt;img/);
+ const decode=vm.runInContext('parseSchoolSubjects',context);
+ assert.equal(decode('broken').length,0);
+ assert.equal(decode(JSON.stringify({not:'an array'})).length,0);
+ assert.equal(decode(JSON.stringify([{name:'Тест',selected:true,qty:500}]))[0].qty,24);
+});
+test('default identical labels stay unchanged with school kit selector present',()=>{
+ const data={...vals,kit:'Одинаковые',layout:'Школьный',count:'12',subtitle:'Тетрадь'};
+ const html=render('labels',key=>data[key]??'',escape,lines,clamp);
+ assert.equal((html.match(/<small>Тетрадь<\/small>/g)||[]).length,12);
+ assert.doesNotMatch(html,/Школьный комплект наклеек/);
+});
