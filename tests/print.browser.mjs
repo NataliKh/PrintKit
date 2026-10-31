@@ -230,6 +230,15 @@ try {
     assert.ok(collapsedArrow.image.includes('data:image/svg+xml'),'saved arrow uses same SVG as selects');
     assert.equal(collapsedArrow.width,16);
     assert.equal(collapsedArrow.height,16);
+    const alignedArrow=await page.evaluate(()=>{
+      const select=document.querySelector('#f-size').getBoundingClientRect();
+      const arrow=document.querySelector('.saved-chevron').getBoundingClientRect();
+      return {selectCenterX:select.right-23,arrowCenterX:arrow.left+arrow.width/2,
+        gridColumn:getComputedStyle(document.querySelector('.saved-chevron')).gridColumnStart};
+    });
+    assert.equal(alignedArrow.gridColumn,'4','saved arrow must use final grid column even with hidden count');
+    assert.ok(Math.abs(alignedArrow.selectCenterX-alignedArrow.arrowCenterX)<=1.5,
+      'saved arrow and dropdown arrow must align horizontally '+JSON.stringify(alignedArrow));
     await mkdir('artifacts/ui',{recursive:true});
     await page.locator('#saved-section').screenshot({path:'artifacts/ui/saved-collapsed-desktop.png',animations:'disabled'});
     await page.emulateMedia({media:'print'});
@@ -247,6 +256,12 @@ try {
     assert.equal(await page.locator('.saved-item').count(),1,'first personal project');
     assert.equal(await page.locator('#saved-count').isVisible(),true,'counter shown when nonempty');
     assert.equal(await page.locator('#saved-count').innerText(),'1');
+    const filledAlignment=await page.evaluate(()=>{
+      const select=document.querySelector('#f-size').getBoundingClientRect();
+      const arrow=document.querySelector('.saved-chevron').getBoundingClientRect();
+      return Math.abs((select.right-23)-(arrow.left+arrow.width/2));
+    });
+    assert.ok(filledAlignment<=1.5,'saved arrow stays aligned when count is visible');
     await page.locator('#saved-section').screenshot({path:'artifacts/ui/saved-expanded-desktop.png',animations:'disabled'});
     assert.match(await page.locator('#saved-status').innerText(),/сохранён/);
 
@@ -285,6 +300,12 @@ try {
     await page.setViewportSize({width:390,height:844});
     const savedWidth=await page.evaluate(()=>({body:document.documentElement.scrollWidth,viewport:window.innerWidth}));
     assert.ok(savedWidth.body<=savedWidth.viewport+3,'saved-set list must fit mobile viewport '+JSON.stringify(savedWidth));
+    const mobileAlignment=await page.evaluate(()=>{
+      const select=document.querySelector('#f-size').getBoundingClientRect();
+      const arrow=document.querySelector('.saved-chevron').getBoundingClientRect();
+      return Math.abs((select.right-23)-(arrow.left+arrow.width/2));
+    });
+    assert.ok(mobileAlignment<=1.5,'saved arrow and dropdown must align at 390px: '+mobileAlignment);
     const mobileBox=await page.locator('#saved-section').boundingBox();
     assert.ok(mobileBox && mobileBox.width<=390,'mobile saved panel fits viewport');
     await page.locator('#saved-section').screenshot({path:'artifacts/ui/saved-expanded-mobile.png',animations:'disabled'});
