@@ -75,6 +75,40 @@ try {
       await page.emulateMedia({media:'screen'});
     }
   }
+  // Visual control regression: native dropdown arrow is replaced, focus stays visible.
+  try {
+    await page.locator('[data-tab="labels"]').click();
+    const select=page.locator('#f-layout');
+    const checkSelects=async()=>{
+      const styles=await page.locator('#fields select').evaluateAll(elements=>elements.map(el=>{
+        const css=getComputedStyle(el),rect=el.getBoundingClientRect();
+        return {appearance:css.appearance,image:css.backgroundImage,padding:parseFloat(css.paddingRight),width:rect.width,right:rect.right};
+      }));
+      assert.equal(styles.length,3,'labels have three custom dropdowns');
+      for(const item of styles){
+        assert.equal(item.appearance,'none','hide platform-native arrow');
+        assert.ok(item.image.includes('data:image/svg+xml'),'SVG chevron is visible');
+        assert.ok(item.padding>=40,'text cannot collide with the arrow');
+        assert.ok(item.right<=window.innerWidth+3,'dropdown must fit the viewport');
+      }
+    };
+    await checkSelects();
+    await select.focus();
+    assert.ok((await select.evaluate(el=>getComputedStyle(el).backgroundImage)).includes('data:image/svg+xml'),'focused dropdown keeps its chevron');
+    await select.selectOption({label:'Нежный'});
+    assert.equal(await select.inputValue(),'Нежный','styled select stays keyboard/browser-operable');
+    await mkdir('artifacts/ui',{recursive:true});
+    await page.locator('#fields').screenshot({path:'artifacts/ui/selects-desktop.png',animations:'disabled'});
+    await page.setViewportSize({width:390,height:844});
+    await checkSelects();
+    await page.locator('#fields').screenshot({path:'artifacts/ui/selects-mobile.png',animations:'disabled'});
+    await page.setViewportSize({width:1440,height:900});
+    console.log('PASS custom select chevrons at desktop/mobile widths, focus and interaction');
+  }catch(error){
+    failed=true;
+    console.error('FAIL select styling',error);
+    await page.setViewportSize({width:1440,height:900});
+  }
   // Editor UX: preview must update while typing and printing must refuse clipped text.
   try{
     await page.locator('[data-tab="cards"]').click();
