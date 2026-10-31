@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
+import {mkdir} from 'node:fs/promises';
 import {captureVisual,finishVisualReport} from './visual-artifacts.mjs';
 import {chromium} from 'playwright';
 
@@ -171,11 +172,35 @@ try {
     assert.equal(await page.locator('#catalog-grid [data-template]').count(),4,'four filtered labels at narrow viewport');
     await page.setViewportSize({width:1440,height:900});
     console.log('PASS searchable template catalog, one-click editing and mobile layout');
+    // The saved-set control belongs after the editable fields, not above them.
+    const compact=await page.evaluate(()=>{
+      const fields=document.querySelector('#fields').getBoundingClientRect();
+      const saved=document.querySelector('#saved-section').getBoundingClientRect();
+      const summary=document.querySelector('#saved-section summary').getBoundingClientRect();
+      const actions=document.querySelector('.actions').getBoundingClientRect();
+      return {fieldsBottom:fields.bottom,savedTop:saved.top,summaryHeight:summary.height,actionsTop:actions.top,
+        sectionWidth:saved.width,editorWidth:document.querySelector('.editor-panel').clientWidth};
+    });
+    assert.ok(compact.savedTop>=compact.fieldsBottom-2,'saved control should follow settings '+JSON.stringify(compact));
+    assert.ok(compact.savedTop<compact.actionsTop,'saved control should precede print actions');
+    assert.ok(compact.summaryHeight<=70,'collapsed saved control should stay compact '+JSON.stringify(compact));
+    assert.ok(compact.sectionWidth<=compact.editorWidth,'saved control must fit editor');
+    assert.equal(await page.locator('#saved-count').isVisible(),false,'hide distracting zero counter');
+    assert.match(await page.locator('#saved-hint').innerText(),/Сохранить текущие настройки/);
+    await mkdir('artifacts/ui',{recursive:true});
+    await page.locator('#saved-section').screenshot({path:'artifacts/ui/saved-collapsed-desktop.png',animations:'disabled'});
+    await page.emulateMedia({media:'print'});
+    assert.equal(await page.locator('#saved-section').isVisible(),false,'saved UI stays off the printable A4 page');
+    await page.emulateMedia({media:'screen'});
+
     // Named projects persist across reload and switch generators without losing custom inputs.
     await page.locator('#saved-section summary').click();
     await page.locator('#saved-name').fill('Ярлыки семьи');
     await page.locator('#saved-save').click();
     assert.equal(await page.locator('.saved-item').count(),1,'first personal project');
+    assert.equal(await page.locator('#saved-count').isVisible(),true,'counter shown when nonempty');
+    assert.equal(await page.locator('#saved-count').innerText(),'1');
+    await page.locator('#saved-section').screenshot({path:'artifacts/ui/saved-expanded-desktop.png',animations:'disabled'});
     assert.match(await page.locator('#saved-status').innerText(),/сохранён/);
 
     await page.locator('[data-tab="math"]').click();
@@ -213,6 +238,9 @@ try {
     await page.setViewportSize({width:390,height:844});
     const savedWidth=await page.evaluate(()=>({body:document.documentElement.scrollWidth,viewport:window.innerWidth}));
     assert.ok(savedWidth.body<=savedWidth.viewport+3,'saved-set list must fit mobile viewport '+JSON.stringify(savedWidth));
+    const mobileBox=await page.locator('#saved-section').boundingBox();
+    assert.ok(mobileBox && mobileBox.width<=390,'mobile saved panel fits viewport');
+    await page.locator('#saved-section').screenshot({path:'artifacts/ui/saved-expanded-mobile.png',animations:'disabled'});
     await page.setViewportSize({width:1440,height:900});
     console.log('PASS saved projects: persistence, restoration, printing, deletion, escaping and mobile');
   }catch(error){
