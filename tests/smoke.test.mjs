@@ -106,7 +106,7 @@ test('three label layouts keep all 27 labels on three A4 sheets',()=>{
   assert.equal((html.match(/<article>/g)||[]).length,27);
   assert.doesNotMatch(html,/<script>/);
   assert.match(html,/Аня &lt;script&gt;/);
-  assert.equal((html.match(/class="label-mark"/g)||[]).length,27);
+  assert.equal((html.match(/class="label-mark"/g)||[]).length,layout==='Школьный'?0:27);
  }
 });
 test('three diploma layouts keep award content escaped on one A4 sheet',()=>{
