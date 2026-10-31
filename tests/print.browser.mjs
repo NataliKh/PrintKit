@@ -96,9 +96,20 @@ try {
       await page.locator('#f-size').selectOption({label:size});
       await page.locator('#f-count').fill('1');
       await page.locator('#f-count').dispatchEvent('change');
-      await page.waitForFunction(()=>!document.querySelector('#print').disabled);
+      // Let the 240 ms debounced live preview finish before switching print media.
+      await page.waitForFunction(({name,size})=>{
+        const label=document.querySelector('#paper .labels--school article');
+        return label && label.querySelector('b')?.textContent===name &&
+          document.querySelector('#paper .labels article')===label &&
+          document.querySelectorAll('#paper .labels article').length===1 &&
+          document.querySelector('#f-size').value===size &&
+          !document.querySelector('#print').disabled;
+      },{name,size});
+      await page.waitForTimeout(320);
       await page.emulateMedia({media:'print'});
-      const measurements=await page.locator('.labels--school article').first().evaluate(el=>{
+      const measurements=await page.evaluate(()=>{
+        const el=document.querySelector('#paper .sheet-page .labels--school article');
+        if(!el)throw new Error('school label missing in print media');
         const article=el.getBoundingClientRect();
         const mark=el.querySelector('.label-mark');
         const name=el.querySelector('b');
@@ -126,7 +137,7 @@ try {
       assert.match(info,/Pages:\s+1/,'single print page for one school label');
       await mkdir('artifacts/ui',{recursive:true});
       const tag=expectedWidth+'x'+expectedHeight;
-      await page.locator('.labels--school article').first().screenshot({
+      await page.locator('#paper .labels--school article').first().screenshot({
         path:'artifacts/ui/school-label-'+tag+'.png',animations:'disabled'
       });
       if(expectedWidth===54)await page.locator('.sheet-page').first().screenshot({
