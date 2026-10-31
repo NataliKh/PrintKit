@@ -1,5 +1,5 @@
 const modes=["math","cards","labels","diploma","schedule","habits"];const names=["➕ Математика","🃏 Карточки","🏷️ Наклейки","🏆 Грамоты","📅 Расписание","✅ Привычки"];
-const configs={math:[["grade","Класс","select","1 класс|2 класс|3 класс|4 класс|5 класс"],["count","Примеров","number","20"],["level","Сложность","select","Простые|Несколько действий|Со скобками"],["max","Максимальный результат","select","10|20|50|100|200"],["key","Лист с ответами","select","Нет|Да"]],cards:[["title","Название","text","Карточки"],["items","Термин — перевод, каждый с новой строки","textarea","cat — кошка\ndog — собака\nsun — солнце"]],labels:[["name","Имя","text","Анна Иванова"],["subtitle","Подпись","text","Мои вещи"],["count","Количество","number","18"],["layout","Макет наклеек","select","Классический|Школьный|Нежный"],["size","Размер наклеек","select","Стандартные 54 × 38 мм|Маленькие 40 × 22 мм|Крупные 80 × 48 мм"]],diploma:[["kind","Тип","select","Грамота|Диплом|Сертификат"],["name","Кому","text","Анна Иванова"],["reason","За что","textarea","За отличные успехи!"],["issuer","Кто награждает","text","Классный руководитель"],["layout","Макет грамоты","select","Торжественный|Современный|Детский"]],schedule:[["title","Заголовок","text","Моё расписание"],["items","Уроки через запятую, каждый день — новая строка","textarea","Математика, Русский\nЧтение, Музыка\nМатематика, Английский\nРусский, Физкультура\nЧтение, Математика"]],habits:[["title","Заголовок","text","Мои привычки"],["items","Привычки по строкам","textarea","Читать\nЗарядка\nПить воду"],["days","Дней (без календаря)","number","30"],["month","Месяц","select","Без календаря|Январь|Февраль|Март|Апрель|Май|Июнь|Июль|Август|Сентябрь|Октябрь|Ноябрь|Декабрь"],["year","Год","number","2026"]]};
+const configs={math:[["grade","Класс","select","1 класс|2 класс|3 класс|4 класс|5 класс"],["count","Примеров","number","20"],["level","Сложность","select","Простые|Несколько действий|Со скобками"],["max","Максимальный результат","select","10|20|50|100|200"],["key","Лист с ответами","select","Нет|Да"]],cards:[["title","Название","text","Карточки"],["items","Термин — перевод, каждый с новой строки","textarea","cat — кошка\ndog — собака\nsun — солнце"]],labels:[["name","Имя","text","Анна Иванова"],["subtitle","Подпись","text","Мои вещи"],["count","Количество","number","18"],["layout","Макет наклеек","select","Классический|Школьный|Нежный"],["size","Размер наклеек","select","Стандартные 54 × 38 мм|Маленькие 40 × 22 мм|Крупные 80 × 48 мм"],["kit","Вариант набора","select","Одинаковые|Школьный комплект"],["subjects","Предметы и количество","subjects","[{\"name\":\"Математика\",\"selected\":true,\"qty\":2},{\"name\":\"Русский язык\",\"selected\":true,\"qty\":2},{\"name\":\"Литература\",\"selected\":true,\"qty\":1},{\"name\":\"Английский язык\",\"selected\":true,\"qty\":1},{\"name\":\"Окружающий мир\",\"selected\":true,\"qty\":1},{\"name\":\"История\",\"selected\":true,\"qty\":1},{\"name\":\"Биология\",\"selected\":false,\"qty\":1},{\"name\":\"География\",\"selected\":false,\"qty\":1},{\"name\":\"Тетрадь\",\"selected\":true,\"qty\":2},{\"name\":\"Черновик\",\"selected\":true,\"qty\":2}]"]],diploma:[["kind","Тип","select","Грамота|Диплом|Сертификат"],["name","Кому","text","Анна Иванова"],["reason","За что","textarea","За отличные успехи!"],["issuer","Кто награждает","text","Классный руководитель"],["layout","Макет грамоты","select","Торжественный|Современный|Детский"]],schedule:[["title","Заголовок","text","Моё расписание"],["items","Уроки через запятую, каждый день — новая строка","textarea","Математика, Русский\nЧтение, Музыка\nМатематика, Английский\nРусский, Физкультура\nЧтение, Математика"]],habits:[["title","Заголовок","text","Мои привычки"],["items","Привычки по строкам","textarea","Читать\nЗарядка\nПить воду"],["days","Дней (без календаря)","number","30"],["month","Месяц","select","Без календаря|Январь|Февраль|Март|Апрель|Май|Июнь|Июль|Август|Сентябрь|Октябрь|Ноябрь|Декабрь"],["year","Год","number","2026"]]};
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value).replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -21,6 +21,16 @@ function save(){
 }
 function field([id,label,type,defaults]){
  const value=data[mode]?.[id]??defaults.split("|")[0];
+ if(type==="subjects"){
+  return '<section class="field school-picker" data-field-id="'+id+'" hidden>'+
+   '<h4>'+esc(label)+'</h4><p class="school-picker-help">Отметьте предметы и укажите, сколько наклеек нужно для каждого.</p>'+
+   '<input type="hidden" id="f-'+id+'" data-k="'+id+'" value="'+esc(value)+'">'+
+   '<div id="school-subject-list" class="school-subject-list"></div>'+
+   '<div class="school-add"><label for="school-new-name">Свой предмет</label><div class="school-add-actions">'+
+   '<input id="school-new-name" type="text" maxlength="36" placeholder="Например, Информатика">'+
+   '<button id="school-add-button" type="button">+ Добавить</button></div></div>'+
+   '<p id="school-subject-count" class="school-subject-count" role="status" aria-live="polite"></p></section>';
+ }
  let input;
  if(type==="select"){
   input='<select id="f-'+id+'" data-k="'+id+'">'+defaults.split("|").map(x=>'<option '+(x===value?"selected":"")+'>'+esc(x)+'</option>').join("")+'</select>';
@@ -31,7 +41,7 @@ function field([id,label,type,defaults]){
   const attrs=type==="number"?' min="1"'+(max?' max="'+max+'"':''):'';
   input='<input id="f-'+id+'" data-k="'+id+'" type="'+type+'"'+attrs+' value="'+esc(value)+'">';
  }
- return '<label class="field" for="f-'+id+'">'+esc(label)+input+'</label>';
+ return '<label class="field" data-field-id="'+id+'" for="f-'+id+'">'+esc(label)+input+'</label>';
 }
 function fit(){
  const paper=$("paper"),box=paper.parentElement;
@@ -53,7 +63,13 @@ function printIssues(){
  const issues=[];
  const inputCount=Number(val("count"));
  if(mode==="math"&&inputCount>40)issues.push("За один раз можно создать до 40 примеров. Уменьшите количество.");
- if(mode==="labels"&&inputCount>96)issues.push("За один раз можно создать до 96 наклеек. Уменьшите количество.");
+ if(mode==="labels"&&val("kit")!=="Школьный комплект"&&inputCount>96)issues.push("За один раз можно создать до 96 наклеек. Уменьшите количество.");
+ if(mode==="labels"&&val("kit")==="Школьный комплект"){
+  const chosen=parseSchoolSubjects(val("subjects")).filter(item=>item.selected);
+  const total=chosen.reduce((sum,item)=>sum+item.qty,0);
+  if(total===0)issues.push("Выберите хотя бы один предмет для школьного комплекта.");
+  if(total>96)issues.push("В одном комплекте можно создать не более 96 наклеек. Уменьшите количество.");
+ }
  if(mode==="cards"&&lines(val("items")).length>40)issues.push("Можно распечатать до 40 карточек. Уберите лишние строки.");
  if(mode==="habits"&&lines(val("items")).length>15)issues.push("Трекер рассчитан на 15 привычек. Уберите лишние строки.");
  if(mode==="schedule"&&lines(val("items")).length>7)issues.push("В расписании можно указать до семи дней.");
@@ -85,6 +101,87 @@ function generate(){
 for(const name of ["cards","labels","diploma","schedule","habits"]){
  configs[name].unshift(["theme","Стиль оформления","select","Лавандовый|Мятный|Персиковый|Минимализм"]);
 }
+function toggleLabelKit(){
+ if(mode!=="labels")return;
+ const school=val("kit")==="Школьный комплект";
+ for(const key of ["subtitle","count"]){
+  const field=document.querySelector('#fields [data-field-id="'+key+'"]');
+  if(field)field.hidden=school;
+ }
+ const picker=document.querySelector('#fields [data-field-id="subjects"]');
+ if(picker)picker.hidden=!school;
+}
+function renderSchoolPicker(){
+ if(mode!=="labels")return;
+ const holder=$("school-subject-list"),hidden=$("f-subjects");
+ if(!holder||!hidden)return;
+ const items=parseSchoolSubjects(hidden.value);
+ holder.innerHTML=items.map((item,i)=>'<div class="school-subject-row" data-subject-index="'+i+'">'+
+  '<label class="school-subject-name"><input class="school-subject-check" type="checkbox" '+(item.selected?'checked':'')+'>'+
+  '<span>'+esc(item.name)+'</span></label>'+
+  '<label class="school-subject-qty"><span class="sr-only">Количество наклеек: '+esc(item.name)+'</span>'+
+  '<input type="number" min="1" max="24" inputmode="numeric" value="'+item.qty+'" '+(!item.selected?'disabled':'')+'></label>'+
+  '<button type="button" class="school-subject-remove" aria-label="Убрать '+esc(item.name)+'" title="Убрать предмет">×</button></div>').join("");
+ const updateTotal=()=>{
+  const active=parseSchoolSubjects(hidden.value).filter(item=>item.selected);
+  const total=active.reduce((sum,item)=>sum+item.qty,0);
+  const message="Выбрано: "+total+" наклеек · "+active.length+" предметов";
+  $("school-subject-count").textContent=total>96?message+". Максимум — 96.":message;
+  $("school-subject-count").classList.toggle("is-warning",total>96||total===0);
+ };
+ const update=(i,fields)=>{
+  const next=parseSchoolSubjects(hidden.value);
+  if(!next[i])return;
+  Object.assign(next[i],fields);
+  hidden.value=JSON.stringify(next);
+  chooseStarter(null);
+  $("starter-status").textContent="";
+  updateTotal();
+  generate();
+ };
+ holder.querySelectorAll(".school-subject-row").forEach(row=>{
+  const i=Number(row.dataset.subjectIndex);
+  const checkbox=row.querySelector(".school-subject-check");
+  const qty=row.querySelector(".school-subject-qty input");
+  checkbox.onchange=()=>{
+   update(i,{selected:checkbox.checked});
+   renderSchoolPicker();
+  };
+  qty.onchange=()=>{
+   update(i,{qty:Math.min(24,Math.max(1,Math.floor(Number(qty.value)||1)))});
+   renderSchoolPicker();
+  };
+  row.querySelector(".school-subject-remove").onclick=()=>{
+   const next=parseSchoolSubjects(hidden.value);
+   next.splice(i,1);
+   hidden.value=JSON.stringify(next);
+   chooseStarter(null);
+   $("starter-status").textContent="";
+   renderSchoolPicker();
+   generate();
+  };
+ });
+ const addName=$("school-new-name"),addButton=$("school-add-button");
+ addButton.onclick=()=>{
+  const name=addName.value.trim().replace(/\\s+/g," ");
+  const items=parseSchoolSubjects(hidden.value);
+  if(!name||name.length>36){$("school-subject-count").textContent="Введите название предмета до 36 символов.";return}
+  if(items.some(item=>item.name.toLocaleLowerCase("ru")===name.toLocaleLowerCase("ru"))){
+   $("school-subject-count").textContent="Этот предмет уже есть в списке.";return;
+  }
+  if(items.length>=20){$("school-subject-count").textContent="Можно добавить не более 20 предметов.";return}
+  items.push({name,selected:true,qty:1});
+  hidden.value=JSON.stringify(items);
+  addName.value="";
+  chooseStarter(null);
+  $("starter-status").textContent="";
+  renderSchoolPicker();
+  generate();
+  $("school-new-name").focus();
+ };
+ addName.onkeydown=event=>{if(event.key==="Enter"){event.preventDefault();addButton.click()}};
+ updateTotal();
+}
 function chooseStarter(selectedId){
  document.querySelectorAll("#starter-grid [data-starter]").forEach(button=>{
   button.setAttribute("aria-pressed",String(button.dataset.starter===selectedId));
@@ -99,6 +196,7 @@ function useStarter(id){
   const control=$("f-"+key);
   if(control)control.value=String(value);
  });
+ if(mode==="labels"){renderSchoolPicker();toggleLabelKit();}
  chooseStarter(kit.id);
  $("starter-status").textContent="Готово: «"+kit.title+"». Можно изменить параметры ниже.";
  generate();
@@ -221,8 +319,9 @@ function render(){
  renderStarters();
  renderSavedSets();
  $("fields").innerHTML=configs[mode].map(field).join("");
+ if(mode==="labels"){renderSchoolPicker();toggleLabelKit();}
  document.querySelectorAll("[data-k]").forEach(el=>{
-  el.onchange=()=>{clearTimeout(inputTimer);chooseStarter(null);$("starter-status").textContent="";generate()};
+  el.onchange=()=>{clearTimeout(inputTimer);chooseStarter(null);$("starter-status").textContent="";if(mode==="labels"&&el.dataset.k==="kit")toggleLabelKit();generate()};
   if(el.tagName!=="SELECT")el.oninput=()=>{
    clearTimeout(inputTimer);
    chooseStarter(null);
