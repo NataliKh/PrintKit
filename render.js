@@ -23,29 +23,14 @@ const heading=(text,subtitle="")=>'<h2>'+text+'</h2>'+(subtitle?'<p class="sub">
 const parts=[];
 const layoutClass=(value,allowed)=>allowed[value]||allowed[Object.keys(allowed)[0]];
 if(mode==="math"){
- const max=Math.max(2,Math.min(200,Number(get("max"))||20)),total=clamp(get("count"),40),level=get("level");
- const random=(lo,hi)=>lo+Math.floor(Math.random()*(hi-lo+1));
- const questions=[],answers=[];
- for(let i=0;i<total;i++){
-  let text="",answer=0,attempt=0;
-  do{
-   const a=random(0,max),b=random(0,max),c=random(0,max);
-   if(level==="Простые"){
-    if(Math.random()<.5){answer=a+b;text=a+" + "+b}
-    else{answer=a-b;text=a+" − "+b}
-   }else if(level==="Несколько действий"){answer=a+b-c;text=a+" + "+b+" − "+c}
-   else if(Math.random()<.5){answer=a+(b-c);text=a+" + ("+b+" − "+c+")"}
-   else{answer=a-(b-c);text=a+" − ("+b+" − "+c+")"}
-   attempt++;
-  }while((answer<0||answer>max)&&attempt<300);
-  if(answer<0||answer>max){const a=random(0,max),b=random(0,max-a);text=a+" + "+b;answer=a+b}
-  questions.push('<div>'+(i+1)+'. '+text+' = ______</div>');
-  answers.push('<span>'+(i+1)+'. '+answer+'</span>');
- }
  const grade=e(get("grade"));
+ const generated=mathGenerate(get("grade"),get("topic"),get("level"),get("max"),clamp(get("count"),40));
+ const questions=generated.questions.map((q,i)=>'<div>'+(i+1)+'. '+e(q.text)+(q.blank?'':' = ______')+'</div>');
+ const answers=generated.questions.map((q,i)=>'<span>'+(i+1)+'. '+q.answer+'</span>');
  const perPage=20;
  for(let i=0;i<questions.length;i+=perPage){
-  parts.push(page(heading('Математика · '+grade,'Имя: ____________________　Дата: ____________')+
+  parts.push(page(heading('Математика · '+grade,
+   'Тема: '+e(generated.topic)+' · Имя: ____________________　Дата: ____________')+
    '<div class="problems">'+questions.slice(i,i+perPage).join("")+'</div>','math-page'));
  }
  if(get("key")==="Да"){

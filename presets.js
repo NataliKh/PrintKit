@@ -1,9 +1,9 @@
 // Curated, local-only quick starts. Personal names and issuer fields are deliberately not overwritten.
 const starterKits={
   math:[
-    {id:"first",icon:"✏️",title:"Первые примеры",description:"1 класс · до 10",values:{grade:"1 класс",count:"12",level:"Простые",max:"10",key:"Нет"}},
-    {id:"brackets",icon:"🧩",title:"Со скобками",description:"2 класс · с ответами",values:{grade:"2 класс",count:"16",level:"Со скобками",max:"20",key:"Да"}},
-    {id:"practice",icon:"🎯",title:"Большая тренировка",description:"5 класс · 40 заданий",values:{grade:"5 класс",count:"40",level:"Несколько действий",max:"100",key:"Да"}}
+    {id:"first",icon:"✏️",title:"Первые примеры",description:"1 класс · до 10",values:{grade:"1 класс",topic:"Сложение и вычитание",count:"12",level:"Простые",max:"10",key:"Нет"}},
+    {id:"brackets",icon:"🧩",title:"Со скобками",description:"2 класс · с ответами",values:{grade:"2 класс",topic:"Сложение и вычитание",count:"16",level:"Со скобками",max:"20",key:"Да"}},
+    {id:"practice",icon:"🎯",title:"Большая тренировка",description:"5 класс · 40 заданий",values:{grade:"5 класс",topic:"По программе класса",count:"40",level:"Несколько действий",max:"100",key:"Да"}}
   ],
   cards:[
     {id:"animals",icon:"🐾",title:"Животные",description:"8 английских слов",values:{title:"Английский · животные",items:"cat — кошка\ndog — собака\nbird — птица\nfish — рыба\nhorse — лошадь\nmouse — мышь\nrabbit — кролик\nbear — медведь",theme:"Мятный"}},
@@ -33,7 +33,7 @@ const starterKits={
 };
 
 // Additional ready-to-print ideas for the visual gallery.
-starterKits.math.push({id:"second-grade",icon:"📐",title:"Устный счёт",description:"2 класс · 20 примеров до 50",values:{grade:"2 класс",count:"20",level:"Несколько действий",max:"50",key:"Да"}});
+starterKits.math.push({id:"second-grade",icon:"📐",title:"Устный счёт",description:"2 класс · 20 примеров до 50",values:{grade:"2 класс",topic:"Сложение и вычитание",count:"20",level:"Несколько действий",max:"50",key:"Да"}});
 starterKits.cards.push({id:"greetings",icon:"👋",title:"Английские фразы",description:"8 фраз для начинающих",values:{title:"Английский · общение",items:"Hello! — Привет!\nGood morning! — Доброе утро!\nThank you! — Спасибо!\nPlease — Пожалуйста\nGoodbye! — До свидания!\nHow are you? — Как дела?\nI'm fine — У меня всё хорошо\nSee you! — Увидимся!",theme:"Мятный"}});
 starterKits.labels.push({id:"art",icon:"🎨",title:"Для творчества",description:"12 наклеек для коробок и альбомов",values:{audience:"Один ребёнок",kit:"Одинаковые",subtitle:"Творчество",count:"12",layout:"Нежный",size:"Стандартные 54 × 38 мм",theme:"Персиковый"}});
 starterKits.diploma.push({id:"kindness",icon:"💛",title:"За доброту",description:"Грамота за хорошие поступки",values:{kind:"Грамота",reason:"За доброту, отзывчивость и заботу о других!",layout:"Детский",theme:"Персиковый"}});

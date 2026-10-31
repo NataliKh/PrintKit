@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 const context=vm.createContext({});
+vm.runInContext(readFileSync(new URL('../math.js',import.meta.url),'utf8'),context);
 vm.runInContext(readFileSync(new URL('../render.js',import.meta.url),'utf8'),context);
 const render=vm.runInContext('renderSheet',context);
-const vals={grade:'2 класс',count:'10',level:'Со скобками',title:'Тест',items:'cat — кошка\ndog — собака',name:'Анна',subtitle:'Школа',kind:'Грамота',reason:'Успехи',issuer:'Учитель',days:'7'};
+const vals={grade:'2 класс',topic:'Сложение и вычитание',count:'10',level:'Со скобками',title:'Тест',items:'cat — кошка\ndog — собака',name:'Анна',subtitle:'Школа',kind:'Грамота',reason:'Успехи',issuer:'Учитель',days:'7'};
 const escape=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const lines=s=>String(s).split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 const clamp=(n,max)=>Math.max(1,Math.min(max,Number(n)||1));
@@ -17,7 +18,7 @@ test('user text is escaped',()=>{const html=render('labels',key=>key==='name'?'<
 test('math results stay inside the selected range',()=>{
  for(const level of ['Простые','Несколько действий','Со скобками']){
   for(let run=0;run<12;run++){
-   const getter=k=>({grade:'2 класс',count:'40',max:'20',level,key:'Да'})[k]??'';
+   const getter=k=>({grade:'2 класс',topic:'Сложение и вычитание',count:'40',max:'20',level,key:'Да'})[k]??'';
    const html=render('math',getter,escape,lines,clamp);
    const questions=[...html.matchAll(/<div>\d+\. ([^<]+) = ______<\/div>/g)];
    const answers=[...html.matchAll(/<span>\d+\. (\d+)<\/span>/g)].map(x=>Number(x[1]));
@@ -258,4 +259,43 @@ test('family names remain escaped; single-child mode ignores saved siblings',()=
  const single=render('labels',key=>({...data,audience:'Один ребёнок',name:'Аня'})[key]??'',escape,lines,clamp);
  assert.equal((single.match(/<article>/g)||[]).length,1);
  assert.doesNotMatch(single,/Марк/);
+});
+
+test('grade-specific topics, arithmetic correctness and integer answers',()=>{
+ const generate=vm.runInContext('mathGenerate',context);
+ const topics=vm.runInContext('mathTopicsByGrade',context);
+ const evaluate=text=>{
+  const equation=text.replace(/−/g,'-').replace(/×/g,'*').replace(/:/g,'/');
+  const fraction=equation.match(/^(\d+)\/(\d+) от (\d+)$/);
+  if(fraction)return Number(fraction[1])*Number(fraction[3])/Number(fraction[2]);
+  assert.match(equation,/^[\d+*/()\s.-]+$/);
+  return Function('return ('+equation+')')();
+ };
+ for(const [grade,available] of Object.entries(topics)){
+  for(const topic of available){
+   for(const limit of [10,20,50,100,200]){
+    for(let trial=0;trial<12;trial++){
+     const result=generate(grade,topic,'Со скобками',limit,40);
+     assert.equal(result.questions.length,40);
+     for(const q of result.questions){
+      assert.ok(Number.isInteger(q.answer)&&q.answer>=0&&q.answer<=limit,grade+' '+topic+': '+JSON.stringify(q));
+      if(q.blank){
+       const parts=q.text.replace('□',String(q.answer)).split(' = ');
+       assert.equal(parts.length,2);
+       assert.equal(evaluate(parts[0]),evaluate(parts[1]),grade+' '+q.text);
+      }else{
+       assert.equal(evaluate(q.text),q.answer,grade+' '+q.text);
+      }
+     }
+    }
+   }
+  }
+ }
+ assert.ok(!topics['1 класс'].includes('Таблица умножения'));
+ assert.ok(topics['3 класс'].includes('Таблица умножения'));
+ const html=render('math',k=>({grade:'3 класс',topic:'Таблица умножения',max:'100',
+  count:'20',level:'Простые',key:'Да'})[k]??'',escape,lines,clamp);
+ assert.equal((html.match(/×/g)||[]).length,20);
+ assert.equal((html.match(/class="sheet-page /g)||[]).length,2);
+ assert.match(html,/Тема: Таблица умножения/);
 });
