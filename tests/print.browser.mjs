@@ -111,22 +111,26 @@ try {
         const el=document.querySelector('#paper .sheet-page .labels--school article');
         if(!el)throw new Error('school label missing in print media');
         const article=el.getBoundingClientRect();
-        const mark=el.querySelector('.label-mark');
         const name=el.querySelector('b');
         const subtitle=el.querySelector('small');
-        const items=[mark,name,subtitle].map(x=>{
+        const items=[name,subtitle].map(x=>{
           const rect=x.getBoundingClientRect();
           return {text:x.textContent,left:rect.left-article.left,right:article.right-rect.right,
             top:rect.top-article.top,bottom:article.bottom-rect.bottom};
         });
         const css=getComputedStyle(el);
         return {width:article.width,height:article.height,border:css.borderTopStyle,bg:css.backgroundColor,
+          hasDecorativeMark:!!el.querySelector('.label-mark'),
+          stripe:getComputedStyle(el,'::before').content,
           overflow:el.scrollHeight-el.clientHeight,items};
       });
       assert.ok(Math.abs(measurements.width-expectedWidth*96/25.4)<2,'exact label width '+JSON.stringify(measurements));
       assert.ok(Math.abs(measurements.height-expectedHeight*96/25.4)<2,'exact label height '+JSON.stringify(measurements));
       assert.equal(measurements.border,'solid','school label uses clean solid border');
-      assert.equal(measurements.items[0].text,'ИМЕННАЯ НАКЛЕЙКА','no stray pencil icon');
+      assert.equal(measurements.hasDecorativeMark,false,'no redundant label heading');
+      assert.equal(measurements.stripe,'none','no unnecessary top stripe');
+      assert.equal(measurements.items[0].text,name,'name is the first and primary element');
+      assert.equal(measurements.items[1].text,'Тетрадь','caption remains legible');
       for(const item of measurements.items){
         assert.ok(item.left>=-2&&item.right>=-2&&item.top>=-2&&item.bottom>=-2,
           'school label element must fit '+JSON.stringify(measurements));
