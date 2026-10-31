@@ -171,6 +171,50 @@ try {
     assert.equal(await page.locator('#catalog-grid [data-template]').count(),4,'four filtered labels at narrow viewport');
     await page.setViewportSize({width:1440,height:900});
     console.log('PASS searchable template catalog, one-click editing and mobile layout');
+    // Named projects persist across reload and switch generators without losing custom inputs.
+    await page.locator('#saved-section summary').click();
+    await page.locator('#saved-name').fill('Ярлыки семьи');
+    await page.locator('#saved-save').click();
+    assert.equal(await page.locator('.saved-item').count(),1,'first personal project');
+    assert.match(await page.locator('#saved-status').innerText(),/сохранён/);
+
+    await page.locator('[data-tab="math"]').click();
+    await page.locator('#f-count').fill('14');
+    await page.locator('#saved-name').fill('Математика на неделю');
+    await page.locator('#saved-save').click();
+    assert.equal(await page.locator('.saved-item').count(),2,'projects from different generators');
+
+    await page.reload();
+    await page.locator('#saved-section summary').click();
+    assert.equal(await page.locator('.saved-item').count(),2,'projects survive reload');
+    await page.locator('.saved-item').filter({hasText:'Ярлыки семьи'}).locator('.saved-open').click();
+    assert.equal(await page.locator('[data-tab="labels"]').getAttribute('aria-current'),'true','saved set restores generator');
+    assert.equal(await page.locator('#f-name').inputValue(),'Тестовое имя','saved personal label is restored');
+    assert.equal(await page.locator('#f-subtitle').inputValue(),'Творчество','saved subtitle is restored');
+    assert.equal(await page.locator('#print').isDisabled(),false,'saved set prints correctly');
+    const beforeSavedPrint=await page.locator('#paper').innerHTML();
+    await page.evaluate(()=>window.print=()=>{});
+    await page.locator('#print').click();
+    assert.equal(await page.locator('#paper').innerHTML(),beforeSavedPrint,'printing saved project must not regenerate content');
+
+    const removal=page.locator('.saved-item').filter({hasText:'Ярлыки семьи'}).locator('.saved-remove');
+    page.once('dialog',dialog=>dialog.dismiss());
+    await removal.click();
+    assert.equal(await page.locator('.saved-item').count(),2,'cancel deletion leaves project untouched');
+    page.once('dialog',dialog=>dialog.accept());
+    await removal.click();
+    assert.equal(await page.locator('.saved-item').count(),1,'confirmed deletion removes only chosen project');
+
+    await page.locator('#saved-name').fill('<img src=x onerror=alert(1)>');
+    await page.locator('#saved-save').click();
+    assert.equal(await page.locator('.saved-item').count(),2);
+    assert.equal(await page.locator('#saved-list img').count(),0,'project names are HTML-escaped');
+
+    await page.setViewportSize({width:390,height:844});
+    const savedWidth=await page.evaluate(()=>({body:document.documentElement.scrollWidth,viewport:window.innerWidth}));
+    assert.ok(savedWidth.body<=savedWidth.viewport+3,'saved-set list must fit mobile viewport '+JSON.stringify(savedWidth));
+    await page.setViewportSize({width:1440,height:900});
+    console.log('PASS saved projects: persistence, restoration, printing, deletion, escaping and mobile');
   }catch(error){
     failed=true;
     console.error('FAIL editor usability',error);
