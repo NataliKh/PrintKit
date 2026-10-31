@@ -103,6 +103,16 @@ function useStarter(id){
  $("starter-status").textContent="Готово: «"+kit.title+"». Можно изменить параметры ниже.";
  generate();
 }
+function applyCatalogStarter(nextMode,id){
+ if(!modes.includes(nextMode)||!starterKits[nextMode]?.some(kit=>kit.id===id))return;
+ clearTimeout(inputTimer);
+ save();
+ mode=nextMode;
+ render();
+ useStarter(id);
+ navigateTo("editor-controls");
+ $("title").focus({preventScroll:true});
+}
 function renderStarters(){
  const items=starterKits[mode]||[];
  $("starter-grid").innerHTML=items.map(item=>
