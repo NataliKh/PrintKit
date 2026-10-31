@@ -20,7 +20,9 @@ function galleryNormalize(value){return String(value).toLocaleLowerCase("ru").re
 function galleryCard(kit){
  return '<button type="button" class="catalog-card" data-template="'+esc(kit.id)+'" data-mode="'+esc(kit.type)+'" aria-label="Выбрать шаблон: '+esc(kit.title)+'">'+
   '<span class="catalog-thumbnail catalog-thumbnail--'+esc(kit.type)+'" aria-hidden="true">'+
-   '<span class="catalog-sheet"><span class="catalog-sheet-title"></span>'+galleryMiniatures[kit.type]+'</span><span class="catalog-a4">А4</span></span>'+
+   '<span class="catalog-sheet"><span class="catalog-sheet-title"></span>'+galleryMiniatures[kit.type]+'</span>'+
+   '<img class="catalog-real-preview" src="./previews/'+esc(kit.type)+'-'+esc(kit.id)+'.jpg" alt="" loading="lazy" width="333" height="471">'+
+   '<span class="catalog-a4">А4</span></span>'+
   '<span class="catalog-card-body"><span class="catalog-category">'+esc(galleryCategoryNames[kit.type])+'</span>'+
   '<span class="catalog-card-title">'+esc(kit.icon)+' '+esc(kit.title)+'</span>'+
   '<span class="catalog-card-description">'+esc(kit.description)+'</span>'+
@@ -49,6 +51,9 @@ function galleryRender(){
  const featuredOnly=galleryCategory==="all"&&!query&&!galleryExpanded;
  const shown=featuredOnly?matched.filter(kit=>kit.featured):matched;
  galleryGrid.innerHTML=shown.map(galleryCard).join("");
+ galleryGrid.querySelectorAll("img.catalog-real-preview").forEach(img=>{
+  img.addEventListener("error",()=>{img.hidden=true},{once:true});
+ });
  galleryEmpty.hidden=matched.length>0;
  galleryMore.hidden=galleryCategory!=="all"||Boolean(query);
  galleryMore.setAttribute("aria-expanded",String(galleryExpanded));
