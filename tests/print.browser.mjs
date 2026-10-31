@@ -119,7 +119,7 @@ try {
     assert.match(await page.locator('.diploma .award-reason').innerText(),/любовь к чтению/);
     console.log('PASS 18 starter kits present, instant application and private field preservation');
     await page.setViewportSize({width:390,height:844});
-    assert.equal(await page.locator('#starter-grid .starter-card').count(),3,'mobile starter kit cards');
+    assert.equal(await page.locator('#starter-grid .starter-card').count(),4,'mobile starter kit cards');
     assert.equal(await page.locator('#nav-preview').isVisible(),true,'mobile navigation should be visible');
     await page.locator('#nav-preview').click();
     await page.waitForFunction(()=>document.querySelector('#print-preview').getBoundingClientRect().top<130);
