@@ -165,7 +165,7 @@ try {
         const css=getComputedStyle(el),rect=el.getBoundingClientRect();
         return {appearance:css.appearance,image:css.backgroundImage,padding:parseFloat(css.paddingRight),width:rect.width,right:rect.right};
       }));
-      assert.equal(styles.length,4,'labels have four custom dropdowns');
+      assert.equal(styles.length,5,'labels have five custom dropdowns');
       for(const item of styles){
         assert.equal(item.appearance,'none','hide platform-native arrow');
         assert.ok(item.image.includes('data:image/svg+xml'),'SVG chevron is visible');
@@ -524,6 +524,80 @@ try {
   }catch(error){
     failed=true;
     console.error('FAIL school subject kit',error);
+    await page.emulateMedia({media:'screen'});
+    await page.setViewportSize({width:1440,height:900});
+  }
+  // A shared label or school kit for siblings, without overwriting the single-child mode.
+  try {
+    await page.locator('[data-tab="labels"]').click();
+    await page.locator('#reset').click();
+    await page.locator('#f-name').fill('Мария Соколова');
+    await page.locator('#f-name').dispatchEvent('change');
+    await page.locator('#f-kit').selectOption({label:'Школьный комплект'});
+    await page.locator('#f-audience').selectOption({label:'Несколько детей'});
+    assert.equal(await page.locator('[data-field-id="name"]').isVisible(),false);
+    assert.equal(await page.locator('[data-field-id="names"]').isVisible(),true);
+    assert.equal(await page.locator('#f-names').inputValue(),'Мария Соколова',
+      'first child is carried over without adding another child automatically');
+    await page.locator('#f-names').fill('Мария Соколова\nМатвей Соколов');
+    await page.waitForFunction(()=>document.querySelectorAll('#paper .labels article').length===24);
+    assert.equal(await page.locator('#paper .labels article:has(b:text-is("Мария Соколова"))').count(),12);
+    assert.equal(await page.locator('#paper .labels article:has(b:text-is("Матвей Соколов"))').count(),12);
+    assert.match(await page.locator('#family-summary').innerText(),/2 ребёнка · 24 наклеек/);
+    await mkdir('artifacts/ui',{recursive:true});
+    await page.locator('[data-field-id="names"]').screenshot({
+      path:'artifacts/ui/family-names-desktop.png',animations:'disabled'
+    });
+    await page.setViewportSize({width:390,height:844});
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),
+      'family names form fits mobile width');
+    await page.locator('[data-field-id="names"]').screenshot({
+      path:'artifacts/ui/family-names-mobile.png',animations:'disabled'
+    });
+    await page.setViewportSize({width:1440,height:900});
+    for(const [size,expectedPages] of [
+      ['Стандартные 54 × 38 мм',2],['Маленькие 40 × 22 мм',1],
+      ['Крупные 80 × 48 мм',3]
+    ]){
+      await page.locator('#f-size').selectOption({label:size});
+      await page.emulateMedia({media:'print'});
+      const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
+      const info=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
+      assert.equal(Number(info.match(/^Pages:\s+(\d+)/m)?.[1]),expectedPages,'family PDF page count: '+size);
+      assert.equal(await page.locator('#paper .labels article').count(),24);
+      const clipped=await page.locator('#paper .labels article').evaluateAll(els=>els.filter(el=>
+        el.scrollWidth>el.clientWidth+3||el.scrollHeight>el.clientHeight+3).length);
+      assert.equal(clipped,0,'family labels fit '+size);
+      if(size.startsWith('Стандартные'))await page.locator('#paper .sheet-page').first().screenshot({
+        path:'artifacts/ui/family-labels-a4.png',animations:'disabled'
+      });
+      await page.emulateMedia({media:'screen'});
+    }
+    await page.locator('#saved-section').evaluate(el=>{el.open=true});
+    await page.locator('#saved-name').fill('Наклейки для семьи');
+    await page.locator('#saved-save').click();
+    await page.reload();
+    await page.locator('#saved-section').evaluate(el=>{el.open=true});
+    await page.locator('.saved-item').filter({hasText:'Наклейки для семьи'}).locator('.saved-open').click();
+    assert.equal(await page.locator('#f-audience').inputValue(),'Несколько детей');
+    assert.equal(await page.locator('#f-names').inputValue(),'Мария Соколова\nМатвей Соколов');
+    assert.equal(await page.locator('#paper .labels article').count(),24,'saved family restores both groups');
+    await page.locator('#f-kit').selectOption({label:'Одинаковые'});
+    await page.locator('#f-count').fill('49');
+    await page.locator('#f-count').dispatchEvent('change');
+    await page.waitForFunction(()=>document.querySelector('#print').disabled);
+    assert.match(await page.locator('#print-status').innerText(),/не более 96 наклеек/);
+    await page.locator('#f-count').fill('2');
+    await page.locator('#f-count').dispatchEvent('change');
+    await page.waitForFunction(()=>!document.querySelector('#print').disabled);
+    assert.equal(await page.locator('#paper .labels article').count(),4);
+    await page.locator('#f-names').fill('Маша\nМатвей\nЛиза\nАня\nИван\nПетя\nИлья');
+    await page.waitForFunction(()=>document.querySelector('#print').disabled);
+    assert.match(await page.locator('#print-status').innerText(),/не более 6 детей/);
+    console.log('PASS family labels: two children, three A4 sizes, saved projects and limits');
+  } catch(error){
+    failed=true;
+    console.error('FAIL family labels',error);
     await page.emulateMedia({media:'screen'});
     await page.setViewportSize({width:1440,height:900});
   }
