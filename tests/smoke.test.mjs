@@ -150,3 +150,18 @@ test('print label sizes are expressed in millimetres',()=>{
   assert.ok(css.includes('labels--size-'+size+' article{width:'+width+'mm;height:'+height+'mm'));
  }
 });
+
+
+test('school notebooks render a clear heading without the old stray pencil icon',()=>{
+ const inputs={...vals,layout:'Школьный',size:'Стандартные 54 × 38 мм',count:'12',name:'Худякова Наталья',subtitle:'Тетрадь'};
+ const html=render('labels',key=>inputs[key]??'',escape,lines,clamp);
+ assert.match(html,/labels--school/);
+ assert.match(html,/<span class="label-mark" aria-hidden="true">ИМЕННАЯ НАКЛЕЙКА<\/span>/);
+ assert.doesNotMatch(html,/>✎</);
+ assert.equal((html.match(/<article>/g)||[]).length,12);
+ assert.match(html,/<b>Худякова Наталья<\/b><small>Тетрадь<\/small>/);
+ const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
+ assert.match(css,/#paper \.labels--school article\{/);
+ assert.match(css,/border:1px solid var\(--sheet-border\)/);
+ assert.match(css,/#paper \.labels--size-small\.labels--school article\{/);
+});

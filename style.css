@@ -409,3 +409,84 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
 .field select:hover{border-color:#d5c6ea;background-color:#fff}
 .field select:focus{background-color:#fff}
 @media print{.field select{background-image:none!important}}
+
+
+/* School notebook labels: calm stationery aesthetic, legible at actual print size. */
+#paper .labels--school article{
+  background:#fff;
+  border:1px solid var(--sheet-border);
+  border-radius:9px;
+  box-shadow:none;
+  padding:4.4mm 3mm 3.6mm;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  text-align:center;
+}
+#paper .labels--school article::before{
+  content:"";
+  position:absolute;
+  top:2.6mm;
+  left:50%;
+  width:12mm;
+  height:2px;
+  transform:translateX(-50%);
+  border-radius:9px;
+  background:var(--sheet-accent);
+  opacity:.65;
+}
+#paper .labels--school .label-mark{
+  display:block;
+  align-self:center;
+  margin:2px 0 4px;
+  color:var(--sheet-accent);
+  font:700 8px/1.25 Arial,sans-serif;
+  letter-spacing:1.05px;
+  opacity:.8;
+}
+#paper .labels--school b{
+  color:#352c45;
+  font:700 15px/1.22 Arial,sans-serif;
+  letter-spacing:-.2px;
+  text-align:center;
+  max-width:100%;
+}
+#paper .labels--school small{
+  display:inline-block;
+  align-self:center;
+  max-width:100%;
+  margin-top:5px;
+  padding:3px 11px;
+  border-radius:99px;
+  background:var(--sheet-pale);
+  color:var(--sheet-accent);
+  font:600 10px/1.25 Arial,sans-serif;
+  letter-spacing:.1px;
+}
+#paper .labels--size-small.labels--school article{
+  padding:2.2mm 1.5mm 1.8mm;
+  gap:1px;
+  border-radius:6px;
+}
+#paper .labels--size-small.labels--school article::before{
+  top:1.2mm;
+  width:8mm;
+  height:1px;
+}
+#paper .labels--size-small.labels--school .label-mark{
+  margin:3px 0 2px;
+  font-size:6px;
+  letter-spacing:.4px;
+  line-height:1.15;
+}
+#paper .labels--size-small.labels--school b{font-size:10px;line-height:1.17;letter-spacing:0}
+#paper .labels--size-small.labels--school small{
+  font-size:8px;
+  line-height:1.1;
+  margin-top:2px;
+  padding:2px 6px;
+}
+#paper .labels--size-large.labels--school article{gap:5px}
+#paper .labels--size-large.labels--school .label-mark{font-size:9px;margin-bottom:5px}
+#paper .labels--size-large.labels--school b{font-size:19px}
+#paper .labels--size-large.labels--school small{font-size:12px;padding:5px 14px}

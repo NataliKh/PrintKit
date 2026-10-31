@@ -75,6 +75,83 @@ try {
       await page.emulateMedia({media:'screen'});
     }
   }
+
+  // Redesign QA: real A4 paper, three sizes and representative Russian names.
+  try{
+    await page.locator('[data-tab="labels"]').click();
+    await page.locator('#reset').click();
+    const inputs=[['name','Худякова Наталья'],['subtitle','Тетрадь']];
+    for(const [key,value] of inputs){
+      await page.locator('#f-'+key).fill(value);
+      await page.locator('#f-'+key).dispatchEvent('change');
+    }
+    await page.locator('#f-layout').selectOption({label:'Школьный'});
+    for(const [size,name,expectedWidth,expectedHeight] of [
+      ['Стандартные 54 × 38 мм','Худякова Наталья',54,38],
+      ['Маленькие 40 × 22 мм','Анна',40,22],
+      ['Крупные 80 × 48 мм','Худякова Наталья',80,48]
+    ]){
+      await page.locator('#f-name').fill(name);
+      await page.locator('#f-name').dispatchEvent('change');
+      await page.locator('#f-size').selectOption({label:size});
+      await page.locator('#f-count').fill('1');
+      await page.locator('#f-count').dispatchEvent('change');
+      // Let the 240 ms debounced live preview finish before switching print media.
+      await page.waitForFunction(({name,size})=>{
+        const label=document.querySelector('#paper .labels--school article');
+        return label && label.querySelector('b')?.textContent===name &&
+          document.querySelector('#paper .labels article')===label &&
+          document.querySelectorAll('#paper .labels article').length===1 &&
+          document.querySelector('#f-size').value===size &&
+          !document.querySelector('#print').disabled;
+      },{name,size});
+      await page.waitForTimeout(320);
+      await page.emulateMedia({media:'print'});
+      const measurements=await page.evaluate(()=>{
+        const el=document.querySelector('#paper .sheet-page .labels--school article');
+        if(!el)throw new Error('school label missing in print media');
+        const article=el.getBoundingClientRect();
+        const mark=el.querySelector('.label-mark');
+        const name=el.querySelector('b');
+        const subtitle=el.querySelector('small');
+        const items=[mark,name,subtitle].map(x=>{
+          const rect=x.getBoundingClientRect();
+          return {text:x.textContent,left:rect.left-article.left,right:article.right-rect.right,
+            top:rect.top-article.top,bottom:article.bottom-rect.bottom};
+        });
+        const css=getComputedStyle(el);
+        return {width:article.width,height:article.height,border:css.borderTopStyle,bg:css.backgroundColor,
+          overflow:el.scrollHeight-el.clientHeight,items};
+      });
+      assert.ok(Math.abs(measurements.width-expectedWidth*96/25.4)<2,'exact label width '+JSON.stringify(measurements));
+      assert.ok(Math.abs(measurements.height-expectedHeight*96/25.4)<2,'exact label height '+JSON.stringify(measurements));
+      assert.equal(measurements.border,'solid','school label uses clean solid border');
+      assert.equal(measurements.items[0].text,'ИМЕННАЯ НАКЛЕЙКА','no stray pencil icon');
+      for(const item of measurements.items){
+        assert.ok(item.left>=-2&&item.right>=-2&&item.top>=-2&&item.bottom>=-2,
+          'school label element must fit '+JSON.stringify(measurements));
+      }
+      assert.ok(measurements.overflow<=2,'school label content does not overflow');
+      const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
+      const info=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
+      assert.match(info,/Pages:\s+1/,'single print page for one school label');
+      await mkdir('artifacts/ui',{recursive:true});
+      const tag=expectedWidth+'x'+expectedHeight;
+      await page.locator('#paper .labels--school article').first().screenshot({
+        path:'artifacts/ui/school-label-'+tag+'.png',animations:'disabled'
+      });
+      if(expectedWidth===54)await page.locator('.sheet-page').first().screenshot({
+        path:'artifacts/ui/school-labels-a4.png',animations:'disabled'
+      });
+      await page.emulateMedia({media:'screen'});
+      console.log('PASS redesigned school label',size,'and A4 PDF');
+    }
+  }catch(error){
+    failed=true;
+    console.error('FAIL school label redesign',error);
+    await page.emulateMedia({media:'screen'});
+  }
+
   // Visual control regression: native dropdown arrow is replaced, focus stays visible.
   try {
     await page.locator('[data-tab="labels"]').click();
