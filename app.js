@@ -176,3 +176,16 @@ $("nav-settings").onclick=()=>navigateTo("editor-controls");
 $("nav-preview").onclick=()=>navigateTo("print-preview");
 onresize=()=>{fit();cancelAnimationFrame(statusFrame);statusFrame=requestAnimationFrame(updatePrintStatus)};
 render();
+// Intentional deep links from the public generator guides.
+const launchParams=new URLSearchParams(window.location.search);
+const launchMode=launchParams.get("tool");
+const launchKit=launchParams.get("kit");
+if(modes.includes(launchMode)){
+ if(launchKit&&starterKits[launchMode]?.some(kit=>kit.id===launchKit)){
+  applyCatalogStarter(launchMode,launchKit);
+ }else if(mode!==launchMode){
+  save();
+  mode=launchMode;
+  render();
+ }
+}
