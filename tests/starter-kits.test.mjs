@@ -17,7 +17,7 @@ test('every print generator offers four distinct curated quick starts',()=>{
  assert.deepEqual(Object.keys(kits).sort(),[...modes].sort());
  for(const mode of modes){
   assert.equal(kits[mode].length,4,mode);
-  assert.equal(new Set(kits[mode].map(x=>x.id)).size,3,mode);
+  assert.equal(new Set(kits[mode].map(x=>x.id)).size,4,mode);
   for(const kit of kits[mode]){
    assert.match(kit.id,/^[a-z0-9-]+$/);
    assert.ok(kit.title.length>3&&kit.description.length>4);
