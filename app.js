@@ -148,7 +148,9 @@ function updateFamilySummary(){
   ?parseSchoolSubjects(val("subjects")).filter(row=>row.selected).reduce((sum,row)=>sum+row.qty,0)
   :Math.max(1,Number(val("count"))||1);
  const total=rawCount*selected;
- summary.textContent=rawCount+" "+(rawCount===1?"ребёнок":rawCount<5?"ребёнка":"детей")+" · "+total+" наклеек";
+ const labelWord=total%10===1&&total%100!==11?"наклейка":
+  total%10>=2&&total%10<=4&&(total%100<12||total%100>14)?"наклейки":"наклеек";
+ summary.textContent=rawCount+" "+(rawCount===1?"ребёнок":rawCount<5?"ребёнка":"детей")+" · "+total+" "+labelWord;
  summary.classList.toggle("is-warning",rawCount===0||rawCount>6||total>96);
 }
 function renderSchoolPicker(){
