@@ -5,6 +5,7 @@ import vm from 'node:vm';
 
 const source=file=>readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const context=vm.createContext({});
+vm.runInContext(source('app.js').split('\n')[0],context);
 vm.runInContext(source('app.js').split('\n')[1],context);
 vm.runInContext(source('saved-kits.js'),context);
 const store=vm.runInContext('savedKitStore',context);
