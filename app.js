@@ -85,6 +85,42 @@ function generate(){
 for(const name of ["cards","labels","diploma","schedule","habits"]){
  configs[name].unshift(["theme","Стиль оформления","select","Лавандовый|Мятный|Персиковый|Минимализм"]);
 }
+function chooseStarter(selectedId){
+ document.querySelectorAll("#starter-grid [data-starter]").forEach(button=>{
+  button.setAttribute("aria-pressed",String(button.dataset.starter===selectedId));
+ });
+}
+function useStarter(id){
+ const kit=starterKits[mode].find(item=>item.id===id);
+ if(!kit)return;
+ clearTimeout(inputTimer);
+ // Only modify fields supplied by the kit: names and signatories remain personal.
+ Object.entries(kit.values).forEach(([key,value])=>{
+  const control=$("f-"+key);
+  if(control)control.value=String(value);
+ });
+ chooseStarter(kit.id);
+ $("starter-status").textContent="Готово: «"+kit.title+"». Можно изменить параметры ниже.";
+ generate();
+}
+function renderStarters(){
+ const items=starterKits[mode]||[];
+ $("starter-grid").innerHTML=items.map(item=>
+  '<button type="button" class="starter-card" data-starter="'+esc(item.id)+'" aria-pressed="false">'+
+  '<span class="starter-icon" aria-hidden="true">'+esc(item.icon)+'</span>'+
+  '<span class="starter-card-title">'+esc(item.title)+'</span>'+
+  '<span class="starter-card-description">'+esc(item.description)+'</span></button>'
+ ).join("");
+ $("starter-status").textContent="";
+ document.querySelectorAll("#starter-grid [data-starter]").forEach(button=>{
+  button.onclick=()=>useStarter(button.dataset.starter);
+ });
+}
+function navigateTo(id){
+ const target=$(id);
+ if(!target)return;
+ target.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+}
 function render(){
  clearTimeout(inputTimer);
  $("tabs").innerHTML=modes.map((name,i)=>'<button aria-current="'+(name===mode)+'" data-tab="'+name+'">'+names[i]+'</button>').join("");
@@ -96,17 +132,20 @@ function render(){
  });
  $("title").textContent=names[modes.indexOf(mode)];
  $("regenerate").textContent=mode==="math"?"↻ Новые примеры":"↻ Обновить лист";
+ renderStarters();
  $("fields").innerHTML=configs[mode].map(field).join("");
  document.querySelectorAll("[data-k]").forEach(el=>{
-  el.onchange=()=>{clearTimeout(inputTimer);generate()};
+  el.onchange=()=>{clearTimeout(inputTimer);chooseStarter(null);$("starter-status").textContent="";generate()};
   if(el.tagName!=="SELECT")el.oninput=()=>{
    clearTimeout(inputTimer);
+   chooseStarter(null);
+   $("starter-status").textContent="";
    inputTimer=setTimeout(generate,240);
   };
  });
  generate();
 }
-$("regenerate").onclick=()=>{clearTimeout(inputTimer);generate()};
+$("regenerate").onclick=()=>{clearTimeout(inputTimer);chooseStarter(null);generate()};
 $("reset").onclick=()=>{
  clearTimeout(inputTimer);
  delete data[mode];
@@ -123,5 +162,7 @@ $("print").onclick=()=>{
  }
  window.print();
 };
+$("nav-settings").onclick=()=>navigateTo("editor-controls");
+$("nav-preview").onclick=()=>navigateTo("print-preview");
 onresize=()=>{fit();cancelAnimationFrame(statusFrame);statusFrame=requestAnimationFrame(updatePrintStatus)};
 render();
