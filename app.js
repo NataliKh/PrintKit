@@ -163,7 +163,7 @@ function renderSchoolPicker(){
  });
  const addName=$("school-new-name"),addButton=$("school-add-button");
  addButton.onclick=()=>{
-  const name=addName.value.trim().replace(/\\s+/g," ");
+  const name=addName.value.trim().replace(/\s+/g," ");
   const items=parseSchoolSubjects(hidden.value);
   if(!name||name.length>36){$("school-subject-count").textContent="Введите название предмета до 36 символов.";return}
   if(items.some(item=>item.name.toLocaleLowerCase("ru")===name.toLocaleLowerCase("ru"))){
