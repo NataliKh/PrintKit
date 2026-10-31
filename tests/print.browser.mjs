@@ -422,7 +422,7 @@ try {
     assert.equal(await page.locator('#paper .labels article:has(small:text-is("Тетрадь"))').count(),0);
     assert.equal(await page.locator('#print').isDisabled(),false);
     const savedItems=await page.locator('#f-subjects').inputValue();
-    await page.locator('#saved-section summary').click();
+    await page.locator('#saved-section').evaluate(el=>{el.open=true});
     await page.locator('#saved-name').fill('Мой школьный комплект');
     await page.locator('#saved-save').click();
     await page.reload();
@@ -451,8 +451,9 @@ try {
       await page.emulateMedia({media:'screen'});
     }
     // An empty selection must block print, rather than output an empty label page.
-    await page.locator('#school-subject-list .school-subject-check').evaluateAll(inputs=>
-      inputs.forEach(input=>{if(input.checked){input.click();}}));
+    for(const box of await page.locator('#school-subject-list .school-subject-check').all()){
+      if(await box.isChecked())await box.uncheck();
+    }
     assert.equal(await page.locator('#print').isDisabled(),true,'cannot print an empty school kit');
     assert.match(await page.locator('#print-status').innerText(),/Выберите хотя бы один предмет/);
     await page.setViewportSize({width:390,height:844});
