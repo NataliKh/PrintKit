@@ -396,6 +396,76 @@ try {
     failed=true;
     console.error('FAIL editor usability',error);
   }
+  // School kit: selection, per-subject counts, custom entry, persistence and PDF.
+  try{
+    await page.locator('[data-tab="labels"]').click();
+    await page.locator('#reset').click();
+    await page.locator('#f-name').fill('Мария Соколова');
+    await page.locator('#f-name').dispatchEvent('change');
+    await page.locator('#f-kit').selectOption({label:'Школьный комплект'});
+    assert.equal(await page.locator('[data-field-id="subjects"]').isVisible(),true);
+    assert.equal(await page.locator('[data-field-id="count"]').isVisible(),false);
+    assert.equal(await page.locator('[data-field-id="subtitle"]').isVisible(),false);
+    assert.equal(await page.locator('#school-subject-list .school-subject-row').count(),10);
+    assert.equal(await page.locator('#paper .labels article').count(),12,'default kit makes 12 stickers');
+    const row=title=>page.locator('.school-subject-row').filter({hasText:title});
+    await row('Тетрадь').locator('.school-subject-check').uncheck();
+    assert.equal(await page.locator('#paper .labels article').count(),10);
+    await row('Математика').locator('.school-subject-qty input').fill('3');
+    await row('Математика').locator('.school-subject-qty input').dispatchEvent('change');
+    assert.equal(await page.locator('#paper .labels article').count(),11);
+    await page.locator('#school-new-name').fill('Информатика');
+    await page.locator('#school-add-button').click();
+    assert.equal(await page.locator('#paper .labels article').count(),12);
+    assert.equal(await page.locator('#paper .labels article:has(small:text-is("Информатика"))').count(),1);
+    assert.equal(await page.locator('#paper .labels article:has(small:text-is("Математика"))').count(),3);
+    assert.equal(await page.locator('#paper .labels article:has(small:text-is("Тетрадь"))').count(),0);
+    assert.equal(await page.locator('#print').isDisabled(),false);
+    const savedItems=await page.locator('#f-subjects').inputValue();
+    await page.locator('#saved-section summary').click();
+    await page.locator('#saved-name').fill('Мой школьный комплект');
+    await page.locator('#saved-save').click();
+    await page.reload();
+    await page.locator('#saved-section summary').click();
+    await page.locator('.saved-item').filter({hasText:'Мой школьный комплект'}).locator('.saved-open').click();
+    assert.equal(await page.locator('#f-kit').inputValue(),'Школьный комплект');
+    assert.equal(await page.locator('#f-name').inputValue(),'Мария Соколова');
+    assert.equal(await page.locator('#f-subjects').inputValue(),savedItems,'saved kit restores all subject quantities');
+    for(const [size,pages] of [
+      ['Стандартные 54 × 38 мм',1],['Маленькие 40 × 22 мм',1],['Крупные 80 × 48 мм',2]
+    ]){
+      await page.locator('#f-size').selectOption({label:size});
+      await page.emulateMedia({media:'print'});
+      const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
+      const info=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
+      assert.equal(Number(info.match(/^Pages:\s+(\d+)/m)?.[1]),pages,'A4 PDF page count for '+size);
+      const clipped=await page.locator('#paper .labels article').evaluateAll(els=>els.filter(el=>
+        el.scrollHeight>el.clientHeight+2||el.scrollWidth>el.clientWidth+2).length);
+      assert.equal(clipped,0,'school kit stickers must not clip at '+size);
+      if(size.startsWith('Стандартные')){
+        await mkdir('artifacts/ui',{recursive:true});
+        await page.locator('#paper .sheet-page').first().screenshot({
+          path:'artifacts/ui/school-kit-a4.png',animations:'disabled'
+        });
+      }
+      await page.emulateMedia({media:'screen'});
+    }
+    // An empty selection must block print, rather than output an empty label page.
+    await page.locator('#school-subject-list .school-subject-check').evaluateAll(inputs=>
+      inputs.forEach(input=>{if(input.checked){input.click();}}));
+    assert.equal(await page.locator('#print').isDisabled(),true,'cannot print an empty school kit');
+    assert.match(await page.locator('#print-status').innerText(),/Выберите хотя бы один предмет/);
+    await page.setViewportSize({width:390,height:844});
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),
+      'school subject list fits mobile screen');
+    await page.setViewportSize({width:1440,height:900});
+    console.log('PASS school kit: subjects, quantities, saved project and 3 A4 sizes');
+  }catch(error){
+    failed=true;
+    console.error('FAIL school subject kit',error);
+    await page.emulateMedia({media:'screen'});
+    await page.setViewportSize({width:1440,height:900});
+  }
 } finally {
   await finishVisualReport();
   await browser.close();
