@@ -44,6 +44,14 @@ jobs:
         env:
           PRINTKIT_VISUAL_BASELINE: artifacts/printkit-baseline
         run: node tests/print.browser.mjs
+      - name: Save editor screenshots for visual review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: printkit-editor-ui
+          path: artifacts/ui/
+          retention-days: 30
+          if-no-files-found: ignore
       - name: Render all 24 real A4 template previews
         run: node tests/build-previews.mjs
       - name: Check guides, image assets and deep links
