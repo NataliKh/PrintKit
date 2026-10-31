@@ -11,9 +11,9 @@ const starterKits={
     {id:"weekdays",icon:"📆",title:"Дни недели",description:"7 полезных карточек",values:{title:"Английский · дни недели",items:"Monday — понедельник\nTuesday — вторник\nWednesday — среда\nThursday — четверг\nFriday — пятница\nSaturday — суббота\nSunday — воскресенье",theme:"Лавандовый"}}
   ],
   labels:[
-    {id:"notebooks",icon:"📒",title:"Для тетрадей",description:"12 школьных наклеек",values:{subtitle:"Тетрадь",count:"12",layout:"Школьный",size:"Стандартные 54 × 38 мм",theme:"Лавандовый"}},
-    {id:"stationery",icon:"✏️",title:"Для мелочей",description:"32 компактные наклейки",values:{subtitle:"Мои принадлежности",count:"32",layout:"Классический",size:"Маленькие 40 × 22 мм",theme:"Мятный"}},
-    {id:"folders",icon:"🗂️",title:"Для папок",description:"8 крупных наклеек",values:{subtitle:"Школьные работы",count:"8",layout:"Нежный",size:"Крупные 80 × 48 мм",theme:"Персиковый"}}
+    {id:"notebooks",icon:"📒",title:"Для тетрадей",description:"12 школьных наклеек",values:{kit:"Одинаковые",subtitle:"Тетрадь",count:"12",layout:"Школьный",size:"Стандартные 54 × 38 мм",theme:"Лавандовый"}},
+    {id:"stationery",icon:"✏️",title:"Для мелочей",description:"32 компактные наклейки",values:{kit:"Одинаковые",subtitle:"Мои принадлежности",count:"32",layout:"Классический",size:"Маленькие 40 × 22 мм",theme:"Мятный"}},
+    {id:"folders",icon:"🗂️",title:"Для папок",description:"8 крупных наклеек",values:{kit:"Одинаковые",subtitle:"Школьные работы",count:"8",layout:"Нежный",size:"Крупные 80 × 48 мм",theme:"Персиковый"}}
   ],
   diploma:[
     {id:"effort",icon:"🌟",title:"За старание",description:"Тёплая похвала",values:{kind:"Грамота",reason:"За старание, трудолюбие и упорство в учёбе!",layout:"Торжественный",theme:"Лавандовый"}},
@@ -35,7 +35,10 @@ const starterKits={
 // Additional ready-to-print ideas for the visual gallery.
 starterKits.math.push({id:"second-grade",icon:"📐",title:"Устный счёт",description:"2 класс · 20 примеров до 50",values:{grade:"2 класс",count:"20",level:"Несколько действий",max:"50",key:"Да"}});
 starterKits.cards.push({id:"greetings",icon:"👋",title:"Английские фразы",description:"8 фраз для начинающих",values:{title:"Английский · общение",items:"Hello! — Привет!\nGood morning! — Доброе утро!\nThank you! — Спасибо!\nPlease — Пожалуйста\nGoodbye! — До свидания!\nHow are you? — Как дела?\nI'm fine — У меня всё хорошо\nSee you! — Увидимся!",theme:"Мятный"}});
-starterKits.labels.push({id:"art",icon:"🎨",title:"Для творчества",description:"12 наклеек для коробок и альбомов",values:{subtitle:"Творчество",count:"12",layout:"Нежный",size:"Стандартные 54 × 38 мм",theme:"Персиковый"}});
+starterKits.labels.push({id:"art",icon:"🎨",title:"Для творчества",description:"12 наклеек для коробок и альбомов",values:{kit:"Одинаковые",subtitle:"Творчество",count:"12",layout:"Нежный",size:"Стандартные 54 × 38 мм",theme:"Персиковый"}});
 starterKits.diploma.push({id:"kindness",icon:"💛",title:"За доброту",description:"Грамота за хорошие поступки",values:{kind:"Грамота",reason:"За доброту, отзывчивость и заботу о других!",layout:"Детский",theme:"Персиковый"}});
 starterKits.schedule.push({id:"morning",icon:"🌤️",title:"Утро без спешки",description:"5 дней · утренние дела",values:{title:"Моё доброе утро",items:"Проснуться, Умыться, Завтрак, Собрать рюкзак\nПроснуться, Зарядка, Завтрак, Проверить вещи\nПроснуться, Умыться, Завтрак, Пойти в школу\nПроснуться, Зарядка, Завтрак, Собрать рюкзак\nПроснуться, Умыться, Завтрак, Проверить вещи",theme:"Мятный"}});
 starterKits.habits.push({id:"reading",icon:"📚",title:"Марафон чтения",description:"14 дней · маленькие шаги",values:{title:"14 дней с книгой",items:"Читать 10 минут\nПересказать прочитанное\nЗаписать новое слово",days:"14",month:"Без календаря",theme:"Лавандовый"}});
+
+// A one-click subject-by-subject sticker sheet; names remain personalized.
+starterKits.labels.push({id:"school-kit",icon:"🎒",title:"Школьный комплект",description:"12 наклеек для разных предметов",values:{kit:"Школьный комплект",layout:"Школьный",size:"Стандартные 54 × 38 мм",theme:"Лавандовый",subjects:"[{\"name\":\"Математика\",\"selected\":true,\"qty\":2},{\"name\":\"Русский язык\",\"selected\":true,\"qty\":2},{\"name\":\"Литература\",\"selected\":true,\"qty\":1},{\"name\":\"Английский язык\",\"selected\":true,\"qty\":1},{\"name\":\"Окружающий мир\",\"selected\":true,\"qty\":1},{\"name\":\"История\",\"selected\":true,\"qty\":1},{\"name\":\"Биология\",\"selected\":false,\"qty\":1},{\"name\":\"География\",\"selected\":false,\"qty\":1},{\"name\":\"Тетрадь\",\"selected\":true,\"qty\":2},{\"name\":\"Черновик\",\"selected\":true,\"qty\":2}]"}});
