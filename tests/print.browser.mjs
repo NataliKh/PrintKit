@@ -431,6 +431,62 @@ try {
     assert.equal(await page.locator('#f-kit').inputValue(),'Школьный комплект');
     assert.equal(await page.locator('#f-name').inputValue(),'Мария Соколова');
     assert.equal(await page.locator('#f-subjects').inputValue(),savedItems,'saved kit restores all subject quantities');
+
+    // UI regression from user screenshot: generic .field input styles must not expand checkboxes
+    // or push school subjects into letter-by-letter wrapping.
+    async function checkSchoolPickerLayout(viewport){
+      await page.setViewportSize({width:viewport,height:900});
+      const metrics=await page.evaluate(()=>{
+        const row=[...document.querySelectorAll('.school-subject-row')].find(x=>x.textContent.includes('Математика'));
+        const checkbox=row.querySelector('.school-subject-check');
+        const name=row.querySelector('.school-subject-name span');
+        const qty=row.querySelector('.school-subject-qty input');
+        const button=row.querySelector('.school-subject-remove');
+        const input=document.querySelector('.school-add-actions input');
+        const add=document.querySelector('.school-add-actions button');
+        const b=el=>el.getBoundingClientRect();
+        const r=b(row),c=b(checkbox),n=b(name),q=b(qty),d=b(button),i=b(input),a=b(add);
+        return {
+          rowWidth:r.width, checkboxWidth:c.width, checkboxHeight:c.height,
+          checkboxMargin:getComputedStyle(checkbox).marginTop,
+          nameWidth:n.width,nameHeight:n.height,
+          nameLineHeight:parseFloat(getComputedStyle(name).lineHeight),
+          checkboxRight:c.right,nameLeft:n.left,nameRight:n.right,qtyLeft:q.left,
+          qtyWidth:q.width,qtyCenterY:(q.top+q.bottom)/2,
+          nameCenterY:(n.top+n.bottom)/2,
+          removeRight:d.right,
+          addInputY:i.top,addButtonY:a.top,
+          overflow:document.documentElement.scrollWidth-innerWidth
+        };
+      });
+      assert.ok(metrics.checkboxWidth>=16&&metrics.checkboxWidth<=20,'compact checkbox '+JSON.stringify(metrics));
+      assert.ok(metrics.checkboxHeight>=16&&metrics.checkboxHeight<=20,'compact checkbox height');
+      assert.equal(metrics.checkboxMargin,'0px','checkbox does not inherit generic text-input margin');
+      assert.ok(metrics.nameWidth>=69,'subject name keeps enough width '+JSON.stringify(metrics));
+      assert.ok(metrics.nameHeight<=metrics.nameLineHeight+3,'Математика stays on one line '+JSON.stringify(metrics));
+      assert.ok(metrics.checkboxRight<metrics.nameLeft && metrics.nameRight<=metrics.qtyLeft+1,
+        'name is between checkbox and quantity '+JSON.stringify(metrics));
+      assert.ok(metrics.qtyWidth>=46&&metrics.qtyWidth<=56,'numeric field remains compact '+JSON.stringify(metrics));
+      assert.ok(Math.abs(metrics.qtyCenterY-metrics.nameCenterY)<=3,
+        'subject and number are vertically aligned '+JSON.stringify(metrics));
+      assert.ok(Math.abs(metrics.addInputY-metrics.addButtonY)<=1,'Add field and button align');
+      assert.ok(metrics.overflow<=3,'picker fits viewport '+JSON.stringify(metrics));
+      return metrics;
+    }
+    await mkdir('artifacts/ui',{recursive:true});
+    await checkSchoolPickerLayout(1440);
+    await page.locator('.school-picker').screenshot({
+      path:'artifacts/ui/school-picker-desktop.png',animations:'disabled'
+    });
+    await checkSchoolPickerLayout(390);
+    await page.locator('.school-picker').screenshot({
+      path:'artifacts/ui/school-picker-mobile.png',animations:'disabled'
+    });
+    await checkSchoolPickerLayout(320);
+    await page.locator('.school-picker').screenshot({
+      path:'artifacts/ui/school-picker-narrow.png',animations:'disabled'
+    });
+    await page.setViewportSize({width:1440,height:900});
     for(const [size,pages] of [
       ['Стандартные 54 × 38 мм',1],['Маленькие 40 × 22 мм',1],['Крупные 80 × 48 мм',2]
     ]){
