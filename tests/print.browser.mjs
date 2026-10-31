@@ -89,7 +89,7 @@ try {
         assert.equal(item.appearance,'none','hide platform-native arrow');
         assert.ok(item.image.includes('data:image/svg+xml'),'SVG chevron is visible');
         assert.ok(item.padding>=40,'text cannot collide with the arrow');
-        assert.ok(item.right<=window.innerWidth+3,'dropdown must fit the viewport');
+        assert.ok(item.right<=page.viewportSize().width+3,'dropdown must fit the viewport');
       }
     };
     await checkSelects();
