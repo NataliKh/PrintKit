@@ -321,7 +321,16 @@ function render(){
  $("fields").innerHTML=configs[mode].map(field).join("");
  if(mode==="labels"){renderSchoolPicker();toggleLabelKit();}
  document.querySelectorAll("[data-k]").forEach(el=>{
-  el.onchange=()=>{clearTimeout(inputTimer);chooseStarter(null);$("starter-status").textContent="";if(mode==="labels"&&el.dataset.k==="kit")toggleLabelKit();generate()};
+  el.onchange=()=>{
+   clearTimeout(inputTimer);
+   chooseStarter(null);
+   $("starter-status").textContent="";
+   if(mode==="labels"&&el.dataset.k==="kit"){
+    if(el.value==="Школьный комплект"&&val("layout")==="Классический")$("f-layout").value="Школьный";
+    toggleLabelKit();
+   }
+   generate();
+  };
   if(el.tagName!=="SELECT")el.oninput=()=>{
    clearTimeout(inputTimer);
    chooseStarter(null);
