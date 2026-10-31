@@ -83,7 +83,7 @@ jobs:
       - name: Stage website without test dependencies or private artifacts
         run: |
           mkdir -p _site
-          cp index.html app.js render.js presets.js catalog.js style.css seo.css sitemap.xml _site/
+          cp index.html app.js render.js presets.js saved-kits.js catalog.js style.css seo.css sitemap.xml _site/
           cp -R tools _site/tools
           cp -R previews _site/previews
           test -s _site/previews/manifest.json

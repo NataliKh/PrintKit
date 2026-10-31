@@ -131,6 +131,78 @@ function navigateTo(id){
  if(!target)return;
  target.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
 }
+function savedStorage(){
+ try{return window.localStorage}catch{return null}
+}
+function savedItems(){
+ return savedKitStore.read(savedStorage(),modes,configs);
+}
+function savedMessage(text,isError=false){
+ const status=$("saved-status");
+ status.textContent=text;
+ status.classList.toggle("is-error",isError);
+}
+function renderSavedSets(){
+ const items=savedItems();
+ $("saved-count").textContent=String(items.length);
+ $("saved-list").innerHTML=items.length?items.map(item=>{
+  const toolName=names[modes.indexOf(item.mode)];
+  return '<article class="saved-item"><span class="saved-item-info"><strong>'+esc(item.name)+'</strong>'+
+   '<small>'+esc(toolName)+'</small></span><span class="saved-item-actions">'+
+   '<button type="button" class="saved-open" data-saved-open="'+esc(item.id)+'">Открыть</button>'+
+   '<button type="button" class="saved-remove" data-saved-remove="'+esc(item.id)+'" aria-label="Удалить набор '+esc(item.name)+'">×</button>'+
+   '</span></article>';
+ }).join(""):'<p class="saved-empty">Пока нет сохранённых наборов.</p>';
+ $("saved-list").querySelectorAll("[data-saved-open]").forEach(button=>{
+  button.onclick=()=>openSavedSet(button.dataset.savedOpen);
+ });
+ $("saved-list").querySelectorAll("[data-saved-remove]").forEach(button=>{
+  button.onclick=()=>deleteSavedSet(button.dataset.savedRemove);
+ });
+}
+function saveCurrentSet(){
+ clearTimeout(inputTimer);
+ save();
+ const values=Object.fromEntries([...document.querySelectorAll("[data-k]")].map(el=>[el.dataset.k,el.value]));
+ const result=savedKitStore.add(savedStorage(),modes,configs,mode,$("saved-name").value,values);
+ if(!result.ok){
+  const messages={
+   name:"Введите название длиной от 1 до 48 символов.",
+   values:"Не удалось сохранить данные: проверьте слишком длинные поля.",
+   limit:"Достигнут лимит в 12 наборов. Удалите ненужный, чтобы сохранить новый.",
+   storage:"Не удалось сохранить в браузере. Проверьте свободное место и настройки хранения."
+  };
+  savedMessage(messages[result.code]||"Не удалось сохранить набор.",true);
+  return;
+ }
+ $("saved-name").value="";
+ renderSavedSets();
+ savedMessage("Набор «"+result.entry.name+"» сохранён на этом устройстве.");
+}
+function openSavedSet(id){
+ const entry=savedItems().find(item=>item.id===id);
+ if(!entry)return;
+ clearTimeout(inputTimer);
+ save();
+ mode=entry.mode;
+ data[mode]={...entry.values};
+ render();
+ savedMessage("Открыт набор «"+entry.name+"». Можно изменить или распечатать.");
+ $("saved-section").open=true;
+ $("title").focus({preventScroll:true});
+}
+function deleteSavedSet(id){
+ const entry=savedItems().find(item=>item.id===id);
+ if(!entry)return;
+ if(!window.confirm("Удалить набор «"+entry.name+"»? Это действие нельзя отменить."))return;
+ const result=savedKitStore.remove(savedStorage(),modes,configs,id);
+ if(!result.ok){
+  savedMessage("Не удалось удалить набор. Проверьте настройки хранения браузера.",true);
+  return;
+ }
+ renderSavedSets();
+ savedMessage("Набор «"+entry.name+"» удалён.");
+}
 function render(){
  clearTimeout(inputTimer);
  $("tabs").innerHTML=modes.map((name,i)=>'<button aria-current="'+(name===mode)+'" data-tab="'+name+'">'+names[i]+'</button>').join("");
@@ -143,6 +215,7 @@ function render(){
  $("title").textContent=names[modes.indexOf(mode)];
  $("regenerate").textContent=mode==="math"?"↻ Новые примеры":"↻ Обновить лист";
  renderStarters();
+ renderSavedSets();
  $("fields").innerHTML=configs[mode].map(field).join("");
  document.querySelectorAll("[data-k]").forEach(el=>{
   el.onchange=()=>{clearTimeout(inputTimer);chooseStarter(null);$("starter-status").textContent="";generate()};
@@ -155,6 +228,8 @@ function render(){
  });
  generate();
 }
+$("saved-save").onclick=saveCurrentSet;
+$("saved-name").onkeydown=event=>{if(event.key==="Enter"){event.preventDefault();saveCurrentSet()}};
 $("regenerate").onclick=()=>{clearTimeout(inputTimer);chooseStarter(null);generate()};
 $("reset").onclick=()=>{
  clearTimeout(inputTimer);
