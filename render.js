@@ -1,3 +1,16 @@
+// The school kit shares one validated, local format between the editor and print renderer.
+function parseSchoolSubjects(raw){
+ try{
+  if(typeof raw!=="string"||raw.length>8000)return [];
+  const data=JSON.parse(raw);
+  if(!Array.isArray(data))return [];
+  return data.slice(0,20).filter(row=>row&&typeof row.name==="string").map(row=>({
+   name:row.name.trim().replace(/\s+/g," ").slice(0,36),
+   selected:row.selected===true,
+   qty:Math.max(1,Math.min(24,Math.floor(Number(row.qty)||1)))
+  })).filter(row=>row.name);
+ }catch{return []}
+}
 function renderSheet(mode,get,e,lines,clamp){
 const title=e(get("title"));
 const page=(body,kind="")=>'<section class="sheet-page '+kind+'">'+body+'</section>';
@@ -47,8 +60,12 @@ if(mode==="labels"){
  const perPage={standard:12,small:32,large:8}[size];
  const icon=layout==="soft"?"✿":"✦";
  const mark=layout==="school"?"":'<span class="label-mark" aria-hidden="true">'+icon+'</span>';
- const items=Array.from({length:clamp(get("count"),96)},()=>'<article>'+mark+'<b>'+e(get("name"))+'</b><small>'+e(get("subtitle"))+'</small></article>');
- for(let i=0;i<items.length;i+=perPage)parts.push(page(heading('Именные наклейки')+
+ const schoolKit=get("kit")==="Школьный комплект";
+ const subjects=schoolKit?parseSchoolSubjects(get("subjects")).filter(row=>row.selected):[];
+ const labels=schoolKit?subjects.flatMap(row=>Array.from({length:row.qty},()=>row.name)).slice(0,96):
+  Array.from({length:clamp(get("count"),96)},()=>get("subtitle"));
+ const items=labels.map(caption=>'<article>'+mark+'<b>'+e(get("name"))+'</b><small>'+e(caption)+'</small></article>');
+ for(let i=0;i<Math.max(1,items.length);i+=perPage)parts.push(page(heading(schoolKit?'Школьный комплект наклеек':'Именные наклейки')+
   '<div class="labels labels--'+layout+' labels--size-'+size+'">'+items.slice(i,i+perPage).join("")+'</div>','labels-page'));
 }
 if(mode==="diploma"){
