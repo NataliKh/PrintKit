@@ -165,7 +165,7 @@ try {
         const css=getComputedStyle(el),rect=el.getBoundingClientRect();
         return {appearance:css.appearance,image:css.backgroundImage,padding:parseFloat(css.paddingRight),width:rect.width,right:rect.right};
       }));
-      assert.equal(styles.length,3,'labels have three custom dropdowns');
+      assert.equal(styles.length,4,'labels have four custom dropdowns');
       for(const item of styles){
         assert.equal(item.appearance,'none','hide platform-native arrow');
         assert.ok(item.image.includes('data:image/svg+xml'),'SVG chevron is visible');
@@ -259,7 +259,7 @@ try {
     // Catalog discovery: featured, filters, search, quick-open and mobile layout.
     assert.equal(await page.locator('#catalog-grid [data-template]').count(),6,'six featured catalog cards');
     await page.locator('#catalog-more').click();
-    assert.equal(await page.locator('#catalog-grid [data-template]').count(),24,'all 24 kits visible after expansion');
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),25,'all 25 kits visible after expansion');
     await page.locator('#catalog-search').fill('чтение');
     assert.ok(await page.locator('#catalog-grid [data-template]').count()>0,'catalog finds reading kits');
     await page.locator('#catalog-filters [data-category="habits"]').click();
@@ -284,7 +284,7 @@ try {
     await page.setViewportSize({width:390,height:844});
     const width=await page.evaluate(()=>({content:document.documentElement.scrollWidth,viewport:window.innerWidth}));
     assert.ok(width.content<=width.viewport+3,'catalog should not cause mobile horizontal overflow '+JSON.stringify(width));
-    assert.equal(await page.locator('#catalog-grid [data-template]').count(),4,'four filtered labels at narrow viewport');
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),5,'five filtered labels at narrow viewport');
     await page.setViewportSize({width:1440,height:900});
     console.log('PASS searchable template catalog, one-click editing and mobile layout');
     // The saved-set control belongs after the editable fields, not above them.
