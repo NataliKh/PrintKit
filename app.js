@@ -145,6 +145,10 @@ function savedMessage(text,isError=false){
 function renderSavedSets(){
  const items=savedItems();
  $("saved-count").textContent=String(items.length);
+ $("saved-count").hidden=items.length===0;
+ $("saved-hint").textContent=items.length
+  ? "Сохранено: "+items.length+" из "+savedKitStore.LIMIT
+  : "Сохранить текущие настройки";
  $("saved-list").innerHTML=items.length?items.map(item=>{
   const toolName=names[modes.indexOf(item.mode)];
   return '<article class="saved-item"><span class="saved-item-info"><strong>'+esc(item.name)+'</strong>'+
