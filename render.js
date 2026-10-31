@@ -11,6 +11,11 @@ function parseSchoolSubjects(raw){
   })).filter(row=>row.name);
  }catch{return []}
 }
+// Keep the names input local; a shared selection of subjects is repeated for each child.
+function parseLabelNames(raw){
+ if(typeof raw!=="string")return [];
+ return raw.split(/\r?\n/).map(name=>name.replace(/\s+/g," ").trim()).filter(Boolean).slice(0,6);
+}
 function renderSheet(mode,get,e,lines,clamp){
 const title=e(get("title"));
 const page=(body,kind="")=>'<section class="sheet-page '+kind+'">'+body+'</section>';
@@ -62,9 +67,13 @@ if(mode==="labels"){
  const mark=layout==="school"?"":'<span class="label-mark" aria-hidden="true">'+icon+'</span>';
  const schoolKit=get("kit")==="Школьный комплект";
  const subjects=schoolKit?parseSchoolSubjects(get("subjects")).filter(row=>row.selected):[];
- const labels=schoolKit?subjects.flatMap(row=>Array.from({length:row.qty},()=>row.name)).slice(0,96):
-  Array.from({length:clamp(get("count"),96)},()=>get("subtitle"));
- const items=labels.map(caption=>'<article>'+mark+'<b>'+e(get("name"))+'</b><small>'+e(caption)+'</small></article>');
+ const multi=get("audience")==="Несколько детей";
+ const people=multi?parseLabelNames(get("names")):[get("name")];
+ const items=people.flatMap(person=>{
+  const labels=schoolKit?subjects.flatMap(row=>Array.from({length:row.qty},()=>row.name)):
+   Array.from({length:clamp(get("count"),96)},()=>get("subtitle"));
+  return labels.map(caption=>'<article>'+mark+'<b>'+e(person)+'</b><small>'+e(caption)+'</small></article>');
+ }).slice(0,96);
  for(let i=0;i<Math.max(1,items.length);i+=perPage)parts.push(page(heading(schoolKit?'Школьный комплект наклеек':'Именные наклейки')+
   '<div class="labels labels--'+layout+' labels--size-'+size+'">'+items.slice(i,i+perPage).join("")+'</div>','labels-page'));
 }
