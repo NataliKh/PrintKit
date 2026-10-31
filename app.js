@@ -1,5 +1,5 @@
 const modes=["math","cards","labels","diploma","schedule","habits"];const names=["➕ Математика","🃏 Карточки","🏷️ Наклейки","🏆 Грамоты","📅 Расписание","✅ Привычки"];
-const configs={math:[["grade","Класс","select","1 класс|2 класс|3 класс|4 класс|5 класс"],["count","Примеров","number","20"],["level","Сложность","select","Простые|Несколько действий|Со скобками"],["max","Максимальный результат","select","10|20|50|100|200"],["key","Лист с ответами","select","Нет|Да"]],cards:[["title","Название","text","Карточки"],["items","Термин — перевод, каждый с новой строки","textarea","cat — кошка\ndog — собака\nsun — солнце"]],labels:[["kit","Вариант набора","select","Одинаковые|Школьный комплект"],["audience","Для кого","select","Один ребёнок|Несколько детей"],["name","Имя","text","Анна Иванова"],["names","Имена детей (каждое с новой строки)","textarea",""],["subtitle","Подпись","text","Мои вещи"],["count","Количество","number","18"],["layout","Макет наклеек","select","Классический|Школьный|Нежный"],["size","Размер наклеек","select","Стандартные 54 × 38 мм|Маленькие 40 × 22 мм|Крупные 80 × 48 мм"],["subjects","Предметы и количество","subjects","[{\"name\":\"Математика\",\"selected\":true,\"qty\":2},{\"name\":\"Русский язык\",\"selected\":true,\"qty\":2},{\"name\":\"Литература\",\"selected\":true,\"qty\":1},{\"name\":\"Английский язык\",\"selected\":true,\"qty\":1},{\"name\":\"Окружающий мир\",\"selected\":true,\"qty\":1},{\"name\":\"История\",\"selected\":true,\"qty\":1},{\"name\":\"Биология\",\"selected\":false,\"qty\":1},{\"name\":\"География\",\"selected\":false,\"qty\":1},{\"name\":\"Тетрадь\",\"selected\":true,\"qty\":2},{\"name\":\"Черновик\",\"selected\":true,\"qty\":2}]"]],diploma:[["kind","Тип","select","Грамота|Диплом|Сертификат"],["name","Кому","text","Анна Иванова"],["reason","За что","textarea","За отличные успехи!"],["issuer","Кто награждает","text","Классный руководитель"],["layout","Макет грамоты","select","Торжественный|Современный|Детский"]],schedule:[["title","Заголовок","text","Моё расписание"],["items","Уроки через запятую, каждый день — новая строка","textarea","Математика, Русский\nЧтение, Музыка\nМатематика, Английский\nРусский, Физкультура\nЧтение, Математика"]],habits:[["title","Заголовок","text","Мои привычки"],["items","Привычки по строкам","textarea","Читать\nЗарядка\nПить воду"],["days","Дней (без календаря)","number","30"],["month","Месяц","select","Без календаря|Январь|Февраль|Март|Апрель|Май|Июнь|Июль|Август|Сентябрь|Октябрь|Ноябрь|Декабрь"],["year","Год","number","2026"]]};
+const configs={math:[["grade","Класс","select","1 класс|2 класс|3 класс|4 класс|5 класс"],["topic","Тема","select","По программе класса|Сложение и вычитание|Переход через десяток|Пропущенное число|Таблица умножения|Деление без остатка|Умножение и деление|Порядок действий|Доли числа"],["count","Примеров","number","20"],["level","Сложение и вычитание: тип","select","Простые|Несколько действий|Со скобками"],["max","Максимальный результат","select","10|20|50|100|200"],["key","Лист с ответами","select","Нет|Да"]],cards:[["title","Название","text","Карточки"],["items","Термин — перевод, каждый с новой строки","textarea","cat — кошка\ndog — собака\nsun — солнце"]],labels:[["kit","Вариант набора","select","Одинаковые|Школьный комплект"],["audience","Для кого","select","Один ребёнок|Несколько детей"],["name","Имя","text","Анна Иванова"],["names","Имена детей (каждое с новой строки)","textarea",""],["subtitle","Подпись","text","Мои вещи"],["count","Количество","number","18"],["layout","Макет наклеек","select","Классический|Школьный|Нежный"],["size","Размер наклеек","select","Стандартные 54 × 38 мм|Маленькие 40 × 22 мм|Крупные 80 × 48 мм"],["subjects","Предметы и количество","subjects","[{\"name\":\"Математика\",\"selected\":true,\"qty\":2},{\"name\":\"Русский язык\",\"selected\":true,\"qty\":2},{\"name\":\"Литература\",\"selected\":true,\"qty\":1},{\"name\":\"Английский язык\",\"selected\":true,\"qty\":1},{\"name\":\"Окружающий мир\",\"selected\":true,\"qty\":1},{\"name\":\"История\",\"selected\":true,\"qty\":1},{\"name\":\"Биология\",\"selected\":false,\"qty\":1},{\"name\":\"География\",\"selected\":false,\"qty\":1},{\"name\":\"Тетрадь\",\"selected\":true,\"qty\":2},{\"name\":\"Черновик\",\"selected\":true,\"qty\":2}]"]],diploma:[["kind","Тип","select","Грамота|Диплом|Сертификат"],["name","Кому","text","Анна Иванова"],["reason","За что","textarea","За отличные успехи!"],["issuer","Кто награждает","text","Классный руководитель"],["layout","Макет грамоты","select","Торжественный|Современный|Детский"]],schedule:[["title","Заголовок","text","Моё расписание"],["items","Уроки через запятую, каждый день — новая строка","textarea","Математика, Русский\nЧтение, Музыка\nМатематика, Английский\nРусский, Физкультура\nЧтение, Математика"]],habits:[["title","Заголовок","text","Мои привычки"],["items","Привычки по строкам","textarea","Читать\nЗарядка\nПить воду"],["days","Дней (без календаря)","number","30"],["month","Месяц","select","Без календаря|Январь|Февраль|Март|Апрель|Май|Июнь|Июль|Август|Сентябрь|Октябрь|Ноябрь|Декабрь"],["year","Год","number","2026"]]};
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value).replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -48,6 +48,14 @@ function field([id,label,type,defaults]){
   input='<input id="f-'+id+'" data-k="'+id+'" type="'+type+'"'+attrs+' value="'+esc(value)+'">';
  }
  return '<label class="field" data-field-id="'+id+'" for="f-'+id+'">'+esc(label)+input+'</label>';
+}
+function syncMathTopics(){
+ const select=$("f-topic");
+ if(mode!=="math"||!select)return;
+ const options=mathTopicsByGrade[val("grade")]||mathTopicsByGrade["1 класс"];
+ const preferred=select.value;
+ select.innerHTML=options.map(topic=>'<option>'+esc(topic)+'</option>').join("");
+ select.value=options.includes(preferred)?preferred:options[0];
 }
 function fit(){
  const paper=$("paper"),box=paper.parentElement;
@@ -241,6 +249,7 @@ function useStarter(id){
   if(control)control.value=String(value);
  });
  if(mode==="labels"){renderSchoolPicker();toggleLabelKit();toggleLabelAudience();}
+ if(mode==="math")syncMathTopics();
  chooseStarter(kit.id);
  $("starter-status").textContent="Готово: «"+kit.title+"». Можно изменить параметры ниже.";
  generate();
@@ -364,11 +373,13 @@ function render(){
  renderSavedSets();
  $("fields").innerHTML=configs[mode].map(field).join("");
  if(mode==="labels"){renderSchoolPicker();toggleLabelKit();toggleLabelAudience();}
+ if(mode==="math")syncMathTopics();
  document.querySelectorAll("[data-k]").forEach(el=>{
   el.onchange=()=>{
    clearTimeout(inputTimer);
    chooseStarter(null);
    $("starter-status").textContent="";
+   if(mode==="math"&&el.dataset.k==="grade")syncMathTopics();
    if(mode==="labels"&&el.dataset.k==="kit"){
     if(el.value==="Школьный комплект"&&val("layout")==="Классический")$("f-layout").value="Школьный";
     toggleLabelKit();
