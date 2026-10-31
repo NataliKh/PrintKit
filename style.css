@@ -319,3 +319,18 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
 }
 @media(max-width:370px){.catalog-grid{grid-template-columns:minmax(0,1fr)}}
 @media print{#catalog{display:none!important}}
+
+
+/* Actual print-media raster previews, with the earlier illustrations as fallback. */
+.catalog-real-preview{position:absolute;inset:0;margin:auto;display:block;height:132px;width:auto;aspect-ratio:210/297;object-fit:cover;transform:rotate(-6deg);background:#fff;border:1px solid #e6e2eb;border-radius:4px;box-shadow:0 11px 24px #4b42602a;z-index:1}
+.catalog-card:nth-child(even) .catalog-real-preview{transform:rotate(5deg)}
+.catalog-real-preview[hidden]{display:none!important}
+.catalog-a4{z-index:2}
+.guide-links{margin:45px 0 10px;padding:26px 30px;border:1px solid #e9e2f4;background:white;border-radius:21px}
+.guide-links h2{font-size:21px;letter-spacing:-.5px;margin:0 0 16px}
+.guide-links nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.guide-links a{display:flex;justify-content:space-between;gap:9px;align-items:center;padding:13px 15px;border:1px solid #ede6f5;border-radius:11px;color:#6b51be;font-size:12px;font-weight:800}
+.guide-links a:hover{background:#f8f4ff}
+@media(max-width:760px){.catalog-real-preview{height:98px}.guide-links{padding:22px 17px;margin-top:30px}.guide-links nav{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:380px){.guide-links nav{grid-template-columns:1fr}}
+@media print{.guide-links{display:none!important}}
