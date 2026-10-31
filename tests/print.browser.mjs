@@ -543,7 +543,7 @@ try {
     await page.waitForFunction(()=>document.querySelectorAll('#paper .labels article').length===24);
     assert.equal(await page.locator('#paper .labels article:has(b:text-is("Мария Соколова"))').count(),12);
     assert.equal(await page.locator('#paper .labels article:has(b:text-is("Матвей Соколов"))').count(),12);
-    assert.match(await page.locator('#family-summary').innerText(),/2 ребёнка · 24 наклеек/);
+    assert.match(await page.locator('#family-summary').innerText(),/2 ребёнка · 24 наклейки/);
     await mkdir('artifacts/ui',{recursive:true});
     await page.locator('[data-field-id="names"]').screenshot({
       path:'artifacts/ui/family-names-desktop.png',animations:'disabled'
