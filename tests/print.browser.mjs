@@ -8,6 +8,8 @@ const url = new URL('../index.html', import.meta.url).href;
 const browser = await chromium.launch({headless: true});
 const scenarios = [
   {id:'math',name:'math and answers',mode:'math',fields:{count:'40',key:'Да'},pages:3},
+  {id:'math-multiply',name:'grade 3 multiplication',mode:'math',fields:{grade:'3 класс',topic:'Таблица умножения',count:'40',max:'100',key:'Да'},pages:3},
+  {id:'math-fractions',name:'grade 5 fraction of a number',mode:'math',fields:{grade:'5 класс',topic:'Доли числа',count:'40',max:'100',key:'Да'},pages:3},
   {id:'cards',name:'40 flashcards',mode:'cards',fields:{items:Array.from({length:40},(_,i)=>'Слово '+i+' — перевод '+i).join('\n')},pages:5},
   {id:'labels-standard',name:'27 standard labels',mode:'labels',fields:{count:'27'},pages:3},
   {id:'labels-small',name:'27 small labels',mode:'labels',fields:{count:'27',size:'Маленькие 40 × 22 мм'},pages:1},
@@ -75,6 +77,28 @@ try {
       await page.emulateMedia({media:'screen'});
     }
   }
+
+  // A class change must offer only topics appropriate for that grade.
+  try{
+    await page.locator('[data-tab="math"]').click();
+    await page.locator('#f-grade').selectOption({label:'1 класс'});
+    const firstGrade=await page.locator('#f-topic option').allTextContents();
+    assert.ok(firstGrade.includes('Пропущенное число'));
+    assert.ok(!firstGrade.includes('Таблица умножения'));
+    await page.locator('#f-grade').selectOption({label:'3 класс'});
+    const thirdGrade=await page.locator('#f-topic option').allTextContents();
+    assert.ok(thirdGrade.includes('Таблица умножения'));
+    assert.equal(await page.locator('#f-topic').inputValue(),'По программе класса');
+    await page.locator('#f-topic').selectOption({label:'Деление без остатка'});
+    await page.locator('#f-count').fill('40');
+    await page.locator('#f-count').dispatchEvent('change');
+    assert.ok((await page.locator('#paper').innerText()).includes(' : '),'division appears in grade 3 preview');
+    const snapshot=await page.locator('#paper').innerHTML();
+    await page.evaluate(()=>{window.print=()=>{}});
+    await page.locator('#print').click();
+    assert.equal(await page.locator('#paper').innerHTML(),snapshot,'printing never changes selected math questions');
+    console.log('PASS grade-specific topic selector, division and print stability');
+  }catch(error){failed=true;console.error('FAIL grade-specific math picker',error);}
 
   // Redesign QA: real A4 paper, three sizes and representative Russian names.
   try{
