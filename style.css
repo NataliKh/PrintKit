@@ -210,8 +210,8 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
 .starter-heading span{font-size:10px;color:#9a8dab;font-weight:700}
 .starter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .starter-card{min-width:0;min-height:100px;border:1px solid #e9e2f5;border-radius:13px;background:#fff;text-align:left;padding:11px 12px;display:flex;flex-direction:column;gap:4px;transition:border-color .15s,background .15s,transform .15s;box-shadow:0 4px 12px #39226306}
-.starter-card:nth-child(3):last-child{grid-column:1/-1;min-height:78px;display:grid;grid-template-columns:30px 1fr;column-gap:8px;align-content:center}
-.starter-card:nth-child(3):last-child .starter-icon{grid-row:span 2;align-self:center}
+.starter-card:last-child:nth-child(odd){grid-column:1/-1;min-height:78px;display:grid;grid-template-columns:30px 1fr;column-gap:8px;align-content:center}
+.starter-card:last-child:nth-child(odd) .starter-icon{grid-row:span 2;align-self:center}
 .starter-card:hover{border-color:#bda9e8;background:#fcfaff;transform:translateY(-1px)}
 .starter-card[aria-pressed="true"]{border-color:#8c71db;background:#f5efff;box-shadow:0 0 0 1px #8c71db3a}
 .starter-icon{font-size:19px;line-height:1.2}
@@ -227,8 +227,8 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
  .mobile-workspace-nav button:last-child{background:#7659da;color:#fff}
  #editor-controls,#print-preview{scroll-margin-top:80px}
  .starter-grid{display:flex;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:2px 2px 11px;scrollbar-width:thin}
- .starter-card,.starter-card:nth-child(3):last-child{display:flex;flex:0 0 184px;min-height:101px;grid-column:auto;scroll-snap-align:start;padding:12px}
- .starter-card:nth-child(3):last-child .starter-icon{align-self:auto}
+ .starter-card,.starter-card:last-child:nth-child(odd){display:flex;flex:0 0 184px;min-height:101px;grid-column:auto;scroll-snap-align:start;padding:12px}
+ .starter-card:last-child:nth-child(odd) .starter-icon{align-self:auto}
 }
 @media print{
  .mobile-workspace-nav{display:none!important}
