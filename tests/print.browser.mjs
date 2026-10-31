@@ -221,6 +221,15 @@ try {
     assert.ok(compact.sectionWidth<=compact.editorWidth,'saved control must fit editor');
     assert.equal(await page.locator('#saved-count').isVisible(),false,'hide distracting zero counter');
     assert.match(await page.locator('#saved-hint').innerText(),/Сохранить текущие настройки/);
+    const chevron=page.locator('#saved-section .saved-chevron');
+    assert.equal(await chevron.innerText(),'','saved arrow is a decorative SVG, not a text glyph');
+    const collapsedArrow=await chevron.evaluate(el=>{
+      const css=getComputedStyle(el);
+      return {image:css.backgroundImage,width:parseFloat(css.width),height:parseFloat(css.height),transform:css.transform};
+    });
+    assert.ok(collapsedArrow.image.includes('data:image/svg+xml'),'saved arrow uses same SVG as selects');
+    assert.equal(collapsedArrow.width,16);
+    assert.equal(collapsedArrow.height,16);
     await mkdir('artifacts/ui',{recursive:true});
     await page.locator('#saved-section').screenshot({path:'artifacts/ui/saved-collapsed-desktop.png',animations:'disabled'});
     await page.emulateMedia({media:'print'});
@@ -229,6 +238,10 @@ try {
 
     // Named projects persist across reload and switch generators without losing custom inputs.
     await page.locator('#saved-section summary').click();
+    await page.waitForFunction(()=>{
+      const arrow=document.querySelector('#saved-section .saved-chevron');
+      return getComputedStyle(arrow).transform==='matrix(-1, 0, 0, -1, 0, 0)';
+    });
     await page.locator('#saved-name').fill('Ярлыки семьи');
     await page.locator('#saved-save').click();
     assert.equal(await page.locator('.saved-item').count(),1,'first personal project');
