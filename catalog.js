@@ -26,7 +26,7 @@ function galleryCard(kit){
   '<span class="catalog-card-description">'+esc(kit.description)+'</span>'+
   '<span class="catalog-card-link">Открыть шаблон <span aria-hidden="true">↗</span></span></span></button>';
 }
-function galleryRenderFilters(){
+function galleryInitFilters(){
  galleryFilters.innerHTML=Object.entries(galleryCategoryNames).map(([key,label])=>
   '<button type="button" data-category="'+key+'" aria-pressed="'+(galleryCategory===key)+'">'+esc(label)+'</button>'
  ).join("");
@@ -37,7 +37,9 @@ function galleryRenderFilters(){
  });
 }
 function galleryRender(){
- galleryRenderFilters();
+ galleryFilters.querySelectorAll("[data-category]").forEach(button=>{
+  button.setAttribute("aria-pressed",String(galleryCategory===button.dataset.category));
+ });
  const query=galleryNormalize(gallerySearch.value);
  const matched=galleryTemplates.filter(kit=>{
   if(galleryCategory!=="all"&&kit.type!==galleryCategory)return false;
@@ -57,6 +59,7 @@ function galleryRender(){
   applyCatalogStarter(button.dataset.mode,button.dataset.template);
  });
 }
+galleryInitFilters();
 gallerySearch.addEventListener("input",galleryRender);
 galleryMore.addEventListener("click",()=>{
  galleryExpanded=!galleryExpanded;
