@@ -214,3 +214,48 @@ test('default identical labels stay unchanged with school kit selector present',
  assert.equal((html.match(/<small>Тетрадь<\/small>/g)||[]).length,12);
  assert.doesNotMatch(html,/Школьный комплект наклеек/);
 });
+
+
+test('family label names are split, trimmed and restricted to six',()=>{
+ const parse=vm.runInContext('parseLabelNames',context);
+ assert.equal(Array.from(parse('  Аня  Соколова \r\n\n Матвей Соколов  ')).join('|'),'Аня Соколова|Матвей Соколов');
+ assert.equal(parse(Array.from({length:8},(_,i)=>'Ребёнок '+i).join('\n')).length,6);
+ assert.equal(parse(null).length,0);
+});
+test('two children each receive their own complete school subject set',()=>{
+ const subjects=JSON.stringify([{name:'Математика',selected:true,qty:2},{name:'История',selected:true,qty:1},
+ {name:'Физкультура',selected:false,qty:5}]);
+ const data={...vals,kit:'Школьный комплект',audience:'Несколько детей',
+  names:'Анна Соколова\nМарк Соколов',subjects,layout:'Школьный',size:'Стандартные 54 × 38 мм'};
+ const html=render('labels',key=>data[key]??'',escape,lines,clamp);
+ assert.equal((html.match(/<article>/g)||[]).length,6);
+ assert.equal((html.match(/<b>Анна Соколова<\/b>/g)||[]).length,3);
+ assert.equal((html.match(/<b>Марк Соколов<\/b>/g)||[]).length,3);
+ assert.equal((html.match(/<small>Математика<\/small>/g)||[]).length,4);
+ assert.equal((html.match(/<small>История<\/small>/g)||[]).length,2);
+ assert.doesNotMatch(html,/Физкультура/);
+ assert.ok(html.indexOf('<b>Анна Соколова')<html.indexOf('<b>Марк Соколов'));
+});
+test('identical family labels scale quantity per child and paginate all sizes',()=>{
+ for(const [size,perPage] of [
+ ['Стандартные 54 × 38 мм',12],['Маленькие 40 × 22 мм',32],['Крупные 80 × 48 мм',8]
+ ]){
+  const data={...vals,kit:'Одинаковые',audience:'Несколько детей',names:'Аня\nМарк',
+   count:'24',subtitle:'Тетрадь',size,layout:'Школьный'};
+  const html=render('labels',key=>data[key]??'',escape,lines,clamp);
+  assert.equal((html.match(/<article>/g)||[]).length,48);
+  assert.equal((html.match(/class="sheet-page /g)||[]).length,Math.ceil(48/perPage));
+  assert.equal((html.match(/<b>Аня<\/b>/g)||[]).length,24);
+  assert.equal((html.match(/<b>Марк<\/b>/g)||[]).length,24);
+ }
+});
+test('family names remain escaped; single-child mode ignores saved siblings',()=>{
+ const data={...vals,kit:'Школьный комплект',audience:'Несколько детей',names:'<img src=x onerror=alert(1)>\nМарк',
+ subjects:JSON.stringify([{name:'Русский',selected:true,qty:1}])};
+ const html=render('labels',key=>data[key]??'',escape,lines,clamp);
+ assert.doesNotMatch(html,/<img/);
+ assert.match(html,/&lt;img/);
+ const single=render('labels',key=>({...data,audience:'Один ребёнок',name:'Аня'})[key]??'',escape,lines,clamp);
+ assert.equal((single.match(/<article>/g)||[]).length,1);
+ assert.doesNotMatch(single,/Марк/);
+});
