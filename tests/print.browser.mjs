@@ -454,6 +454,10 @@ try {
     for(const box of await page.locator('#school-subject-list .school-subject-check').all()){
       if(await box.isChecked())await box.uncheck();
     }
+    await page.waitForFunction(()=>{
+      const items=JSON.parse(document.querySelector('#f-subjects').value);
+      return items.every(item=>!item.selected) && document.querySelector('#print').disabled;
+    });
     assert.equal(await page.locator('#print').isDisabled(),true,'cannot print an empty school kit');
     assert.match(await page.locator('#print-status').innerText(),/Выберите хотя бы один предмет/);
     await page.setViewportSize({width:390,height:844});
