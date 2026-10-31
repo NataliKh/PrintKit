@@ -165,7 +165,7 @@ try {
         const css=getComputedStyle(el),rect=el.getBoundingClientRect();
         return {appearance:css.appearance,image:css.backgroundImage,padding:parseFloat(css.paddingRight),width:rect.width,right:rect.right};
       }));
-      assert.equal(styles.length,3,'labels have three custom dropdowns');
+      assert.equal(styles.length,4,'labels have four custom dropdowns');
       for(const item of styles){
         assert.equal(item.appearance,'none','hide platform-native arrow');
         assert.ok(item.image.includes('data:image/svg+xml'),'SVG chevron is visible');
@@ -259,7 +259,7 @@ try {
     // Catalog discovery: featured, filters, search, quick-open and mobile layout.
     assert.equal(await page.locator('#catalog-grid [data-template]').count(),6,'six featured catalog cards');
     await page.locator('#catalog-more').click();
-    assert.equal(await page.locator('#catalog-grid [data-template]').count(),24,'all 24 kits visible after expansion');
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),25,'all 25 kits visible after expansion');
     await page.locator('#catalog-search').fill('чтение');
     assert.ok(await page.locator('#catalog-grid [data-template]').count()>0,'catalog finds reading kits');
     await page.locator('#catalog-filters [data-category="habits"]').click();
@@ -284,7 +284,7 @@ try {
     await page.setViewportSize({width:390,height:844});
     const width=await page.evaluate(()=>({content:document.documentElement.scrollWidth,viewport:window.innerWidth}));
     assert.ok(width.content<=width.viewport+3,'catalog should not cause mobile horizontal overflow '+JSON.stringify(width));
-    assert.equal(await page.locator('#catalog-grid [data-template]').count(),4,'four filtered labels at narrow viewport');
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),5,'five filtered labels at narrow viewport');
     await page.setViewportSize({width:1440,height:900});
     console.log('PASS searchable template catalog, one-click editing and mobile layout');
     // The saved-set control belongs after the editable fields, not above them.
@@ -395,6 +395,81 @@ try {
   }catch(error){
     failed=true;
     console.error('FAIL editor usability',error);
+  }
+  // School kit: selection, per-subject counts, custom entry, persistence and PDF.
+  try{
+    await page.locator('[data-tab="labels"]').click();
+    await page.locator('#reset').click();
+    await page.locator('#f-name').fill('Мария Соколова');
+    await page.locator('#f-name').dispatchEvent('change');
+    await page.locator('#f-kit').selectOption({label:'Школьный комплект'});
+    assert.equal(await page.locator('[data-field-id="subjects"]').isVisible(),true);
+    assert.equal(await page.locator('[data-field-id="count"]').isVisible(),false);
+    assert.equal(await page.locator('[data-field-id="subtitle"]').isVisible(),false);
+    assert.equal(await page.locator('#school-subject-list .school-subject-row').count(),10);
+    assert.equal(await page.locator('#paper .labels article').count(),12,'default kit makes 12 stickers');
+    const row=title=>page.locator('.school-subject-row').filter({hasText:title});
+    await row('Тетрадь').locator('.school-subject-check').uncheck();
+    assert.equal(await page.locator('#paper .labels article').count(),10);
+    await row('Математика').locator('.school-subject-qty input').fill('3');
+    await row('Математика').locator('.school-subject-qty input').dispatchEvent('change');
+    assert.equal(await page.locator('#paper .labels article').count(),11);
+    await page.locator('#school-new-name').fill('Информатика');
+    await page.locator('#school-add-button').click();
+    assert.equal(await page.locator('#paper .labels article').count(),12);
+    assert.equal(await page.locator('#paper .labels article:has(small:text-is("Информатика"))').count(),1);
+    assert.equal(await page.locator('#paper .labels article:has(small:text-is("Математика"))').count(),3);
+    assert.equal(await page.locator('#paper .labels article:has(small:text-is("Тетрадь"))').count(),0);
+    assert.equal(await page.locator('#print').isDisabled(),false);
+    const savedItems=await page.locator('#f-subjects').inputValue();
+    await page.locator('#saved-section').evaluate(el=>{el.open=true});
+    await page.locator('#saved-name').fill('Мой школьный комплект');
+    await page.locator('#saved-save').click();
+    await page.reload();
+    await page.locator('#saved-section summary').click();
+    await page.locator('.saved-item').filter({hasText:'Мой школьный комплект'}).locator('.saved-open').click();
+    assert.equal(await page.locator('#f-kit').inputValue(),'Школьный комплект');
+    assert.equal(await page.locator('#f-name').inputValue(),'Мария Соколова');
+    assert.equal(await page.locator('#f-subjects').inputValue(),savedItems,'saved kit restores all subject quantities');
+    for(const [size,pages] of [
+      ['Стандартные 54 × 38 мм',1],['Маленькие 40 × 22 мм',1],['Крупные 80 × 48 мм',2]
+    ]){
+      await page.locator('#f-size').selectOption({label:size});
+      await page.emulateMedia({media:'print'});
+      const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
+      const info=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
+      assert.equal(Number(info.match(/^Pages:\s+(\d+)/m)?.[1]),pages,'A4 PDF page count for '+size);
+      const clipped=await page.locator('#paper .labels article').evaluateAll(els=>els.filter(el=>
+        el.scrollHeight>el.clientHeight+2||el.scrollWidth>el.clientWidth+2).length);
+      assert.equal(clipped,0,'school kit stickers must not clip at '+size);
+      if(size.startsWith('Стандартные')){
+        await mkdir('artifacts/ui',{recursive:true});
+        await page.locator('#paper .sheet-page').first().screenshot({
+          path:'artifacts/ui/school-kit-a4.png',animations:'disabled'
+        });
+      }
+      await page.emulateMedia({media:'screen'});
+    }
+    // An empty selection must block print, rather than output an empty label page.
+    for(const box of await page.locator('#school-subject-list .school-subject-check').all()){
+      if(await box.isChecked())await box.uncheck();
+    }
+    await page.waitForFunction(()=>{
+      const items=JSON.parse(document.querySelector('#f-subjects').value);
+      return items.every(item=>!item.selected) && document.querySelector('#print').disabled;
+    });
+    assert.equal(await page.locator('#print').isDisabled(),true,'cannot print an empty school kit');
+    assert.match(await page.locator('#print-status').innerText(),/Выберите хотя бы один предмет/);
+    await page.setViewportSize({width:390,height:844});
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),
+      'school subject list fits mobile screen');
+    await page.setViewportSize({width:1440,height:900});
+    console.log('PASS school kit: subjects, quantities, saved project and 3 A4 sizes');
+  }catch(error){
+    failed=true;
+    console.error('FAIL school subject kit',error);
+    await page.emulateMedia({media:'screen'});
+    await page.setViewportSize({width:1440,height:900});
   }
 } finally {
   await finishVisualReport();

@@ -57,7 +57,7 @@ function galleryRender(){
  galleryEmpty.hidden=matched.length>0;
  galleryMore.hidden=galleryCategory!=="all"||Boolean(query);
  galleryMore.setAttribute("aria-expanded",String(galleryExpanded));
- galleryMore.textContent=galleryExpanded?"Свернуть каталог ↑":"Показать все "+galleryTemplates.length+" шаблона ↓";
+ galleryMore.textContent=galleryExpanded?"Свернуть каталог ↑":"Показать все "+galleryTemplates.length+" шаблонов ↓";
  galleryCount.textContent=matched.length===0?"Ничего не найдено":
   "Показано "+shown.length+" из "+matched.length+" шаблонов";
  galleryGrid.querySelectorAll("[data-template]").forEach(button=>button.onclick=()=>{

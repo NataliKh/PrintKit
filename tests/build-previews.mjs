@@ -11,7 +11,7 @@ try{
  const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
  await page.goto(new URL('../index.html',import.meta.url).href);
  const entries=await page.evaluate(()=>Object.entries(starterKits).flatMap(([mode,kits])=>kits.map(kit=>({mode,id:kit.id,title:kit.title}))));
- assert.equal(entries.length,24,'all catalog templates must have real previews');
+ assert.equal(entries.length,25,'all catalog templates must have real previews');
  for(const {mode,id,title} of entries){
   try{
    await page.emulateMedia({media:'screen'});
@@ -47,4 +47,4 @@ try{
 }
 await writeFile(new URL('manifest.json',out),JSON.stringify({generatedAt:new Date().toISOString(),previews:manifest},null,2)+'\n');
 assert.equal(failures,0,'all thumbnails must render');
-assert.equal(manifest.length,24,'all 24 thumbnails must be built');
+assert.equal(manifest.length,25,'all 25 thumbnails must be built');

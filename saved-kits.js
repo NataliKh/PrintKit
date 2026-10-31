@@ -13,7 +13,7 @@ const savedKitStore=(()=>{
    if(!Object.hasOwn(input,key))continue;
    const value=input[key];
    if(typeof value!=="string")continue;
-   const max=type==="textarea"?8000:type==="number"?40:200;
+   const max=type==="textarea"||type==="subjects"?8000:type==="number"?40:200;
    if(value.length>max)return null; // Never silently truncate a saved project.
    if(type==="select"&&!choices.split("|").includes(value))continue;
    result[key]=value;
