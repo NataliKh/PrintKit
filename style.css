@@ -622,3 +622,32 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
  .school-add-actions button{padding:0 9px}
 }
 @media print{.school-picker{display:none!important}}
+
+
+/* Family labels are opt-in; keep the single-child form compact. */
+#fields [data-field-id="names"][hidden],
+#fields [data-field-id="name"][hidden]{display:none!important}
+.family-names-field textarea{min-height:102px;line-height:1.55;resize:vertical}
+.family-hint{
+  display:block;
+  margin-top:8px;
+  color:#888095;
+  font-size:11px;
+  font-weight:500;
+  line-height:1.55;
+}
+.family-summary{
+  display:inline-flex;
+  align-items:center;
+  min-height:29px;
+  margin-top:12px;
+  padding:6px 10px;
+  border:1px solid #ded6ee;
+  border-radius:9px;
+  background:#f8f4ff;
+  color:#6852ae;
+  font-size:11px;
+  font-weight:750;
+  line-height:1.45;
+}
+.family-summary.is-warning{border-color:#f1deca;background:#fff5e9;color:#aa623b}
