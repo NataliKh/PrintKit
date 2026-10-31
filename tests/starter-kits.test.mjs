@@ -13,10 +13,10 @@ const modes=['math','cards','labels','diploma','schedule','habits'];
 const selectOptions={
  theme:['Лавандовый','Мятный','Персиковый','Минимализм']
 };
-test('every print generator offers three distinct curated quick starts',()=>{
+test('every print generator offers four distinct curated quick starts',()=>{
  assert.deepEqual(Object.keys(kits).sort(),[...modes].sort());
  for(const mode of modes){
-  assert.equal(kits[mode].length,3,mode);
+  assert.equal(kits[mode].length,4,mode);
   assert.equal(new Set(kits[mode].map(x=>x.id)).size,3,mode);
   for(const kit of kits[mode]){
    assert.match(kit.id,/^[a-z0-9-]+$/);
