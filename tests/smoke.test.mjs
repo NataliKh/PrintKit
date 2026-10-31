@@ -152,16 +152,19 @@ test('print label sizes are expressed in millimetres',()=>{
 });
 
 
-test('school notebooks render a clear heading without the old stray pencil icon',()=>{
+test('school notebook labels show only the name and practical caption',()=>{
  const inputs={...vals,layout:'Школьный',size:'Стандартные 54 × 38 мм',count:'12',name:'Худякова Наталья',subtitle:'Тетрадь'};
  const html=render('labels',key=>inputs[key]??'',escape,lines,clamp);
  assert.match(html,/labels--school/);
- assert.match(html,/<span class="label-mark" aria-hidden="true">ИМЕННАЯ НАКЛЕЙКА<\/span>/);
- assert.doesNotMatch(html,/>✎</);
+ assert.doesNotMatch(html,/class="label-mark"/);
+ assert.doesNotMatch(html,/ИМЕННАЯ НАКЛЕЙКА|✎/);
  assert.equal((html.match(/<article>/g)||[]).length,12);
- assert.match(html,/<b>Худякова Наталья<\/b><small>Тетрадь<\/small>/);
+ assert.match(html,/<article><b>Худякова Наталья<\/b><small>Тетрадь<\/small><\/article>/);
+ const classic=render('labels',key=>({...inputs,layout:'Классический'})[key]??'',escape,lines,clamp);
+ assert.match(classic,/class="label-mark"/); // Other layouts retain their decoration.
  const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
  assert.match(css,/#paper \.labels--school article\{/);
  assert.match(css,/border:1px solid var\(--sheet-border\)/);
  assert.match(css,/#paper \.labels--size-small\.labels--school article\{/);
+ assert.doesNotMatch(css,/#paper \.labels--school article::before/);
 });
