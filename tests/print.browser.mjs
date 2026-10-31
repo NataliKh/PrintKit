@@ -140,6 +140,37 @@ try {
     assert.ok(mobile.documentWidth<=mobile.viewport+3,'no mobile horizontal page scrolling '+JSON.stringify(mobile));
     await page.setViewportSize({width:1440,height:900});
     console.log('PASS mobile A4 preview at 390px');
+    // Catalog discovery: featured, filters, search, quick-open and mobile layout.
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),6,'six featured catalog cards');
+    await page.locator('#catalog-more').click();
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),24,'all 24 kits visible after expansion');
+    await page.locator('#catalog-search').fill('чтение');
+    assert.ok(await page.locator('#catalog-grid [data-template]').count()>0,'catalog finds reading kits');
+    await page.locator('#catalog-filters [data-category="habits"]').click();
+    const visibleModes=await page.locator('#catalog-grid [data-template]').evaluateAll(cards=>cards.map(x=>x.dataset.mode));
+    assert.ok(visibleModes.length>0 && visibleModes.every(x=>x==='habits'),'category filter narrows to habits');
+    await page.locator('#catalog-search').fill('несуществующийнабор12345');
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),0,'empty search');
+    assert.equal(await page.locator('#catalog-empty').isVisible(),true,'empty state is visible');
+    await page.locator('#catalog-search').fill('');
+    await page.locator('#catalog-filters [data-category="all"]').click();
+    await page.locator('#catalog-more').click();
+    await page.locator('#catalog-grid [data-template="greetings"]').click();
+    assert.equal(await page.locator('[data-tab="cards"]').getAttribute('aria-current'),'true','catalog opens cards editor');
+    assert.match(await page.locator('#f-items').inputValue(),/Hello!/);
+    assert.equal(await page.locator('#paper .cards article').count(),8,'catalog kit generates cards');
+    await page.locator('[data-tab="labels"]').click();
+    await page.locator('#f-name').fill('Тестовое имя');
+    await page.locator('#f-name').dispatchEvent('change');
+    await page.locator('#catalog-filters [data-category="labels"]').click();
+    await page.locator('#catalog-grid [data-template="art"]').click();
+    assert.equal(await page.locator('#f-name').inputValue(),'Тестовое имя','catalog keeps a typed personal name');
+    await page.setViewportSize({width:390,height:844});
+    const width=await page.evaluate(()=>({content:document.documentElement.scrollWidth,viewport:window.innerWidth}));
+    assert.ok(width.content<=width.viewport+3,'catalog should not cause mobile horizontal overflow '+JSON.stringify(width));
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),4,'four filtered labels at narrow viewport');
+    await page.setViewportSize({width:1440,height:900});
+    console.log('PASS searchable template catalog, one-click editing and mobile layout');
   }catch(error){
     failed=true;
     console.error('FAIL editor usability',error);
