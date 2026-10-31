@@ -44,6 +44,17 @@ jobs:
         env:
           PRINTKIT_VISUAL_BASELINE: artifacts/printkit-baseline
         run: node tests/print.browser.mjs
+      - name: Render all 24 real A4 template previews
+        run: node tests/build-previews.mjs
+      - name: Check guides, image assets and deep links
+        run: node tests/seo.browser.mjs
+      - name: Save real template thumbnails
+        uses: actions/upload-artifact@v4
+        with:
+          name: printkit-thumbnails
+          path: previews/
+          retention-days: 30
+          if-no-files-found: error
       - name: Keep PDFs, page previews and visual diff report
         if: always()
         uses: actions/upload-artifact@v4
@@ -64,8 +75,21 @@ jobs:
       - uses: actions/configure-pages@v5
         with:
           enablement: true
+      - name: Retrieve verified A4 thumbnails
+        uses: actions/download-artifact@v4
+        with:
+          name: printkit-thumbnails
+          path: previews
+      - name: Stage website without test dependencies or private artifacts
+        run: |
+          mkdir -p _site
+          cp index.html app.js render.js presets.js catalog.js style.css seo.css sitemap.xml _site/
+          cp -R tools _site/tools
+          cp -R previews _site/previews
+          test -s _site/previews/manifest.json
+          test -f _site/tools/math/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
