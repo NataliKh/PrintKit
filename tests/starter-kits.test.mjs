@@ -53,5 +53,12 @@ test('starter content stays within existing generator print limits',()=>{
  for(const kit of kits.habits)assert.ok(countLines(kit.values.items)<=15);
  for(const kit of kits.schedule)assert.ok(countLines(kit.values.items)<=7);
  for(const kit of kits.math)assert.ok(Number(kit.values.count)<=40);
- for(const kit of kits.labels)assert.ok(Number(kit.values.count)<=96);
+ for(const kit of kits.labels){
+  if(kit.values.kit==='Школьный комплект'){
+   const items=JSON.parse(kit.values.subjects);
+   assert.ok(Array.isArray(items)&&items.length>0);
+   const total=items.filter(item=>item.selected).reduce((sum,item)=>sum+item.qty,0);
+   assert.ok(total>0&&total<=96);
+  }else assert.ok(Number(kit.values.count)<=96);
+ }
 });
