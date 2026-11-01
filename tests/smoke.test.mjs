@@ -35,6 +35,47 @@ test('math results stay inside the selected range',()=>{
  }
 });
 
+
+test('first-grade mixed worksheets balance practice and limit trivial exercises',()=>{
+ const generate=vm.runInContext('mathGenerate',context);
+ for(const maximum of [10,20]){
+  for(const total of [10,20,40]){
+   for(let trial=0;trial<100;trial++){
+    const result=generate('1 класс','По программе класса','Простые',maximum,total);
+    const questions=result.questions;
+    assert.equal(questions.length,total);
+    assert.equal(new Set(questions.map(q=>q.text)).size,total,'Repeated exercise in a normal range');
+    const addition=questions.filter(q=>!q.blank&&q.text.includes(' + ')).length;
+    const subtraction=questions.filter(q=>!q.blank&&q.text.includes(' − ')).length;
+    const missing=questions.filter(q=>q.blank).length;
+    assert.equal(addition,Math.round(total*0.35));
+    assert.equal(subtraction,Math.round(total*0.35));
+    assert.equal(missing,total-addition-subtraction);
+    let trivialCount=0;
+    for(const q of questions){
+     const expression=q.blank?q.text.replace('□',String(q.answer)).split(' = ')[0]:q.text;
+     const match=expression.match(/^(\d+) ([+−]) (\d+)$/);
+     assert.ok(match,'Unexpected expression: '+expression);
+     const a=Number(match[1]),b=Number(match[3]);
+     assert.equal(match[2]==='+'?a+b:a-b,q.blank?Number(q.text.replace('□',String(q.answer)).split(' = ')[1]):q.answer);
+     assert.ok(Number.isInteger(q.answer)&&q.answer>=0&&q.answer<=maximum);
+     if(match[2]==='+'?(a===0||b===0):(b===0||a===b))trivialCount++;
+    }
+    assert.equal(trivialCount,Math.min(2,Math.floor(total/20)));
+   }
+  }
+ }
+});
+
+test('small first-grade range terminates even if distinct exercises run out',()=>{
+ const generate=vm.runInContext('mathGenerate',context);
+ for(const total of [10,20,40]){
+  const {questions}=generate('1 класс','По программе класса','Простые',2,total);
+  assert.equal(questions.length,total);
+  assert.ok(questions.every(q=>Number.isInteger(q.answer)&&q.answer>=0&&q.answer<=2));
+ }
+});
+
 test('habit tracker reserves a name column and 31 checkbox columns',()=>{
  const getter=k=>({title:'Мои привычки',items:'Читать\nЗарядка\nПить воду',days:'31'})[k]??'';
  const html=render('habits',getter,escape,lines,clamp);

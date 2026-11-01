@@ -6,6 +6,78 @@ const mathTopicsByGrade={
  '4 класс':['По программе класса','Умножение и деление','Порядок действий','Сложение и вычитание'],
  '5 класс':['По программе класса','Доли числа','Умножение и деление','Порядок действий']
 };
+
+/**
+ * Balanced first-grade practice for the default "По программе класса" topic.
+ * Build finite pools instead of relying on repeated random attempts; dedicated
+ * subjects still include zero exercises for focused practice.
+ */
+function mathFirstGradeMixed(maximum,total){
+ const pools={addition:[],subtraction:[],missing:[]};
+ for(let sum=0;sum<=maximum;sum++){
+  for(let a=0;a<=sum;a++){
+   const b=sum-a;
+   const family=Math.min(a,b)+':'+Math.max(a,b);
+   const trivial=a===0||b===0;
+   pools.addition.push({text:a+' + '+b,answer:sum,family,trivial});
+   pools.subtraction.push({text:sum+' − '+b,answer:a,family,trivial});
+   pools.missing.push({text:'□ + '+b+' = '+sum,answer:a,blank:true,family,trivial});
+   pools.missing.push({text:b+' + □ = '+sum,answer:a,blank:true,family,trivial});
+   pools.missing.push({text:sum+' − □ = '+b,answer:a,blank:true,family,trivial});
+   pools.missing.push({text:sum+' − '+b+' = □',answer:a,blank:true,family,trivial});
+  }
+ }
+ const quotas={
+  addition:Math.round(total*0.35),
+  subtraction:Math.round(total*0.35),
+  missing:total-2*Math.round(total*0.35)
+ };
+ const order=[];
+ while(order.length<total){
+  for(const kind of ['addition','subtraction','missing']){
+   if(quotas[kind]>0){order.push(kind);quotas[kind]--;}
+  }
+ }
+ for(let i=order.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [order[i],order[j]]=[order[j],order[i]];
+ }
+ // Keep some practice with zero, but never let it dominate the usual 20/40-task sheets.
+ const zeroSlots=new Set();
+ const simpleSlots=order.map((kind,i)=>kind==='missing'?-1:i).filter(i=>i!==-1);
+ for(let n=0;n<Math.min(2,Math.floor(total/20))&&simpleSlots.length;n++){
+  const index=Math.floor(Math.random()*simpleSlots.length);
+  zeroSlots.add(simpleSlots.splice(index,1)[0]);
+ }
+ const usedTexts=new Set(),usedFamilies=new Set(),results=[];
+ const kinds=['addition','subtraction','missing'];
+ function take(fromKinds,allowTrivial,newFamilyOnly){
+  const choices=fromKinds.flatMap(kind=>pools[kind].filter(q=>
+   !usedTexts.has(q.text)&&(allowTrivial||!q.trivial)&&(!newFamilyOnly||!usedFamilies.has(q.family))
+  ));
+  return choices.length?choices[Math.floor(Math.random()*choices.length)]:null;
+ }
+ for(let index=0;index<order.length;index++){
+  const kind=order[index];
+  const zeroChoices=zeroSlots.has(index)?pools[kind].filter(q=>
+   q.trivial&&q.family!=='0:0'&&!usedTexts.has(q.text)&&!usedFamilies.has(q.family)
+  ):[];
+  const zeroQuestion=zeroChoices.length?zeroChoices[Math.floor(Math.random()*zeroChoices.length)]:null;
+  // Prefer new nontrivial fact families; only repeat if the chosen range is tiny.
+  const question=zeroQuestion||
+   take([kind],false,true)||take([kind],false,false)||
+   take(kinds,false,true)||take(kinds,false,false)||
+   take([kind],true,true)||take([kind],true,false)||
+   take(kinds,true,true)||take(kinds,true,false)||
+   pools[kind][Math.floor(Math.random()*pools[kind].length)];
+  usedTexts.add(question.text);
+  usedFamilies.add(question.family);
+  const {text,answer,blank}=question;
+  results.push(blank?{text,answer,blank:true}:{text,answer});
+ }
+ return results;
+}
+
 function mathGenerate(grade,requestedTopic,level,range,count){
  const grades=Object.keys(mathTopicsByGrade);
  const gradeIndex=Math.max(0,grades.indexOf(grade));
@@ -73,6 +145,9 @@ function mathGenerate(grade,requestedTopic,level,range,count){
    return {text:numerator+'/'+denominator+' от '+(denominator*unit),answer:numerator*unit};
   }
   return {text:'0 + 0',answer:0};
+ }
+ if(gradeIndex===0&&selected===topics[0]&&level==='Простые'){
+  return {topic:selected,maximum,questions:mathFirstGradeMixed(maximum,total)};
  }
  const results=[],seen=new Set();
  for(let i=0;i<total;i++){
