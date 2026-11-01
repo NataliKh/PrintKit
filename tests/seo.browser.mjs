@@ -13,9 +13,9 @@ try{
  const page=await browser.newPage({viewport:{width:1280,height:900}});
  for(const mode of modes){
   await page.goto(new URL('tools/'+mode+'/index.html',base).href);
-  assert.match(await page.title(),/PrintKit/);
+  assert.match(await page.title(),/Листокия/);
   assert.equal(await page.locator('h1').count(),1,'one indexable main heading for '+mode);
-  assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'),'https://natalikh.github.io/PrintKit/tools/'+mode+'/');
+  assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'),'https://listokia.ru/tools/'+mode+'/');
   const image=page.locator('.seo-preview img');
   await image.waitFor();
   const details=await image.evaluate(el=>({ok:el.complete&&el.naturalWidth>200,src:el.getAttribute('src')}));
@@ -28,6 +28,9 @@ try{
   console.log('SEO PASS',mode);
  }
  await page.goto(new URL('index.html',base).href);
+ assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'),'https://listokia.ru/');
+ assert.equal(await page.locator('meta[property="og:url"]').getAttribute('content'),'https://listokia.ru/');
+ assert.equal(await page.locator('link[rel=icon]').getAttribute('href'),'./favicon.svg');
  const thumbs=page.locator('#catalog-grid img.catalog-real-preview');
  assert.equal(await thumbs.count(),6,'six featured template thumbnails');
  for(const item of await thumbs.all()){
@@ -44,13 +47,13 @@ try{
  for(const name of ['legal.html','privacy.html']){
   await page.goto(new URL(name,base).href);
   assert.equal(await page.locator('h1').count(),1,'legal content has an accessible heading: '+name);
-  assert.ok((await page.title()).includes('PrintKit'));
+  assert.ok((await page.title()).includes('Листокия'));
   assert.equal(await page.locator('a[href*="index.html#editor"]').count(),1,'navigation back to editor');
  }
  await page.goto(new URL('index.html',base).href);
  // A visit must not load Yandex until the visitor explicitly opts in.
  await page.route('https://mc.yandex.ru/**',route=>route.abort());
- assert.ok(await page.evaluate(()=>window.printKitAnalytics?.enabled()===true),'real PrintKit counter is configured');
+ assert.ok(await page.evaluate(()=>window.printKitAnalytics?.enabled()===true),'real Listokia counter is configured');
  assert.equal(await page.locator('.pk-consent').count(),1,'consent banner shown for first-time visitor');
  assert.equal(await page.locator('script[src^="https://mc.yandex.ru/metrika/tag.js"]').count(),0,
   'no tracking script before consent');

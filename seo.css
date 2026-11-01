@@ -4,8 +4,8 @@ a{color:inherit;text-decoration:none}a:focus-visible,summary:focus-visible{outli
 .seo-header{background:#fff;border-bottom:1px solid var(--line)}
 .seo-header-inner{max-width:1130px;margin:auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:15px}
 .seo-brand{font-size:26px;font-weight:900;letter-spacing:-1.3px;display:flex;align-items:center;gap:4px}
-.seo-brand span{display:inline-grid;place-items:center;font-size:23px;width:39px;height:39px;border-radius:12px;background:var(--violet);color:#fff;margin-right:8px}
-.seo-brand strong{color:var(--violet)}.seo-header-cta{border:1px solid #e6dbf6;border-radius:12px;color:#6349b2;font-size:13px;padding:10px 15px;font-weight:800}
+.seo-brand span{display:inline-grid;place-items:center;flex:0 0 39px;width:39px;height:39px;border-radius:12px;background:linear-gradient(140deg,#56bba2,#7754de);color:#fff;margin-right:8px}.seo-brand span svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.seo-brand strong{color:#4a9c88}.seo-header-cta{border:1px solid #e6dbf6;border-radius:12px;color:#6349b2;font-size:13px;padding:10px 15px;font-weight:800}
 main{max-width:1130px;padding:0 24px 75px;margin:auto}
 .seo-breadcrumb{display:flex;gap:11px;align-items:center;flex-wrap:wrap;color:#898099;font-size:12px;margin:24px 0 24px}
 .seo-breadcrumb a{color:#6e50b8}.seo-breadcrumb a:hover{text-decoration:underline}
