@@ -20,7 +20,7 @@ test('math results stay inside the selected range',()=>{
   for(let run=0;run<12;run++){
    const getter=k=>({grade:'2 класс',topic:'Сложение и вычитание',count:'40',max:'20',level,key:'Да'})[k]??'';
    const html=render('math',getter,escape,lines,clamp);
-   const questions=[...html.matchAll(/<div>\d+\. ([^<]+) = ______<\/div>/g)];
+   const questions=[...html.matchAll(/<div>\d+\. ([^<]+) = <span class="math-answer-line"[^>]*><\/span><\/div>/g)];
    const answers=[...html.matchAll(/<span>\d+\. (\d+)<\/span>/g)].map(x=>Number(x[1]));
    assert.equal(questions.length,40);
    assert.equal(answers.length,40);
@@ -69,12 +69,20 @@ test('math page breaks keep exactly twenty questions per sheet without regenerat
  const html=render('math',k=>({...vals,count:'40',key:'Да'})[k]??'',escape,lines,clamp);
  const pages=html.split(/(?=<section class="sheet-page )/).filter(Boolean);
  assert.equal(pages.length,3);
- assert.equal((pages[0].match(/= ______/g)||[]).length,20);
- assert.equal((pages[1].match(/= ______/g)||[]).length,20);
+ assert.equal((pages[0].match(/class="math-answer-line"/g)||[]).length,20);
+ assert.equal((pages[1].match(/class="math-answer-line"/g)||[]).length,20);
  assert.equal((pages[2].match(/<span>\d+\. /g)||[]).length,40);
  const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
  assert.match(app,/window\.print\(\)/);
  assert.doesNotMatch(app,/\$\("print"\)\.onclick=\(\)=>\{[^}]*generate\(/);
+});
+test('missing-number problems render clear writing lines without box glyphs',()=>{
+ const html=render('math',k=>({...vals,grade:'1 класс',topic:'Пропущенное число',count:'40',key:'Да'})[k]??'',escape,lines,clamp);
+ const worksheet=html.split('<section class="sheet-page answers-page">')[0];
+ assert.equal((worksheet.match(/class="math-answer-line"/g)||[]).length,40);
+ assert.doesNotMatch(worksheet,/□|= ______/);
+ const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
+ assert.match(css,/#paper \.math-answer-line\{[^}]*width:16mm;[^}]*border-bottom:/);
 });
 test('print stylesheet defines exact sized sheets with page breaks',()=>{
  const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');

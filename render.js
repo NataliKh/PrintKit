@@ -25,7 +25,9 @@ const layoutClass=(value,allowed)=>allowed[value]||allowed[Object.keys(allowed)[
 if(mode==="math"){
  const grade=e(get("grade"));
  const generated=mathGenerate(get("grade"),get("topic"),get("level"),get("max"),clamp(get("count"),40));
- const questions=generated.questions.map((q,i)=>'<div>'+(i+1)+'. '+e(q.text)+(q.blank?'':' = ______')+'</div>');
+ const answerLine='<span class="math-answer-line" role="img" aria-label="Место для ответа"></span>';
+ const questions=generated.questions.map((q,i)=>'<div>'+(i+1)+'. '+
+  (q.blank?e(q.text).replace('□',answerLine):e(q.text)+' = '+answerLine)+'</div>');
  const answers=generated.questions.map((q,i)=>'<span>'+(i+1)+'. '+q.answer+'</span>');
  const perPage=20;
  for(let i=0;i<questions.length;i+=perPage){
