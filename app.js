@@ -261,6 +261,7 @@ function applyCatalogStarter(nextMode,id){
  mode=nextMode;
  render();
  useStarter(id);
+ window.printKitAnalytics?.goal("catalog_open");
  navigateTo("editor-controls");
  $("title").focus({preventScroll:true});
 }
@@ -333,6 +334,7 @@ function saveCurrentSet(){
  $("saved-name").value="";
  renderSavedSets();
  savedMessage("Набор «"+result.entry.name+"» сохранён на этом устройстве.");
+ window.printKitAnalytics?.goal("kit_saved");
 }
 function openSavedSet(id){
  const entry=savedItems().find(item=>item.id===id);
@@ -418,6 +420,7 @@ $("print").onclick=()=>{
   $("print-status").focus();
   return;
  }
+ window.printKitAnalytics?.goal("print_click"); // Counts a print-dialog click, not completed printing.
  window.print();
 };
 $("nav-settings").onclick=()=>navigateTo("editor-controls");
