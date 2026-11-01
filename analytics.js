@@ -41,7 +41,7 @@
   banner.setAttribute("role","region");
   banner.setAttribute("aria-label","Выбор статистики посещений");
   const copy=document.createElement("p");
-  copy.textContent="Помогите улучшать PrintKit: разрешите анонимизированную статистику посещений через Яндекс Метрику. Имена детей и тексты заданий не отправляем. Можно отказаться — сайт продолжит работать.";
+  copy.textContent="Помогите улучшать PrintKit: разрешите необязательную статистику посещений через Яндекс Метрику. Имена детей и тексты заданий не отправляем. Можно отказаться — сайт продолжит работать.";
   const details=document.createElement("a");
   details.href=privacyUrl;
   details.textContent="О конфиденциальности";
@@ -66,6 +66,7 @@
   settings(){if(active)showBanner()},
   enabled:()=>active
  };
+ document.querySelectorAll("[data-open-analytics-settings]").forEach(link=>{link.hidden=!active});
  if(active){
   const consent=readConsent();
   if(consent==="yes")start();
