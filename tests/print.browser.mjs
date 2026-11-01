@@ -513,7 +513,7 @@ try {
     await page.setViewportSize({width:1440,height:900});
     console.log('PASS mobile A4 preview at 390px');
     // Catalog discovery: featured, filters, search, quick-open and mobile layout.
-    assert.equal(await page.locator('#catalog-grid [data-template]').count(),6,'six featured catalog cards');
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),7,'seven featured catalog cards');
     await page.locator('#catalog-more').click();
     assert.equal(await page.locator('#catalog-grid [data-template]').count(),28,'all 28 kits visible after expansion');
     await page.locator('#catalog-search').fill('чтение');
