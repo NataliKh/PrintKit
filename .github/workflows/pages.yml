@@ -91,9 +91,10 @@ jobs:
       - name: Stage website without test dependencies or private artifacts
         run: |
           mkdir -p _site
-          cp index.html app.js math.js render.js presets.js saved-kits.js catalog.js analytics.js style.css seo.css analytics.css sitemap.xml legal.html privacy.html _site/
+          cp CNAME index.html app.js math.js render.js presets.js saved-kits.js catalog.js analytics.js style.css seo.css analytics.css sitemap.xml legal.html privacy.html _site/
           cp -R tools _site/tools
           cp -R previews _site/previews
+          grep -qx 'listokia.ru' _site/CNAME
           test -s _site/previews/manifest.json
           test -f _site/tools/math/index.html
       - uses: actions/upload-pages-artifact@v3
