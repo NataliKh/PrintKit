@@ -1,21 +1,43 @@
-MIT License
+PrintKit — Proprietary Notice / Все права защищены
 
-Copyright (c) 2026 NataliKh
+Copyright (c) 2026 NataliKh. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Правообладатель сохраняет исключительные права на принадлежащие ему оригинальные
+исходные тексты, дизайн, графику, содержание сайта и шаблоны PrintKit.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+ПРАВА НА ИСПОЛЬЗОВАНИЕ СЕРВИСА
+Посетителям разрешается бесплатно пользоваться размещённым на официальном сайте
+PrintKit генератором, создавать, скачивать, печатать и использовать полученные
+ими материалы в личных, семейных, школьных и образовательных целях, включая
+занятия с учениками. Для этих действий не требуется отдельное разрешение.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+ОГРАНИЧЕНИЯ
+За пределами применимых исключений закона и ранее выданных лицензий без
+предварительного письменного разрешения правообладателя не предоставляется
+разрешение копировать, модифицировать, публиковать, распространять или
+использовать в чужом продукте новые оригинальные элементы приложения,
+его исходный код, дизайн, оригинальные изображения и готовые шаблоны;
+публиковать зеркала PrintKit и предлагать его копию под другим названием.
+
+Законное самостоятельное создание сходного по назначению сервиса не
+запрещается этим уведомлением: авторское право не охраняет абстрактные идеи,
+принципы и способы работы.
+
+ВАЖНО: РАНЕЕ ОПУБЛИКОВАННЫЙ КОД
+Версии PrintKit вплоть до коммита
+8d018043def692878931ef9fdf032d3eaa683d2d
+были выпущены под MIT. Уже предоставленные на этих условиях права сохраняются,
+в том числе для исходного кода, который присутствовал в прежних версиях.
+Текст исходной лицензии приведён в LICENSE-MIT-HISTORY.md.
+Настоящее уведомление применяется к новым оригинальным материалам и
+изменениям, распространяемым начиная с 1 ноября 2026 года, только в той мере,
+в какой правообладатель вправе устанавливать условия для этих материалов.
+Это уведомление не отменяет лицензии сторонних компонентов.
+
+Публикация в общедоступном репозитории GitHub сама по себе не даёт
+дополнительного разрешения перепубликовывать новые защищённые материалы;
+при этом права на просмотр и создание форков, прямо предусмотренные
+условиями GitHub, сохраняются.
+
+THE SOFTWARE AND TEMPLATES ARE PROVIDED "AS IS", WITHOUT WARRANTIES TO THE
+MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW.
