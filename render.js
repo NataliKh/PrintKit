@@ -16,7 +16,7 @@ function parseLabelNames(raw){
  if(typeof raw!=="string")return [];
  return raw.split(/\r?\n/).map(name=>name.replace(/\s+/g," ").trim()).filter(Boolean).slice(0,6);
 }
-function renderSheet(mode,get,e,lines,clamp){
+function renderSheet(mode,get,e,lines,clamp,mathSnapshot=null){
 const title=e(get("title"));
 const page=(body,kind="")=>'<section class="sheet-page '+kind+'">'+body+'</section>';
 const heading=(text,subtitle="")=>'<h2>'+text+'</h2>'+(subtitle?'<p class="sub">'+subtitle+'</p>':'');
@@ -24,16 +24,17 @@ const parts=[];
 const layoutClass=(value,allowed)=>allowed[value]||allowed[Object.keys(allowed)[0]];
 if(mode==="math"){
  const grade=e(get("grade"));
- const generated=mathGenerate(get("grade"),get("topic"),get("level"),get("max"),clamp(get("count"),40));
+ const generated=mathSnapshot||mathGenerate(get("grade"),get("topic"),get("level"),get("max"),clamp(get("count"),40));
+ const density=layoutClass(get("density"),{"Стандартный":"standard","Крупный":"large","Компактный":"compact"});
+ const perPage={standard:20,large:12,compact:30}[density];
  const answerLine='<span class="math-answer-line" role="img" aria-label="Место для ответа"></span>';
  const questions=generated.questions.map((q,i)=>'<div>'+(i+1)+'. '+
   (q.blank?e(q.text).replace('□',answerLine):e(q.text)+' = '+answerLine)+'</div>');
  const answers=generated.questions.map((q,i)=>'<span>'+(i+1)+'. '+q.answer+'</span>');
- const perPage=20;
  for(let i=0;i<questions.length;i+=perPage){
   parts.push(page(heading('Математика · '+grade,
    'Тема: '+e(generated.topic)+' · Имя: ____________________　Дата: ____________')+
-   '<div class="problems">'+questions.slice(i,i+perPage).join("")+'</div>','math-page'));
+   '<div class="problems">'+questions.slice(i,i+perPage).join("")+'</div>','math-page math-page--'+density));
  }
  if(get("key")==="Да"){
   for(let i=0;i<answers.length;i+=40)parts.push(page(heading('Ответы','Математика · '+grade)+

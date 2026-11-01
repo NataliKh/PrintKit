@@ -135,6 +135,46 @@ test('tiny selected maximum still produces a full mixed sheet',()=>{
  }
 });
 
+
+test('math density paginates A4 and preserves worksheet numbers and answers',()=>{
+ const snapshot=vm.runInContext("mathGenerate('2 класс','Сложение и вычитание','Простые',20,40)",context);
+ const original=[...snapshot.questions].map(q=>q.text);
+ for(const [density,perPage,cssClass] of [
+  ['Крупный',12,'large'],['Стандартный',20,'standard'],['Компактный',30,'compact']
+ ]){
+  for(const count of [10,20,40]){
+   const sheet={...snapshot,questions:snapshot.questions.slice(0,count)};
+   const values={...vals,grade:'2 класс',topic:'Сложение и вычитание',level:'Простые',
+    count:String(count),density,key:'Да'};
+   const html=render('math',k=>values[k]??'',escape,lines,clamp,sheet);
+   assert.equal((html.match(/class="sheet-page /g)||[]).length,Math.ceil(count/perPage)+1);
+   assert.equal((html.match(new RegExp('math-page--'+cssClass,'g'))||[]).length,Math.ceil(count/perPage));
+   assert.equal((html.match(/class="math-answer-line"/g)||[]).length,count);
+   assert.equal((html.match(/<span>\d+\. \d+<\/span>/g)||[]).length,count);
+   const worksheet=html.split('<section class="sheet-page answers-page">')[0];
+   for(let i=1;i<=count;i++)assert.ok(worksheet.includes(i+'. '),'Question '+i+' present');
+   assert.deepEqual([...snapshot.questions].map(q=>q.text),original);
+  }
+ }
+ const fallback=render('math',k=>({...vals,count:'40',density:'invalid'})[k]??'',escape,lines,clamp);
+ assert.equal((fallback.match(/math-page--standard/g)||[]).length,2);
+});
+
+test('math layout renders a supplied snapshot without changing its exercises',()=>{
+ const snapshot=vm.runInContext("mathGenerate('1 класс','По программе класса','Простые',10,20)",context);
+ const getter=k=>({grade:'1 класс',topic:'По программе класса',level:'Простые',max:'10',
+  count:'20',density:'Крупный',key:'Да'})[k]??'';
+ const large=render('math',getter,escape,lines,clamp,snapshot);
+ const compact=render('math',k=>k==='density'?'Компактный':getter(k),escape,lines,clamp,snapshot);
+ const questions=html=>[...html.matchAll(/<div>\d+\. ([\s\S]*?)<\/div>/g)].map(m=>m[1]);
+ assert.deepEqual(questions(large),questions(compact));
+ assert.equal((large.match(/class="sheet-page math-page /g)||[]).length,2);
+ assert.equal((compact.match(/class="sheet-page math-page /g)||[]).length,1);
+ const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
+ assert.match(app,/currentMathSignature!==signature/);
+ assert.match(app,/mode==="math"\?currentMath:null/);
+});
+
 test('habit tracker reserves a name column and 31 checkbox columns',()=>{
  const getter=k=>({title:'Мои привычки',items:'Читать\nЗарядка\nПить воду',days:'31'})[k]??'';
  const html=render('habits',getter,escape,lines,clamp);

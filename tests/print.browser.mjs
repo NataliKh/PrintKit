@@ -7,9 +7,13 @@ import {chromium} from 'playwright';
 const url = new URL('../index.html', import.meta.url).href;
 const browser = await chromium.launch({headless: true});
 const scenarios = [
-  {id:'math',name:'math and answers',mode:'math',fields:{count:'40',key:'Да'},pages:3},
-  {id:'math-multiply',name:'grade 3 multiplication',mode:'math',fields:{grade:'3 класс',topic:'Таблица умножения',count:'40',max:'100',key:'Да'},pages:3},
-  {id:'math-fractions',name:'grade 5 fraction of a number',mode:'math',fields:{grade:'5 класс',topic:'Доли числа',count:'40',max:'100',key:'Да'},pages:3},
+  {id:'math',name:'math and answers',mode:'math',fields:{count:'40',density:'Стандартный',key:'Да'},pages:3},
+  {id:'math-large',name:'large first-grade writing spaces',mode:'math',fields:{grade:'1 класс',topic:'По программе класса',level:'Простые',max:'10',count:'40',density:'Крупный',key:'Да'},pages:5},
+  {id:'math-compact',name:'compact mixed first-grade worksheet',mode:'math',fields:{grade:'1 класс',topic:'По программе класса',level:'Простые',max:'10',count:'40',density:'Компактный',key:'Да'},pages:3},
+  {id:'math-large-10',name:'large grade-two ten problems',mode:'math',fields:{grade:'2 класс',topic:'Сложение и вычитание',level:'Со скобками',max:'20',count:'10',density:'Крупный',key:'Нет'},pages:1},
+  {id:'math-compact-20',name:'compact grade-five twenty problems',mode:'math',fields:{grade:'5 класс',topic:'По программе класса',level:'Простые',max:'100',count:'20',density:'Компактный',key:'Да'},pages:2},
+  {id:'math-multiply',name:'grade 3 multiplication',mode:'math',fields:{grade:'3 класс',topic:'Таблица умножения',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
+  {id:'math-fractions',name:'grade 5 fraction of a number',mode:'math',fields:{grade:'5 класс',topic:'Доли числа',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
   {id:'cards',name:'40 flashcards',mode:'cards',fields:{items:Array.from({length:40},(_,i)=>'Слово '+i+' — перевод '+i).join('\n')},pages:5},
   {id:'labels-standard',name:'27 standard labels',mode:'labels',fields:{count:'27'},pages:3},
   {id:'labels-small',name:'27 small labels',mode:'labels',fields:{count:'27',size:'Маленькие 40 × 22 мм'},pages:1},
@@ -76,6 +80,35 @@ try {
       console.error('FAIL',scenario.name,error);
       await page.emulateMedia({media:'screen'});
     }
+  }
+
+  // Resizing a worksheet must never regenerate questions or change the answer key.
+  try{
+    await page.locator('[data-tab="math"]').click();
+    await page.locator('#f-grade').selectOption({label:'1 класс'});
+    await page.locator('#f-topic').selectOption({label:'По программе класса'});
+    await page.locator('#f-level').selectOption({label:'Простые'});
+    await page.locator('#f-count').fill('40');
+    await page.locator('#f-count').dispatchEvent('change');
+    await page.locator('#f-key').selectOption({label:'Да'});
+    await page.locator('#f-density').selectOption({label:'Стандартный'});
+    const before=await page.locator('#paper .problems>div').allTextContents();
+    const answerKey=await page.locator('#paper .answer-grid span').allTextContents();
+    assert.equal(before.length,40);
+    for(const [density,expected] of [['Крупный',4],['Компактный',2],['Стандартный',2]]){
+      await page.locator('#f-density').selectOption({label:density});
+      assert.deepEqual(await page.locator('#paper .problems>div').allTextContents(),before);
+      assert.deepEqual(await page.locator('#paper .answer-grid span').allTextContents(),answerKey);
+      assert.equal(await page.locator('#paper .math-page').count(),expected);
+      assert.equal(await page.locator('#print').isDisabled(),false);
+    }
+    await page.locator('#regenerate').click();
+    assert.notDeepEqual(await page.locator('#paper .problems>div').allTextContents(),before,
+      'new exercises button should replace the worksheet');
+    console.log('PASS math density updates pages but preserves questions and answer key');
+  }catch(error){
+    failed=true;
+    console.error('FAIL math density interactions',error);
   }
 
   // A class change must offer only topics appropriate for that grade.

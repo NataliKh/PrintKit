@@ -659,3 +659,34 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
   line-height:1.45;
 }
 .family-summary.is-warning{border-color:#f1deca;background:#fff5e9;color:#aa623b}
+
+
+/* Math density: identical geometry for the on-screen A4 and exported PDF. */
+#paper .math-page .problems{
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ column-gap:18px;
+ align-content:start;
+}
+#paper .math-page .problems>div{
+ min-width:0;
+ line-height:1.5;
+ padding:7px 4px 9px;
+ overflow-wrap:normal;
+ word-break:normal;
+ break-inside:avoid;
+}
+#paper .math-page--large .problems{
+ grid-template-columns:minmax(0,1fr);
+ font-size:24px;
+ row-gap:8px;
+}
+#paper .math-page--large .problems>div{
+ min-height:59px;
+ padding:10px 8px 12px;
+}
+#paper .math-page--large .math-answer-line{width:22mm;border-bottom-width:2px}
+#paper .math-page--standard .problems{font-size:19px;row-gap:17px}
+#paper .math-page--standard .problems>div{min-height:49px}
+#paper .math-page--compact .problems{font-size:16px;row-gap:7px;column-gap:13px}
+#paper .math-page--compact .problems>div{min-height:37px;padding:4px 3px 6px}
+#paper .math-page--compact .math-answer-line{width:13mm}
