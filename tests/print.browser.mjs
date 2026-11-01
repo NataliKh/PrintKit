@@ -12,6 +12,8 @@ const scenarios = [
   {id:'math-compact',name:'compact mixed first-grade worksheet',mode:'math',fields:{grade:'1 класс',topic:'По программе класса',level:'Простые',max:'10',count:'40',density:'Компактный',key:'Да'},pages:3},
   {id:'math-large-10',name:'large grade-two ten problems',mode:'math',fields:{grade:'2 класс',topic:'Сложение и вычитание',level:'Со скобками',max:'20',count:'10',density:'Крупный',key:'Нет'},pages:1},
   {id:'math-compare',name:'first-grade comparisons with symbolic answers',mode:'math',fields:{grade:'1 класс',topic:'Сравнение чисел',max:'10',density:'Стандартный',count:'20',key:'Да'},pages:2},
+  {id:'math-story-10',name:'ten first-grade word problems',mode:'math',fields:{grade:'1 класс',topic:'Текстовые задачи',max:'10',density:'Стандартный',count:'10',key:'Да'},pages:3},
+  {id:'math-story-large',name:'ten second-grade large word problems',mode:'math',fields:{grade:'2 класс',topic:'Текстовые задачи',max:'20',density:'Крупный',count:'10',key:'Да'},pages:4},
   {id:'math-composition',name:'second-grade number composition',mode:'math',fields:{grade:'2 класс',topic:'Состав числа',max:'20',density:'Крупный',count:'40',key:'Да'},pages:5},
   {id:'math-compact-20',name:'compact grade-five twenty problems',mode:'math',fields:{grade:'5 класс',topic:'По программе класса',level:'Простые',max:'100',count:'20',density:'Компактный',key:'Да'},pages:2},
   {id:'math-multiply',name:'grade 3 multiplication',mode:'math',fields:{grade:'3 класс',topic:'Таблица умножения',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
@@ -242,6 +244,55 @@ try {
   }catch(error){
     failed=true;
     console.error('FAIL foundational math topic interactions',error);
+  }
+
+
+  // Word problems: preserve stories and solution keys through density changes.
+  try{
+    await page.locator('[data-tab="math"]').click();
+    for(const grade of ['1 класс','2 класс']){
+      await page.locator('#f-grade').selectOption({label:grade});
+      assert.ok((await page.locator('#f-topic option').allTextContents()).includes('Текстовые задачи'));
+      await page.locator('#f-topic').selectOption({label:'Текстовые задачи'});
+      await page.locator('#f-count').fill('20');
+      await page.locator('#f-count').dispatchEvent('change');
+      await page.locator('#f-key').selectOption({label:'Да'});
+      assert.equal(await page.locator('[data-field-id="level"]').isVisible(),false);
+      const before=await page.locator('#paper .math-word-text').allTextContents();
+      const answers=await page.locator('#paper .math-word-answer-grid span').allTextContents();
+      assert.equal(before.length,20);
+      assert.equal(answers.length,20);
+      assert.ok(answers.every(a=>/\d+ [+\u2212] \d+ = \d+/.test(a)));
+      for(const [density,pages] of [['Крупный',5],['Стандартный',4],['Компактный',3]]){
+        await page.locator('#f-density').selectOption({label:density});
+        assert.equal(await page.locator('#paper .math-word-page').count(),pages);
+        assert.deepEqual(await page.locator('#paper .math-word-text').allTextContents(),before);
+        assert.deepEqual(await page.locator('#paper .math-word-answer-grid span').allTextContents(),answers);
+        assert.equal(await page.locator('#paper .math-word-solution-line').count(),20);
+        assert.equal(await page.locator('#paper .math-word-response').count(),20);
+        await page.emulateMedia({media:'print'});
+        const clipped=await page.locator('#paper .math-word-page').evaluateAll(sheets=>sheets.some(sheet=>{
+          const rect=sheet.getBoundingClientRect();
+          return [...sheet.querySelectorAll('.math-word-question')].some(q=>{
+            const r=q.getBoundingClientRect();
+            return r.bottom>rect.bottom-20||r.right>rect.right-20||q.scrollWidth>q.clientWidth+2;
+          });
+        }));
+        assert.equal(clipped,false,'word problems inside A4');
+        await page.emulateMedia({media:'screen'});
+      }
+      await page.evaluate(()=>window.print=()=>{});
+      const preview=await page.locator('#paper').innerHTML();
+      await page.locator('#print').click();
+      assert.equal(await page.locator('#paper').innerHTML(),preview);
+    }
+    await page.locator('#f-grade').selectOption({label:'3 класс'});
+    assert.ok(!(await page.locator('#f-topic option').allTextContents()).includes('Текстовые задачи'));
+    console.log('PASS new story worksheets and stable answer keys');
+  }catch(error){
+    failed=true;
+    console.error('FAIL word problems',error);
+    await page.emulateMedia({media:'screen'});
   }
 
   // Redesign QA: real A4 paper, three sizes and representative Russian names.

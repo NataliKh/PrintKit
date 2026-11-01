@@ -1,8 +1,8 @@
 // All arithmetic stays local. Numeric answers stay inside the chosen range;
 // comparison exercises have a symbolic answer: <, > or =.
 const mathTopicsByGrade={
- '1 класс':['По программе класса','Сложение и вычитание','Пропущенное число','Сравнение чисел','Состав числа'],
- '2 класс':['По программе класса','Сложение и вычитание','Переход через десяток','Пропущенное число','Сравнение чисел','Состав числа'],
+ '1 класс':['По программе класса','Сложение и вычитание','Пропущенное число','Сравнение чисел','Состав числа','Текстовые задачи'],
+ '2 класс':['По программе класса','Сложение и вычитание','Переход через десяток','Пропущенное число','Сравнение чисел','Состав числа','Текстовые задачи'],
  '3 класс':['По программе класса','Таблица умножения','Деление без остатка','Сложение и вычитание'],
  '4 класс':['По программе класса','Умножение и деление','Порядок действий','Сложение и вычитание'],
  '5 класс':['По программе класса','Доли числа','Умножение и деление','Порядок действий']
@@ -254,6 +254,67 @@ function mathFoundations(topic,maximum,total){
  return questions;
 }
 
+
+/** Generate local, solvable stories using one addition or subtraction. */
+function mathWordProblems(maximum,total){
+ const scenes=[
+  {start:'У Ани',where:'у Ани',add:'Ей подарили ещё',sub:'Она отдала',forms:['карандаш','карандаша','карандашей']},
+  {start:'У Димы',where:'у Димы',add:'Ему подарили ещё',sub:'Он отдал',forms:['мяч','мяча','мячей']},
+  {start:'В коробке',where:'в коробке',add:'Туда положили ещё',sub:'Оттуда взяли',forms:['кубик','кубика','кубиков']},
+  {start:'В пенале',where:'в пенале',add:'Туда положили ещё',sub:'Оттуда вынули',forms:['фломастер','фломастера','фломастеров']},
+  {start:'На полке',where:'на полке',add:'Туда поставили ещё',sub:'Оттуда забрали',forms:['альбом','альбома','альбомов']},
+  {start:'В рюкзаке',where:'в рюкзаке',add:'Туда положили ещё',sub:'Оттуда достали',forms:['значок','значка','значков']},
+  {start:'В ящике',where:'в ящике',add:'Туда положили ещё',sub:'Оттуда взяли',forms:['конверт','конверта','конвертов']},
+  {start:'У Лены',where:'у Лены',add:'Ей подарили ещё',sub:'Она подарила',forms:['шарик','шарика','шариков']},
+  {start:'На столе',where:'на столе',add:'Туда положили ещё',sub:'Оттуда убрали',forms:['листок','листка','листков']},
+  {start:'В шкафу',where:'в шкафу',add:'Туда положили ещё',sub:'Оттуда взяли',forms:['пазл','пазла','пазлов']}
+ ];
+ function noun(n,forms){
+  const lastTwo=n%100,last=n%10;
+  return forms[lastTwo>=11&&lastTwo<=14?2:last===1?0:last>=2&&last<=4?1:2];
+ }
+ const was=n=>n%10===1&&n%100!==11?'был':'было';
+ const pools={'+':[],'−':[]};
+ for(let a=1;a<=maximum;a++){
+  for(let b=1;a+b<=maximum;b++)pools['+'].push([a,b]);
+  for(let b=1;b<a;b++)pools['−'].push([a,b]);
+ }
+ const order=Array.from({length:total},(_,i)=>i%2===0?'+':'−');
+ for(let i=order.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [order[i],order[j]]=[order[j],order[i]];
+ }
+ const used=new Set(),factCount=new Map(),sceneCount=new Map(),answerCount=new Map(),result=[];
+ for(const operation of order){
+  const pool=pools[operation];
+  if(!pool.length)continue;
+  let best=null,bestScore=-Infinity;
+  const attempts=Math.min(240,Math.max(80,pool.length));
+  for(let i=0;i<attempts;i++){
+   const [a,b]=pool[Math.floor(Math.random()*pool.length)];
+   const sceneId=Math.floor(Math.random()*scenes.length),scene=scenes[sceneId];
+   const answer=operation==='+'?a+b:a-b;
+   const key=operation+':'+a+':'+b+':'+sceneId;
+   const family=operation+':'+a+':'+b;
+   const score=-300*Number(used.has(key))-14*(factCount.get(family)||0)-
+    4*(sceneCount.get(sceneId)||0)-1.5*(answerCount.get(answer)||0)+Math.random();
+   if(score>bestScore){bestScore=score;best={a,b,answer,sceneId,key,family};}
+  }
+  if(!best)continue;
+  const {a,b,answer,sceneId,key,family}=best,scene=scenes[sceneId],forms=scene.forms;
+  const text=scene.start+' '+was(a)+' '+a+' '+noun(a,forms)+'. '+
+   (operation==='+'?scene.add:scene.sub)+' '+b+' '+noun(b,forms)+'. '+
+   'Сколько '+forms[2]+' '+(operation==='+'?'стало':'осталось')+' '+scene.where+'?';
+  result.push({kind:'word',text,answer,operation,operands:[a,b],
+   solution:a+' '+operation+' '+b+' = '+answer,unit:forms[2]});
+  used.add(key);
+  factCount.set(family,(factCount.get(family)||0)+1);
+  sceneCount.set(sceneId,(sceneCount.get(sceneId)||0)+1);
+  answerCount.set(answer,(answerCount.get(answer)||0)+1);
+ }
+ return result;
+}
+
 function mathGenerate(grade,requestedTopic,level,range,count){
  const grades=Object.keys(mathTopicsByGrade);
  const gradeIndex=Math.max(0,grades.indexOf(grade));
@@ -321,6 +382,9 @@ function mathGenerate(grade,requestedTopic,level,range,count){
    return {text:numerator+'/'+denominator+' от '+(denominator*unit),answer:numerator*unit};
   }
   return {text:'0 + 0',answer:0};
+ }
+ if(gradeIndex<=1&&selected==='Текстовые задачи'){
+  return {topic:selected,maximum,questions:mathWordProblems(maximum,total)};
  }
  if(gradeIndex<=1&&(selected==='Сравнение чисел'||selected==='Состав числа')){
   return {topic:selected,maximum,questions:mathFoundations(selected,maximum,total)};

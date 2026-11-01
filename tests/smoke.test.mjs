@@ -276,6 +276,63 @@ test('composition prints with unchanged answers in all three A4 densities',()=>{
  }
 });
 
+
+test('first/second-grade word problems have a unique verifiable arithmetic solution',()=>{
+ const generate=vm.runInContext('mathGenerate',context);
+ for(const grade of ['1 класс','2 класс'])for(const max of [2,10,20,50,100])
+  for(const count of [10,20,40])for(let run=0;run<35;run++){
+   const output=generate(grade,'Текстовые задачи','Со скобками',max,count);
+   const questions=output.questions;
+   assert.equal(questions.length,count);
+   if(max>=10)assert.equal(new Set(questions.map(q=>q.text)).size,count,'duplicate story');
+   const kinds={'+':0,'−':0};
+   for(const q of questions){
+    assert.equal(q.kind,'word');
+    assert.ok(q.text.endsWith('?'));
+    assert.match(q.text,/^.+ (?:был|было) \d+ /);
+    assert.ok(!/undefined|null|NaN/.test(q.text));
+    assert.ok(Number.isInteger(q.answer)&&q.answer>=1&&q.answer<=output.maximum);
+    assert.ok(['+','−'].includes(q.operation));
+    kinds[q.operation]++;
+    const [a,b]=Array.from(q.operands);
+    assert.ok(a>=1&&a<=output.maximum&&b>=1&&b<=output.maximum);
+    assert.equal(q.answer,q.operation==='+'?a+b:a-b);
+    assert.equal(q.solution,a+' '+q.operation+' '+b+' = '+q.answer);
+    assert.ok(q.text.includes(String(a))&&q.text.includes(String(b)));
+    assert.ok(q.unit.length>=3);
+   }
+   assert.ok(Math.abs(kinds['+']-kinds['−'])<=1);
+  }
+});
+
+test('word problem pages have writing space and matching key in three densities',()=>{
+ const generate=vm.runInContext('mathGenerate',context);
+ for(const grade of ['1 класс','2 класс'])for(const count of [10,20,40]){
+  const snapshot=generate(grade,'Текстовые задачи','Простые',20,count);
+  const original=snapshot.questions.map(q=>q.text);
+  for(const [density,perPage] of [['Крупный',4],['Стандартный',6],['Компактный',8]]){
+   const html=render('math',k=>({grade,topic:'Текстовые задачи',density,
+    count:String(count),key:'Да'})[k]??'',escape,lines,clamp,snapshot);
+   assert.equal((html.match(/class="sheet-page math-page /g)||[]).length,Math.ceil(count/perPage));
+   assert.equal((html.match(/class="sheet-page /g)||[]).length,Math.ceil(count/perPage)+1);
+   assert.equal((html.match(/class="math-word-question"/g)||[]).length,count);
+   assert.equal((html.match(/class="math-word-solution-line"/g)||[]).length,count);
+   assert.equal((html.match(/class="math-word-response"/g)||[]).length,count);
+   assert.equal((html.match(/class="math-answer-line"/g)||[]).length,count);
+   assert.equal((html.match(/class="math-word-answer-grid"/g)||[]).length,1);
+   for(const q of snapshot.questions){
+    assert.ok(html.includes(escape(q.text)));
+    assert.ok(html.includes(escape(q.solution)));
+   }
+   assert.deepEqual(snapshot.questions.map(q=>q.text),original);
+  }
+ }
+ const sample=generate('1 класс','Текстовые задачи','Простые',10,10);
+ const noKey=render('math',k=>({grade:'1 класс',key:'Нет',density:'Крупный'})[k]??'',
+  escape,lines,clamp,sample);
+ assert.doesNotMatch(noKey,/class="answer-grid math-word-answer-grid"/);
+});
+
 test('habit tracker reserves a name column and 31 checkbox columns',()=>{
  const getter=k=>({title:'Мои привычки',items:'Читать\nЗарядка\nПить воду',days:'31'})[k]??'';
  const html=render('habits',getter,escape,lines,clamp);
@@ -527,6 +584,17 @@ test('grade-specific topics, arithmetic correctness and integer answers',()=>{
      const result=generate(grade,topic,'Со скобками',limit,40);
      assert.equal(result.questions.length,40);
      for(const q of result.questions){
+      if(topic==='Текстовые задачи'){
+       assert.equal(q.kind,'word');
+       assert.ok(Number.isInteger(q.answer)&&q.answer>=1&&q.answer<=result.maximum);
+       const m=q.solution.match(/^(\d+) ([+−]) (\d+) = (\d+)$/);
+       assert.ok(m,'solution '+q.solution);
+       const a=+m[1],b=+m[3],value=+m[4];
+       assert.equal(m[2]==='+'?a+b:a-b,value);
+       assert.equal(q.answer,value);
+       assert.ok(q.text.includes(String(a))&&q.text.includes(String(b))&&q.text.endsWith('?'));
+       continue;
+      }
       if(topic==='Сравнение чисел'){
        const m=q.text.match(/^(\d+) □ (\d+)$/);
        assert.ok(m,grade+' '+JSON.stringify(q));

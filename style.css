@@ -716,3 +716,34 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
 /* A sign has a shorter writing slot than an arithmetic answer. */
 #paper .math-page .math-comparison .math-answer-line{width:12mm;height:1em}
 #fields [data-field-id="level"][hidden]{display:none!important}
+
+
+/* M3.2: story worksheets use full-width text and real handwriting space. */
+#paper .math-word-problems{display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:12px}
+#paper .math-word-question{
+ display:block;min-width:0;padding:7px 8px 10px;
+ border-bottom:1px dashed #cfc8d8;break-inside:avoid;page-break-inside:avoid
+}
+#paper .math-word-text{margin:0 0 7px;color:#262336;line-height:1.38;font-size:17px;overflow-wrap:normal;word-break:normal}
+#paper .math-word-text strong{font-weight:700;margin-right:6px}
+#paper .math-word-solution,#paper .math-word-response{
+ display:flex;align-items:baseline;gap:9px;font-size:14px;line-height:1.3
+}
+#paper .math-word-solution-line{
+ display:inline-block;width:72mm;max-width:75%;height:18px;
+ border-bottom:1px solid #aba5b6;flex:0 1 72mm
+}
+#paper .math-word-response{margin-top:7px}
+#paper .math-word-response .math-answer-line{width:20mm}
+#paper .math-word-page.math-page--large .math-word-problems{gap:22px}
+#paper .math-word-page.math-page--large .math-word-question{min-height:168px;padding:11px 10px 18px}
+#paper .math-word-page.math-page--large .math-word-text{font-size:21px;line-height:1.45}
+#paper .math-word-page.math-page--large .math-word-solution-line{height:24px}
+#paper .math-word-page.math-page--standard .math-word-question{min-height:119px}
+#paper .math-word-page.math-page--compact .math-word-problems{gap:6px}
+#paper .math-word-page.math-page--compact .math-word-question{min-height:96px;padding:4px 5px 6px}
+#paper .math-word-page.math-page--compact .math-word-text{font-size:15px;line-height:1.3;margin-bottom:3px}
+#paper .math-word-page.math-page--compact .math-word-solution-line{height:15px}
+#paper .math-word-page.math-page--compact .math-word-response{margin-top:3px}
+#paper .math-word-answer-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;font-size:14px}
+#paper .math-word-answer-grid>span{white-space:normal;overflow-wrap:normal;line-height:1.35}
