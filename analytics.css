@@ -1,0 +1,10 @@
+/* Optional statistics consent notice — equal emphasis on accept and reject. */
+.pk-consent{position:fixed;z-index:9999;bottom:18px;left:50%;transform:translateX(-50%);width:min(680px,calc(100% - 28px));padding:18px 20px;background:#fff;color:#30283c;border:1px solid #e4dced;border-radius:17px;box-shadow:0 10px 55px #2b174c40;font:14px/1.5 Arial,sans-serif}
+.pk-consent p{margin:0 0 10px;font-size:13px}
+.pk-consent a{color:#684dc2;font-size:12px;text-decoration:underline}
+.pk-consent-actions{display:flex;gap:9px;margin-top:13px}
+.pk-consent-actions button{cursor:pointer;padding:11px 16px;min-height:44px;border:1px solid #7560c4;border-radius:9px;background:#f4efff;color:#493c79;font-weight:700;flex:1;font-size:13px}
+.pk-consent-actions button:focus-visible{outline:3px solid #a98be8;outline-offset:2px}
+.pk-consent-actions button:first-child{background:#7659da;color:#fff}
+@media(max-width:440px){.pk-consent{bottom:8px;padding:14px}.pk-consent-actions{flex-direction:column}}
+@media print{.pk-consent{display:none!important}}

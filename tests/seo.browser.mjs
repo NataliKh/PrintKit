@@ -41,6 +41,19 @@ try{
   assert.ok(await item.evaluate(el=>el.complete&&el.naturalWidth>200&&!el.hidden),'gallery image missing');
  }
  console.log('SEO PASS catalog image coverage and routes');
+ for(const name of ['legal.html','privacy.html']){
+  await page.goto(new URL(name,base).href);
+  assert.equal(await page.locator('h1').count(),1,'legal content has an accessible heading: '+name);
+  assert.ok((await page.title()).includes('PrintKit'));
+  assert.equal(await page.locator('a[href*="index.html#editor"]').count(),1,'navigation back to editor');
+ }
+ await page.goto(new URL('index.html',base).href);
+ assert.equal(await page.locator('.pk-consent').count(),0,'analytics remains off until a real counter ID is configured');
+ assert.ok(await page.evaluate(()=>window.printKitAnalytics?.enabled()===false),
+  'disabled counter does not track visitors');
+ assert.equal(await page.locator('a[href="./legal.html"]').count(),1);
+ assert.equal(await page.locator('a[href="./privacy.html"]').count(),1);
+ console.log('SEO PASS public rights, privacy pages and privacy-first analytics default');
 }finally{
  await browser.close();
 }
