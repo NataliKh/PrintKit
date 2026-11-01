@@ -319,7 +319,7 @@ test('word problem pages have writing space and matching key in three densities'
    assert.equal((html.match(/class="math-word-solution-line"/g)||[]).length,count);
    assert.equal((html.match(/class="math-word-response"/g)||[]).length,count);
    assert.equal((html.match(/class="math-answer-line"/g)||[]).length,count);
-   assert.equal((html.match(/class="math-word-answer-grid"/g)||[]).length,1);
+   assert.equal((html.match(/class="answer-grid math-word-answer-grid"/g)||[]).length,1);
    for(const q of snapshot.questions){
     assert.ok(html.includes(escape(q.text)));
     assert.ok(html.includes(escape(q.solution)));
