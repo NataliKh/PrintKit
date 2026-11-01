@@ -8,7 +8,7 @@ function harness(counter,initial){
  const children=[],calls=[],tags=[];
  let stored=initial,banner,refreshes=0;
  const document={
-  currentScript:{src:'https://natalikh.github.io/PrintKit/analytics.js'},
+  currentScript:{src:'https://listokia.ru/analytics.js'},
   createElement(tag){
    return {tag,children:[],setAttribute(){},append(...nodes){this.children.push(...nodes)},
     remove(){if(this===banner)banner=null}};
@@ -19,7 +19,7 @@ function harness(counter,initial){
   addEventListener(){}
  };
  const localStorage={getItem(){return stored},setItem(_key,value){stored=value}};
- const location={href:'https://natalikh.github.io/PrintKit/',reload(){refreshes++}};
+ const location={href:'https://listokia.ru/',reload(){refreshes++}};
  const window={};
  const source=original.replace(/const METRIKA_ID=\d+;/, 'const METRIKA_ID='+counter+';');
  vm.runInNewContext(source,{document,localStorage,location,window,URL,Date,Set,Number});
@@ -74,7 +74,7 @@ test('a saved refusal does not load external code',()=>{
  assert.equal(app.banner,undefined);
 });
 
-test('published PrintKit ID is configured exactly once',()=>{
+test('published Listokia ID is configured exactly once',()=>{
  assert.match(original,/const METRIKA_ID=113974859;/);
  assert.doesNotMatch(original,/https:\/\/mc\.yandex\.ru\/watch\//,'no tracking pixel before consent');
  const app=harness(113974859,'yes');
