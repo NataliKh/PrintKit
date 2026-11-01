@@ -121,7 +121,7 @@ test('each upper-grade mixed worksheet covers its available skills',()=>{
   assert.ok(third.some(q=>q.text.includes(' × ')));
   assert.ok(third.some(q=>q.text.includes(' : ')));
   const fourth=generate('4 класс','По программе класса','Простые',100,20).questions;
-  assert.ok(fourth.some(q=>q.text.includes('(')&&q.text.includes(' × ')));
+  assert.ok(fourth.some(q=>q.text.includes(' × ')&&(q.text.includes(' + ')||q.text.includes(' − '))));
   const fifth=generate('5 класс','По программе класса','Простые',100,20).questions;
   assert.ok(fifth.some(q=>q.text.includes(' от ')));
  }
