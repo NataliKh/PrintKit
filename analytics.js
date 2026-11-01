@@ -1,7 +1,7 @@
 /* Optional, consent-gated Yandex Metrica. No network requests when METRIKA_ID is 0. */
 (()=>{
  "use strict";
- const METRIKA_ID=113974859; // PrintKit counter; loads only after visitor consent.
+ const METRIKA_ID=113974859; // Listokia counter; loads only after visitor consent.
  const CONSENT_KEY="printkit.analytics.consent.v1";
  const permittedGoals=new Set(["print_click","kit_saved","catalog_open"]);
  const scriptUrl=document.currentScript?.src||location.href;
@@ -41,7 +41,7 @@
   banner.setAttribute("role","region");
   banner.setAttribute("aria-label","Выбор статистики посещений");
   const copy=document.createElement("p");
-  copy.textContent="Помогите улучшать PrintKit: разрешите необязательную статистику посещений через Яндекс Метрику. Имена детей и тексты заданий не отправляем. Можно отказаться — сайт продолжит работать.";
+  copy.textContent="Помогите улучшать Листокию: разрешите необязательную статистику посещений через Яндекс Метрику. Имена детей и тексты заданий не отправляем. Можно отказаться — сайт продолжит работать.";
   const details=document.createElement("a");
   details.href=privacyUrl;
   details.textContent="О конфиденциальности";
