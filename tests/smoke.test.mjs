@@ -175,6 +175,42 @@ test('math layout renders a supplied snapshot without changing its exercises',()
  assert.match(app,/mode==="math"\?currentMath:null/);
 });
 
+
+test('long arithmetic formulas use full-width A4 rows with complete answer keys',()=>{
+ const all=Array.from({length:40},(_,i)=>({
+  text:(i+1)+' × (100 − 99) + 0',answer:i+1
+ }));
+ for(const [density,perPage,wide] of [
+  ['Крупный',12,false],['Стандартный',16,true],['Компактный',20,true]
+ ]){
+  for(const count of [13,21,31,40]){
+   const snapshot={topic:'Порядок действий',questions:all.slice(0,count)};
+   const get=k=>({grade:'4 класс',topic:'Порядок действий',density,key:'Да'})[k]??'';
+   const html=render('math',get,escape,lines,clamp,snapshot);
+   const pages=[...html.matchAll(/class="sheet-page math-page ([^"]+)"/g)];
+   assert.equal(pages.length,Math.ceil(count/perPage),density+' '+count+' page count');
+   assert.ok(pages.every(p=>p[1].includes('math-page--wide')===wide));
+   assert.equal((html.match(/class="math-answer-line"/g)||[]).length,count);
+   assert.equal((html.match(/<span>\d+\. \d+<\/span>/g)||[]).length,count);
+   const worksheet=html.split('<section class="sheet-page answers-page">')[0];
+   for(let i=1;i<=count;i++)
+    assert.ok(worksheet.includes(i+'. '+i+' × (100 − 99) + 0 = '));
+  }
+ }
+ const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
+ assert.match(css,/#paper \.math-page \.problems>div\{[^}]*white-space:nowrap/);
+ assert.match(css,/#paper \.math-page--wide \.problems\{[^}]*grid-template-columns:minmax\(0,1fr\)/);
+});
+test('short arithmetic retains two-column compact and standard layouts',()=>{
+ const qs=Array.from({length:40},(_,i)=>({text:(i%7+1)+' + 2',answer:i%7+3}));
+ for(const [density,perPage] of [['Стандартный',20],['Компактный',30]]){
+  const html=render('math',k=>({grade:'2 класс',density,key:'Нет'})[k]??'',
+   escape,lines,clamp,{topic:'По программе класса',questions:qs});
+  assert.equal((html.match(/class="sheet-page math-page /g)||[]).length,Math.ceil(40/perPage));
+  assert.doesNotMatch(html,/math-page--wide/);
+ }
+});
+
 test('habit tracker reserves a name column and 31 checkbox columns',()=>{
  const getter=k=>({title:'Мои привычки',items:'Читать\nЗарядка\nПить воду',days:'31'})[k]??'';
  const html=render('habits',getter,escape,lines,clamp);
@@ -187,7 +223,7 @@ test('habit tracker reserves a name column and 31 checkbox columns',()=>{
 
 test('A4 pagination preserves the number of items and hard page boundaries',()=>{
  const cases=[
-  ['math',{count:'40',key:'Да'},3,/class="problems"/g,2],
+  ['math',{grade:'1 класс',topic:'Сложение и вычитание',level:'Простые',max:'10',count:'40',key:'Да'},3,/class="problems"/g,2],
   ['cards',{items:Array.from({length:40},(_,i)=>'Term '+i+' — Value '+i).join('\n')},5,/<article>/g,40],
   ['labels',{count:'27'},3,/<article>/g,27],
   ['schedule',{items:Array.from({length:7},()=>Array.from({length:19},(_,i)=>'Предмет '+i).join(',')).join('\n')},3,/<tr>/g,22],
@@ -206,7 +242,7 @@ test('31-day habit tracker keeps the 27% name column on each sheet',()=>{
  assert.equal((html.match(/class="habit-box"/g)||[]).length,465);
 });
 test('math page breaks keep exactly twenty questions per sheet without regenerating',()=>{
- const html=render('math',k=>({...vals,count:'40',key:'Да'})[k]??'',escape,lines,clamp);
+ const html=render('math',k=>({...vals,grade:'1 класс',topic:'Сложение и вычитание',level:'Простые',max:'10',count:'40',key:'Да'})[k]??'',escape,lines,clamp);
  const pages=html.split(/(?=<section class="sheet-page )/).filter(Boolean);
  assert.equal(pages.length,3);
  assert.equal((pages[0].match(/class="math-answer-line"/g)||[]).length,20);

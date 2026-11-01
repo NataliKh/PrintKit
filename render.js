@@ -26,7 +26,14 @@ if(mode==="math"){
  const grade=e(get("grade"));
  const generated=mathSnapshot||mathGenerate(get("grade"),get("topic"),get("level"),get("max"),clamp(get("count"),40));
  const density=layoutClass(get("density"),{"Стандартный":"standard","Крупный":"large","Компактный":"compact"});
- const perPage={standard:20,large:12,compact:30}[density];
+ // Keep the writing line with the arithmetic expression. Use a full-width
+ // page for long examples rather than wrapping the line in a narrow column.
+ const needsWide=density!=="large"&&generated.questions.some(q=>{
+  const written=q.blank?q.text.replace('□','________'):q.text+' = ________';
+  return written.length>(density==="compact"?27:22);
+ });
+ const perPage=density==="large"?12:needsWide?(density==="compact"?20:16):
+  density==="compact"?30:20;
  const answerLine='<span class="math-answer-line" role="img" aria-label="Место для ответа"></span>';
  const questions=generated.questions.map((q,i)=>'<div>'+(i+1)+'. '+
   (q.blank?e(q.text).replace('□',answerLine):e(q.text)+' = '+answerLine)+'</div>');
@@ -34,7 +41,8 @@ if(mode==="math"){
  for(let i=0;i<questions.length;i+=perPage){
   parts.push(page(heading('Математика · '+grade,
    'Тема: '+e(generated.topic)+' · Имя: ____________________　Дата: ____________')+
-   '<div class="problems">'+questions.slice(i,i+perPage).join("")+'</div>','math-page math-page--'+density));
+   '<div class="problems">'+questions.slice(i,i+perPage).join("")+'</div>',
+   'math-page math-page--'+density+(needsWide?' math-page--wide':'')));
  }
  if(get("key")==="Да"){
   for(let i=0;i<answers.length;i+=40)parts.push(page(heading('Ответы','Математика · '+grade)+

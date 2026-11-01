@@ -111,6 +111,67 @@ try {
     console.error('FAIL math density interactions',error);
   }
 
+
+  // Real A4 PDF and print geometry for long formulas plus incomplete last pages.
+  try{
+    await page.locator('[data-tab="math"]').click();
+    for(const [density,count,perPage] of [
+      ['Крупный',13,12],['Стандартный',21,16],['Компактный',31,20]
+    ]){
+      await page.evaluate(({density,count})=>{
+        const questions=Array.from({length:count},(_,i)=>({
+          text:(i+1)+' × (100 − 99) + 0',answer:i+1
+        }));
+        const values={grade:'4 класс',topic:'Порядок действий',
+          density,count:String(count),key:'Да',max:'100'};
+        const escape=value=>String(value).replace(/[&<>"]/g,ch=>({
+          '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'
+        }[ch]));
+        document.querySelector('#paper').innerHTML=renderSheet('math',
+          key=>values[key]??'',escape,value=>String(value).split(/\r?\n/),
+          (value,max)=>Math.max(1,Math.min(max,Number(value)||1)),
+          {topic:'Порядок действий',questions});
+      },{density,count});
+      await page.emulateMedia({media:'print'});
+      const info=await page.evaluate(()=>{
+        const pages=[...document.querySelectorAll('#paper .math-page')];
+        const rows=[...document.querySelectorAll('#paper .math-page .problems>div')];
+        const status=rows.map(row=>{
+          const line=row.querySelector('.math-answer-line').getBoundingClientRect();
+          const range=document.createRange();
+          range.selectNodeContents(row.firstChild);
+          const textRects=[...range.getClientRects()];
+          const rowRect=row.getBoundingClientRect();
+          const pageRect=row.closest('.sheet-page').getBoundingClientRect();
+          return {
+            overflow:row.scrollWidth>row.clientWidth+2||line.right>rowRect.right+2,
+            wrapped:textRects.length!==1,
+            aligned:textRects.length===1&&Math.abs(line.top-textRects[0].top)<18,
+            clipped:rowRect.bottom>pageRect.bottom-15||rowRect.right>pageRect.right-15
+          };
+        });
+        return {pages:pages.length,rows:rows.length,status,
+          wide:pages.map(p=>p.classList.contains('math-page--wide'))};
+      });
+      assert.equal(info.pages,Math.ceil(count/perPage));
+      assert.equal(info.rows,count);
+      assert.ok(info.status.every(row=>!row.overflow&&!row.wrapped&&row.aligned&&!row.clipped),
+        'print expression/answer alignment: '+density+' '+JSON.stringify(info.status));
+      if(density!=='Крупный')assert.ok(info.wide.every(Boolean));
+      const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
+      const pdfInfo=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
+      assert.equal(Number(pdfInfo.match(/^Pages:\s+(\d+)/m)?.[1]),Math.ceil(count/perPage)+1);
+      await captureVisual('math-long-'+density,'Long maths '+density,page,pdf,
+        Math.ceil(count/perPage)+1);
+      await page.emulateMedia({media:'screen'});
+      console.log('PASS long formulas and incomplete last page:',density,count);
+    }
+  }catch(error){
+    failed=true;
+    console.error('FAIL long formula print geometry',error);
+    await page.emulateMedia({media:'screen'});
+  }
+
   // A class change must offer only topics appropriate for that grade.
   try{
     await page.locator('[data-tab="math"]').click();
