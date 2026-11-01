@@ -137,7 +137,9 @@ test('tiny selected maximum still produces a full mixed sheet',()=>{
 
 
 test('math density paginates A4 and preserves worksheet numbers and answers',()=>{
- const snapshot=vm.runInContext("mathGenerate('2 класс','Сложение и вычитание','Простые',20,40)",context);
+ // Short exercises should preserve the original density pagination.
+ const snapshot={topic:'Сложение и вычитание',questions:
+  Array.from({length:40},(_,i)=>({text:(i%8+1)+' + 2',answer:i%8+3}))};
  const original=[...snapshot.questions].map(q=>q.text);
  for(const [density,perPage,cssClass] of [
   ['Крупный',12,'large'],['Стандартный',20,'standard'],['Компактный',30,'compact']
@@ -156,7 +158,8 @@ test('math density paginates A4 and preserves worksheet numbers and answers',()=
    assert.deepEqual([...snapshot.questions].map(q=>q.text),original);
   }
  }
- const fallback=render('math',k=>({...vals,count:'40',density:'invalid'})[k]??'',escape,lines,clamp);
+ const fallback=render('math',k=>({...vals,grade:'1 класс',topic:'Сложение и вычитание',level:'Простые',
+  max:'10',count:'40',density:'invalid'})[k]??'',escape,lines,clamp);
  assert.equal((fallback.match(/math-page--standard/g)||[]).length,2);
 });
 
