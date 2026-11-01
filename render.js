@@ -35,9 +35,12 @@ if(mode==="math"){
  const perPage=density==="large"?12:needsWide?(density==="compact"?20:16):
   density==="compact"?30:20;
  const answerLine='<span class="math-answer-line" role="img" aria-label="Место для ответа"></span>';
- const questions=generated.questions.map((q,i)=>'<div>'+(i+1)+'. '+
-  (q.blank?e(q.text).replace('□',answerLine):e(q.text)+' = '+answerLine)+'</div>');
- const answers=generated.questions.map((q,i)=>'<span>'+(i+1)+'. '+q.answer+'</span>');
+ const signLine='<span class="math-answer-line" role="img" aria-label="Место для знака сравнения"></span>';
+ const questions=generated.questions.map((q,i)=>
+  '<div'+(q.kind==='comparison'?' class="math-comparison"':'')+'>'+(i+1)+'. '+
+  (q.blank?e(q.text).replace('□',q.kind==='comparison'?signLine:answerLine):
+   e(q.text)+' = '+answerLine)+'</div>');
+ const answers=generated.questions.map((q,i)=>'<span>'+(i+1)+'. '+e(q.answer)+'</span>');
  for(let i=0;i<questions.length;i+=perPage){
   parts.push(page(heading('Математика · '+grade,
    'Тема: '+e(generated.topic)+' · Имя: ____________________　Дата: ____________')+

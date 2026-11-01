@@ -711,3 +711,8 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
  min-height:34px;
  padding:4px 5px 5px;
 }
+
+
+/* A sign has a shorter writing slot than an arithmetic answer. */
+#paper .math-page .math-comparison .math-answer-line{width:12mm;height:1em}
+#fields [data-field-id="level"][hidden]{display:none!important}

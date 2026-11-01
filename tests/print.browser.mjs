@@ -11,6 +11,8 @@ const scenarios = [
   {id:'math-large',name:'large first-grade writing spaces',mode:'math',fields:{grade:'1 класс',topic:'По программе класса',level:'Простые',max:'10',count:'40',density:'Крупный',key:'Да'},pages:5},
   {id:'math-compact',name:'compact mixed first-grade worksheet',mode:'math',fields:{grade:'1 класс',topic:'По программе класса',level:'Простые',max:'10',count:'40',density:'Компактный',key:'Да'},pages:3},
   {id:'math-large-10',name:'large grade-two ten problems',mode:'math',fields:{grade:'2 класс',topic:'Сложение и вычитание',level:'Со скобками',max:'20',count:'10',density:'Крупный',key:'Нет'},pages:1},
+  {id:'math-compare',name:'first-grade comparisons with symbolic answers',mode:'math',fields:{grade:'1 класс',topic:'Сравнение чисел',max:'10',density:'Стандартный',count:'20',key:'Да'},pages:2},
+  {id:'math-composition',name:'second-grade number composition',mode:'math',fields:{grade:'2 класс',topic:'Состав числа',max:'20',density:'Крупный',count:'40',key:'Да'},pages:5},
   {id:'math-compact-20',name:'compact grade-five twenty problems',mode:'math',fields:{grade:'5 класс',topic:'По программе класса',level:'Простые',max:'100',count:'20',density:'Компактный',key:'Да'},pages:2},
   {id:'math-multiply',name:'grade 3 multiplication',mode:'math',fields:{grade:'3 класс',topic:'Таблица умножения',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
   {id:'math-fractions',name:'grade 5 fraction of a number',mode:'math',fields:{grade:'5 класс',topic:'Доли числа',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
@@ -193,6 +195,54 @@ try {
     assert.equal(await page.locator('#paper').innerHTML(),snapshot,'printing never changes selected math questions');
     console.log('PASS grade-specific topic selector, division and print stability');
   }catch(error){failed=true;console.error('FAIL grade-specific math picker',error);}
+
+
+  // Foundational topics exist only in grades 1–2 and support printable signs.
+  try{
+    await page.locator('[data-tab="math"]').click();
+    for(const [grade,max] of [['1 класс','10'],['2 класс','20']]){
+      await page.locator('#f-grade').selectOption({label:grade});
+      const available=await page.locator('#f-topic option').allTextContents();
+      assert.ok(available.includes('Сравнение чисел')&&available.includes('Состав числа'));
+      await page.locator('#f-max').selectOption({label:max});
+      for(const topic of ['Сравнение чисел','Состав числа']){
+        await page.locator('#f-topic').selectOption({label:topic});
+        await page.locator('#f-count').fill('20');
+        await page.locator('#f-count').dispatchEvent('change');
+        await page.locator('#f-key').selectOption({label:'Да'});
+        assert.equal(await page.locator('[data-field-id="level"]').isVisible(),false);
+        assert.equal(await page.locator('#paper .problems>div').count(),20);
+        assert.equal(await page.locator('#paper .answer-grid span').count(),20);
+        if(topic==='Сравнение чисел'){
+          assert.equal(await page.locator('#paper .math-comparison').count(),20);
+          const answers=await page.locator('#paper .answer-grid span').allTextContents();
+          assert.ok(['<','>','='].every(sign=>answers.some(x=>x.includes(sign))));
+          const accessible=await page.locator('#paper .math-comparison').evaluateAll(
+            rows=>rows.every(row=>row.querySelector('[aria-label="Место для знака сравнения"]')));
+          assert.equal(accessible,true);
+        }else{
+          assert.ok((await page.locator('#paper .problems>div').allTextContents()).every(x=>
+            /\d+ = /.test(x)));
+        }
+        const before=await page.locator('#paper .answer-grid span').allTextContents();
+        await page.locator('#f-density').selectOption({label:'Компактный'});
+        assert.deepEqual(await page.locator('#paper .answer-grid span').allTextContents(),before,
+          'density cannot change answers');
+        const printed=await page.locator('#paper').innerHTML();
+        await page.evaluate(()=>window.print=()=>{});
+        await page.locator('#print').click();
+        assert.equal(await page.locator('#paper').innerHTML(),printed);
+        assert.equal(await page.locator('#print').isDisabled(),false);
+      }
+    }
+    await page.locator('#f-grade').selectOption({label:'3 класс'});
+    assert.ok(!(await page.locator('#f-topic option').allTextContents()).includes('Сравнение чисел'));
+    assert.equal(await page.locator('[data-field-id="level"]').isVisible(),true);
+    console.log('PASS foundational topics, answer keys and grade-specific visibility');
+  }catch(error){
+    failed=true;
+    console.error('FAIL foundational math topic interactions',error);
+  }
 
   // Redesign QA: real A4 paper, three sizes and representative Russian names.
   try{

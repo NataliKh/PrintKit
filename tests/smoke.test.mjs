@@ -214,6 +214,68 @@ test('short arithmetic retains two-column compact and standard layouts',()=>{
  }
 });
 
+
+test('comparison and number composition are mathematically correct for grades 1–2',()=>{
+ const generate=vm.runInContext('mathGenerate',context);
+ for(const grade of ['1 класс','2 класс'])for(const max of [2,10,20,50,100])
+  for(const topic of ['Сравнение чисел','Состав числа'])for(const count of [10,20,40])
+   for(let trial=0;trial<40;trial++){
+    const result=generate(grade,topic,'Простые',max,count);
+    assert.equal(result.questions.length,count);
+    if(max>=10)assert.equal(new Set(result.questions.map(q=>q.text)).size,count);
+    for(const q of result.questions){
+     assert.equal(q.blank,true);
+     if(topic==='Сравнение чисел'){
+      const m=q.text.match(/^(\d+) □ (\d+)$/);
+      assert.ok(m,'comparison '+q.text);
+      const [a,b]=m.slice(1).map(Number);
+      assert.ok(a>=0&&b>=0&&a<=result.maximum&&b<=result.maximum);
+      assert.equal(q.answer,a<b?'<':a>b?'>':'=');
+     }else{
+      const m=q.text.match(/^(\d+) = (?:(\d+) \+ □|□ \+ (\d+))$/);
+      assert.ok(m,'composition '+q.text);
+      const sum=+m[1],known=Number(m[2]??m[3]);
+      assert.ok(sum>=1&&sum<=result.maximum&&known>=0&&known<=sum);
+      assert.equal(q.answer,sum-known);
+     }
+    }
+    if(max>=10&&topic==='Сравнение чисел'){
+     const signs=new Set(result.questions.map(q=>q.answer));
+     assert.ok(['<','>','='].every(sign=>signs.has(sign)));
+    }
+   }
+});
+test('comparison answer key escapes less-than and greater-than signs',()=>{
+ const snapshot={topic:'Сравнение чисел',questions:[
+  {text:'3 □ 9',answer:'<',blank:true,kind:'comparison'},
+  {text:'9 □ 3',answer:'>',blank:true,kind:'comparison'},
+  {text:'6 □ 6',answer:'=',blank:true,kind:'comparison'}
+ ]};
+ const html=render('math',key=>({grade:'1 класс',density:'Крупный',key:'Да'})[key]??'',
+  escape,lines,clamp,snapshot);
+ assert.equal((html.match(/class="math-comparison"/g)||[]).length,3);
+ assert.equal((html.match(/Место для знака сравнения/g)||[]).length,3);
+ assert.match(html,/<span>1\. &lt;<\/span>/);
+ assert.match(html,/<span>2\. &gt;<\/span>/);
+ assert.match(html,/<span>3\. =<\/span>/);
+ assert.equal((html.match(/class="sheet-page /g)||[]).length,2);
+ const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
+ assert.match(css,/\.math-comparison \.math-answer-line\{width:12mm/);
+});
+test('composition prints with unchanged answers in all three A4 densities',()=>{
+ const generate=vm.runInContext('mathGenerate',context);
+ const snapshot=generate('2 класс','Состав числа','Простые',20,40);
+ const old=snapshot.questions.map(q=>q.text);
+ for(const density of ['Крупный','Стандартный','Компактный']){
+  const html=render('math',key=>({grade:'2 класс',topic:'Состав числа',count:'40',
+   key:'Да',density})[key]??'',escape,lines,clamp,snapshot);
+  assert.equal((html.match(/class="math-answer-line"/g)||[]).length,40);
+  assert.equal((html.match(/<span>\d+\. \d+<\/span>/g)||[]).length,40);
+  assert.ok((html.match(/class="sheet-page /g)||[]).length>=3);
+  assert.deepEqual(snapshot.questions.map(q=>q.text),old);
+ }
+});
+
 test('habit tracker reserves a name column and 31 checkbox columns',()=>{
  const getter=k=>({title:'Мои привычки',items:'Читать\nЗарядка\nПить воду',days:'31'})[k]??'';
  const html=render('habits',getter,escape,lines,clamp);
@@ -465,6 +527,16 @@ test('grade-specific topics, arithmetic correctness and integer answers',()=>{
      const result=generate(grade,topic,'Со скобками',limit,40);
      assert.equal(result.questions.length,40);
      for(const q of result.questions){
+      if(topic==='Сравнение чисел'){
+       const m=q.text.match(/^(\d+) □ (\d+)$/);
+       assert.ok(m,grade+' '+JSON.stringify(q));
+       const left=+m[1],right=+m[2];
+       assert.ok(left>=0&&left<=result.maximum&&right>=0&&right<=result.maximum);
+       assert.equal(q.answer,left<right?'<':left>right?'>':'=');
+       assert.equal(q.blank,true);
+       assert.equal(q.kind,'comparison');
+       continue;
+      }
       assert.ok(Number.isInteger(q.answer)&&q.answer>=0&&q.answer<=limit,grade+' '+topic+': '+JSON.stringify(q));
       if(q.blank){
        const parts=q.text.replace('□',String(q.answer)).split(' = ');

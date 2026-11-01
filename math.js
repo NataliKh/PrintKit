@@ -1,7 +1,8 @@
-// All arithmetic stays local. Every generated answer is an integer within the selected range.
+// All arithmetic stays local. Numeric answers stay inside the chosen range;
+// comparison exercises have a symbolic answer: <, > or =.
 const mathTopicsByGrade={
- '1 класс':['По программе класса','Сложение и вычитание','Пропущенное число'],
- '2 класс':['По программе класса','Сложение и вычитание','Переход через десяток','Пропущенное число'],
+ '1 класс':['По программе класса','Сложение и вычитание','Пропущенное число','Сравнение чисел','Состав числа'],
+ '2 класс':['По программе класса','Сложение и вычитание','Переход через десяток','Пропущенное число','Сравнение чисел','Состав числа'],
  '3 класс':['По программе класса','Таблица умножения','Деление без остатка','Сложение и вычитание'],
  '4 класс':['По программе класса','Умножение и деление','Порядок действий','Сложение и вычитание'],
  '5 класс':['По программе класса','Доли числа','Умножение и деление','Порядок действий']
@@ -186,6 +187,73 @@ function mathUpperGradeMixed(gradeIndex,maximum,total,one,transitions){
  return chosen;
 }
 
+
+/**
+ * Foundations for 1–2 classes. Finite candidate pools, three comparison signs
+ * with stable shares, and a preference for nontrivial, varied arithmetic facts.
+ * At extremely small maximum values, repetition is unavoidable.
+ */
+function mathFoundations(topic,maximum,total){
+ const compare=topic==='Сравнение чисел';
+ const all=[],signs={'<':[],'>':[],'=':[]};
+ if(compare){
+  for(let a=0;a<=maximum;a++)for(let b=0;b<=maximum;b++){
+   const sign=a<b?'<':a>b?'>':'=';
+   signs[sign].push({
+    text:a+' □ '+b,answer:sign,blank:true,kind:'comparison',
+    family:Math.min(a,b)+':'+Math.max(a,b),trivial:a===0||b===0,values:[a,b]
+   });
+  }
+ }else{
+  for(let sum=1;sum<=maximum;sum++)for(let known=0;known<=sum;known++){
+   const missing=sum-known;
+   for(const text of [sum+' = '+known+' + □',sum+' = □ + '+known]){
+    all.push({text,answer:missing,blank:true,kind:'composition',
+      family:sum+':'+Math.min(known,missing)+':'+Math.max(known,missing),
+      trivial:known===0||missing===0,values:[sum,known]});
+   }
+  }
+ }
+ const pattern=['<','>','<','>','='];
+ const order=Array.from({length:total},(_,i)=>compare?pattern[i%pattern.length]:'composition');
+ for(let i=order.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [order[i],order[j]]=[order[j],order[i]];
+ }
+ const textCount=new Map(),familyCount=new Map(),valueCount=new Map(),questions=[];
+ function score(q){
+  return -150*(textCount.get(q.text)||0)-13*Number(q.trivial)-
+   5*(familyCount.get(q.family)||0)-
+   0.6*(valueCount.get(q.values[0])||0)-
+   0.4*(valueCount.get(q.values[1])||0)+Math.random();
+ }
+ function pick(pool){
+  // Sample larger pools to keep worksheet generation responsive for max=100.
+  let best=null,quality=-Infinity;
+  const attempts=Math.min(pool.length,240);
+  for(let i=0;i<attempts;i++){
+   const q=pool[Math.floor(Math.random()*pool.length)];
+   const rank=score(q);
+   if(rank>quality){best=q;quality=rank;}
+  }
+  // Exhaust tiny ranges so a new expression always beats needless repetition.
+  if(pool.length<=240)for(const q of pool){
+   const rank=score(q);
+   if(rank>quality){best=q;quality=rank;}
+  }
+  return best;
+ }
+ for(const kind of order){
+  const q=pick(compare?signs[kind]:all);
+  if(!q)continue;
+  textCount.set(q.text,(textCount.get(q.text)||0)+1);
+  familyCount.set(q.family,(familyCount.get(q.family)||0)+1);
+  for(const v of q.values)valueCount.set(v,(valueCount.get(v)||0)+1);
+  questions.push({text:q.text,answer:q.answer,blank:true,kind:q.kind});
+ }
+ return questions;
+}
+
 function mathGenerate(grade,requestedTopic,level,range,count){
  const grades=Object.keys(mathTopicsByGrade);
  const gradeIndex=Math.max(0,grades.indexOf(grade));
@@ -253,6 +321,9 @@ function mathGenerate(grade,requestedTopic,level,range,count){
    return {text:numerator+'/'+denominator+' от '+(denominator*unit),answer:numerator*unit};
   }
   return {text:'0 + 0',answer:0};
+ }
+ if(gradeIndex<=1&&(selected==='Сравнение чисел'||selected==='Состав числа')){
+  return {topic:selected,maximum,questions:mathFoundations(selected,maximum,total)};
  }
  if(gradeIndex===0&&selected===topics[0]&&level==='Простые'){
   return {topic:selected,maximum,questions:mathFirstGradeMixed(maximum,total)};
