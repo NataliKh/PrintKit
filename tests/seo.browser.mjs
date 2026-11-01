@@ -48,12 +48,26 @@ try{
   assert.equal(await page.locator('a[href*="index.html#editor"]').count(),1,'navigation back to editor');
  }
  await page.goto(new URL('index.html',base).href);
- assert.equal(await page.locator('.pk-consent').count(),0,'analytics remains off until a real counter ID is configured');
- assert.ok(await page.evaluate(()=>window.printKitAnalytics?.enabled()===false),
-  'disabled counter does not track visitors');
+ // A visit must not load Yandex until the visitor explicitly opts in.
+ await page.route('https://mc.yandex.ru/**',route=>route.abort());
+ assert.ok(await page.evaluate(()=>window.printKitAnalytics?.enabled()===true),'real PrintKit counter is configured');
+ assert.equal(await page.locator('.pk-consent').count(),1,'consent banner shown for first-time visitor');
+ assert.equal(await page.locator('script[src^="https://mc.yandex.ru/metrika/tag.js"]').count(),0,
+  'no tracking script before consent');
+ await page.locator('.pk-consent button').filter({hasText:'Разрешить'}).click();
+ assert.equal(await page.locator('script[src="https://mc.yandex.ru/metrika/tag.js?id=113974859"]').count(),1,
+  'exactly the configured counter loads after consent');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('printkit.analytics.consent.v1')),'yes');
+ await page.reload();
+ assert.equal(await page.locator('.pk-consent').count(),0,'consent is remembered');
+ await page.locator('[data-open-analytics-settings]').click();
+ await page.locator('.pk-consent button').filter({hasText:'Без статистики'}).click();
+ assert.equal(await page.evaluate(()=>localStorage.getItem('printkit.analytics.consent.v1')),'no');
+ assert.equal(await page.locator('script[src^="https://mc.yandex.ru/metrika/tag.js"]').count(),0,
+  'revoking consent stops subsequent tracking after reload');
  assert.equal(await page.locator('a[href="./legal.html"]').count(),1);
  assert.equal(await page.locator('a[href="./privacy.html"]').count(),1);
- console.log('SEO PASS public rights, privacy pages and privacy-first analytics default');
+ console.log('SEO PASS copyright pages, consent-first Yandex Metrica activation and withdrawal');
 }finally{
  await browser.close();
 }
