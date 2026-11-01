@@ -161,7 +161,7 @@ try {
       const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
       const pdfInfo=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
       assert.equal(Number(pdfInfo.match(/^Pages:\s+(\d+)/m)?.[1]),Math.ceil(count/perPage)+1);
-      await captureVisual('math-long-'+density,'Long maths '+density,page,pdf,
+      await captureVisual('math-long-'+({Крупный:'large',Стандартный:'standard',Компактный:'compact'}[density]),'Long maths '+density,page,pdf,
         Math.ceil(count/perPage)+1);
       await page.emulateMedia({media:'screen'});
       console.log('PASS long formulas and incomplete last page:',density,count);
