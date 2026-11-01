@@ -43,3 +43,22 @@ test('consent gating remains intact and migration does not rename local storage'
  assert.match(analytics,/Помогите улучшать Листокию/);
  assert.match(read('saved-kits.js'),/printkit\.saved\.v1/);
 });
+
+test('document logo is consistently used across all public and policy pages',()=>{
+ const start='<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">';
+ const home=read('index.html');
+ const index=home.indexOf(start);
+ assert.ok(index!==-1,'home page contains the inline brand icon');
+ const closing=home.indexOf('</svg>',index);
+ assert.ok(closing!==-1,'inline brand icon closes correctly');
+ const logo=home.slice(index,closing+6);
+ const favicon=read('favicon.svg');
+ for(const drawing of ['M14 5h14l9 9v27','M28 5v8a2 2 0 0 0 2 2h7','M17 25h14M17 31h11']){
+  assert.ok(logo.includes(drawing),'paper, corner and two print lines: '+drawing);
+  assert.ok(favicon.includes(drawing),'favicon matches inline icon: '+drawing);
+ }
+ assert.ok(!logo.includes('M13 32c0-13'),'old botanical leaf icon is gone');
+ for(const path of [...publicPages.slice(1),'legal.html','privacy.html']){
+  assert.ok(read(path).includes(logo),'consistent brand icon on '+path);
+ }
+});
