@@ -18,6 +18,9 @@ const scenarios = [
   {id:'math-compact-20',name:'compact grade-five twenty problems',mode:'math',fields:{grade:'5 класс',topic:'По программе класса',level:'Простые',max:'100',count:'20',density:'Компактный',key:'Да'},pages:2},
   {id:'math-multiply',name:'grade 3 multiplication',mode:'math',fields:{grade:'3 класс',topic:'Таблица умножения',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
   {id:'math-fractions',name:'grade 5 fraction of a number',mode:'math',fields:{grade:'5 класс',topic:'Доли числа',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
+  {id:'writing-digits',name:'tracing digits zero to nine',mode:'writing',fields:{set:'Цифры 0–9'},pages:2},
+  {id:'writing-elements',name:'six pre-writing elements',mode:'writing',fields:{set:'Элементы письма',element:'Все элементы'},pages:1},
+  {id:'writing-single',name:'12 rows of a numeral',mode:'writing',fields:{set:'Одна цифра',digit:'5',rows:'12'},pages:2},
   {id:'cards',name:'40 flashcards',mode:'cards',fields:{items:Array.from({length:40},(_,i)=>'Слово '+i+' — перевод '+i).join('\n')},pages:5},
   {id:'labels-standard',name:'27 standard labels',mode:'labels',fields:{count:'27'},pages:3},
   {id:'labels-small',name:'27 small labels',mode:'labels',fields:{count:'27',size:'Маленькие 40 × 22 мм'},pages:1},
@@ -85,6 +88,40 @@ try {
       await page.emulateMedia({media:'screen'});
     }
   }
+
+
+  // Tracing guides must print in exactly the same order as the preview.
+  try{
+    await page.locator('[data-tab="writing"]').click();
+    await page.locator('#f-set').selectOption({label:'Цифры 0–9'});
+    assert.equal(await page.locator('#paper .writing-row').count(),10);
+    assert.equal(await page.locator('#paper .writing-page').count(),2);
+    assert.equal(await page.locator('#paper .writing-cell--sample').count(),10);
+    assert.equal(await page.locator('#paper .writing-cell--trace').count(),30);
+    assert.equal(await page.locator('#paper .writing-cell--blank').count(),20);
+    assert.equal(await page.locator('[data-field-id="digit"]').isVisible(),false);
+    await page.locator('#f-set').selectOption({label:'Одна цифра'});
+    await page.locator('#f-digit').selectOption({label:'7'});
+    await page.locator('#f-rows').selectOption({label:'12'});
+    assert.equal(await page.locator('#paper .writing-row').count(),12);
+    assert.equal(await page.locator('#paper .writing-page').count(),2);
+    assert.equal(await page.locator('[data-field-id="digit"]').isVisible(),true);
+    assert.equal(await page.locator('[data-field-id="rows"]').isVisible(),true);
+    assert.equal(await page.locator('#paper .writing-trace-svg').count(),48);
+    const before=await page.locator('#paper').innerHTML();
+    await page.evaluate(()=>{window.print=()=>{}});
+    await page.locator('#print').click();
+    assert.equal(await page.locator('#paper').innerHTML(),before);
+    await page.locator('#f-set').selectOption({label:'Элементы письма'});
+    await page.locator('#f-element').selectOption({label:'Волны'});
+    assert.equal(await page.locator('#paper .writing-row').count(),12);
+    assert.ok((await page.locator('#paper .writing-row-caption').first().innerText()).includes('Волны'));
+    await page.locator('#f-element').selectOption({label:'Все элементы'});
+    assert.equal(await page.locator('#paper .writing-row').count(),6);
+    assert.equal(await page.locator('[data-field-id="rows"]').isVisible(),false);
+    assert.equal(await page.locator('#print').isDisabled(),false);
+    console.log('PASS tracing vectors, form controls and stable print snapshot');
+  }catch(error){failed=true;console.error('FAIL handwriting worksheets',error);}
 
   // Resizing a worksheet must never regenerate questions or change the answer key.
   try{
@@ -478,7 +515,7 @@ try {
     // Catalog discovery: featured, filters, search, quick-open and mobile layout.
     assert.equal(await page.locator('#catalog-grid [data-template]').count(),6,'six featured catalog cards');
     await page.locator('#catalog-more').click();
-    assert.equal(await page.locator('#catalog-grid [data-template]').count(),25,'all 25 kits visible after expansion');
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),28,'all 28 kits visible after expansion');
     await page.locator('#catalog-search').fill('чтение');
     assert.ok(await page.locator('#catalog-grid [data-template]').count()>0,'catalog finds reading kits');
     await page.locator('#catalog-filters [data-category="habits"]').click();

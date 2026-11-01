@@ -5,6 +5,11 @@ const starterKits={
     {id:"brackets",icon:"🧩",title:"Со скобками",description:"2 класс · с ответами",values:{grade:"2 класс",topic:"Сложение и вычитание",count:"16",level:"Со скобками",max:"20",key:"Да"}},
     {id:"practice",icon:"🎯",title:"Большая тренировка",description:"5 класс · 40 заданий",values:{grade:"5 класс",topic:"По программе класса",count:"40",level:"Несколько действий",max:"100",key:"Да"}}
   ],
+  writing:[
+    {id:"digits",icon:"🔢",title:"Все цифры",description:"0–9 · обводка и письмо",values:{set:"Цифры 0–9"}},
+    {id:"single",icon:"✏️",title:"Пишем цифру 5",description:"6 строк для тренировки",values:{set:"Одна цифра",digit:"5",rows:"6"}},
+    {id:"strokes",icon:"〰️",title:"Готовим руку к письму",description:"Линии, дуги, крючки и овалы",values:{set:"Элементы письма",element:"Все элементы"}}
+  ],
   cards:[
     {id:"animals",icon:"🐾",title:"Животные",description:"8 английских слов",values:{title:"Английский · животные",items:"cat — кошка\ndog — собака\nbird — птица\nfish — рыба\nhorse — лошадь\nmouse — мышь\nrabbit — кролик\nbear — медведь",theme:"Мятный"}},
     {id:"colors",icon:"🌈",title:"Цвета",description:"8 слов для запоминания",values:{title:"Английский · цвета",items:"red — красный\nblue — синий\ngreen — зелёный\nyellow — жёлтый\nwhite — белый\nblack — чёрный\npink — розовый\npurple — фиолетовый",theme:"Персиковый"}},

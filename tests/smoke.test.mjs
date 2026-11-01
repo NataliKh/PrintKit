@@ -10,10 +10,42 @@ const vals={grade:'2 класс',topic:'Сложение и вычитание',
 const escape=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const lines=s=>String(s).split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 const clamp=(n,max)=>Math.max(1,Math.min(max,Number(n)||1));
-for(const mode of ['math','cards','labels','diploma','schedule','habits']){
+for(const mode of ['math','writing','cards','labels','diploma','schedule','habits']){
  test(mode+' renders printable markup',()=>{const html=render(mode,key=>vals[key]??'',escape,lines,clamp);assert.ok(html.length>60);assert.match(html,/<h2>/)});
 }
 test('user text is escaped',()=>{const html=render('labels',key=>key==='name'?'<script>alert(1)</script>':(vals[key]??''),escape,lines,clamp);assert.doesNotMatch(html,/<script>/);assert.match(html,/&lt;script&gt;/)});
+
+
+test('original vector numerals render as printable tracing and free-writing cells',()=>{
+ const html=render('writing',k=>({set:'Цифры 0–9'})[k]??'',escape,lines,clamp);
+ assert.equal((html.match(/class="sheet-page writing-page"/g)||[]).length,2);
+ assert.equal((html.match(/class="writing-row"/g)||[]).length,10);
+ assert.equal((html.match(/class="writing-cell writing-cell--sample"/g)||[]).length,10);
+ assert.equal((html.match(/class="writing-cell writing-cell--trace"/g)||[]).length,30);
+ assert.equal((html.match(/class="writing-cell writing-cell--blank"/g)||[]).length,20);
+ assert.equal((html.match(/<svg class="writing-trace-svg"/g)||[]).length,40);
+ for(let i=0;i<=9;i++)assert.match(html,new RegExp('Цифра '+i));
+ assert.doesNotMatch(html,/<foreignObject|<image |@font-face/);
+});
+test('one digit and pre-writing elements constrain repeats and invalid selections',()=>{
+ const html=render('writing',k=>({set:'Одна цифра',digit:'5',rows:'12'})[k]??'',escape,lines,clamp);
+ assert.equal((html.match(/class="writing-row"/g)||[]).length,12);
+ assert.equal((html.match(/class="sheet-page writing-page"/g)||[]).length,2);
+ assert.equal((html.match(/Цифра 5/g)||[]).length,12);
+ for(const [set,element,count] of [
+  ['Элементы письма','Все элементы',6],
+  ['Элементы письма','Крючки',12],
+  ['Элементы письма','<script>',6],
+  ['Цифры 0–9','',10]
+ ]){
+  const output=render('writing',k=>({set,element,rows:'12'})[k]??'',escape,lines,clamp);
+  assert.equal((output.match(/class="writing-row"/g)||[]).length,count);
+  assert.doesNotMatch(output,/<script>/);
+ }
+ const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
+ assert.match(css,/\.writing-stroke--trace\{stroke:[^}]*stroke-dasharray:/);
+ assert.match(css,/\.writing-cells\{display:grid/);
+});
 
 test('math results stay inside the selected range',()=>{
  for(const level of ['Простые','Несколько действий','Со скобками']){

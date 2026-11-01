@@ -1,13 +1,14 @@
 // Small static preview illustrations: no personal content, downloads or remote assets.
 const galleryMiniatures={
   math:'<div class="mini-math"><i>7 + 4 = ____</i><i>12 − 5 = ____</i><i>9 + (3 − 2) = ____</i></div>',
+  writing:'<div class="mini-math"><i>0 · · · ___</i><i>1 · · · ___</i><i>2 · · · ___</i></div>',
   cards:'<div class="mini-cards"><i>cat</i><i>dog</i><i>sun</i><i>bird</i></div>',
   labels:'<div class="mini-labels"><i>Анна</i><i>Анна</i><i>Анна</i><i>Анна</i><i>Анна</i><i>Анна</i></div>',
   diploma:'<div class="mini-award"><span>★</span><strong>ГРАМОТА</strong><i>за достижения</i></div>',
   schedule:'<div class="mini-schedule"><span>ПН</span><span>ВТ</span><span>СР</span><i></i><i></i><i></i><i></i><i></i><i></i></div>',
   habits:'<div class="mini-habits"><span>○ ○ ○ ○ ○</span><span>○ ○ ● ○ ○</span><span>● ○ ○ ○ ●</span><span>○ ○ ○ ● ○</span></div>'
 };
-const galleryCategoryNames={all:"Все",math:"Математика",cards:"Карточки",labels:"Наклейки",diploma:"Грамоты",schedule:"Расписание",habits:"Привычки"};
+const galleryCategoryNames={all:"Все",math:"Математика",writing:"Прописи",cards:"Карточки",labels:"Наклейки",diploma:"Грамоты",schedule:"Расписание",habits:"Привычки"};
 const galleryTemplates=modes.flatMap(type=>starterKits[type].map((kit,index)=>({type,...kit,featured:index===0})));
 let galleryCategory="all",galleryExpanded=false;
 const gallerySearch=document.getElementById("catalog-search");

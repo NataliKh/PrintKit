@@ -16,6 +16,41 @@ function parseLabelNames(raw){
  if(typeof raw!=="string")return [];
  return raw.split(/\r?\n/).map(name=>name.replace(/\s+/g," ").trim()).filter(Boolean).slice(0,6);
 }
+
+/** Original vector paths: digits and pre-writing exercises without font assets. */
+const writingDigitPaths={
+ "0":"M50 10 C31 10 21 26 21 50 C21 74 31 90 50 90 C69 90 79 74 79 50 C79 26 69 10 50 10 Z",
+ "1":"M29 27 L50 11 L50 90 M28 90 H75",
+ "2":"M22 30 C23 14 37 9 51 9 C71 9 80 22 77 37 C74 48 63 58 48 71 L23 90 H80",
+ "3":"M23 18 C37 7 60 7 71 21 C83 36 66 50 49 50 C68 50 79 65 72 80 C65 94 39 96 21 83",
+ "4":"M69 10 L20 65 H83 M69 10 V91",
+ "5":"M78 11 H31 L26 49 C40 39 64 40 74 54 C91 78 67 100 43 91 C32 89 25 85 20 80",
+ "6":"M68 13 C45 15 29 30 25 51 C20 70 27 88 48 91 C68 95 80 79 74 64 C69 47 45 44 32 57",
+ "7":"M20 13 H82 L40 91",
+ "8":"M49 50 C29 37 27 21 40 13 C55 4 75 13 72 29 C70 41 58 46 49 50 C34 56 22 69 30 83 C41 101 73 94 75 77 C77 63 60 55 49 50",
+ "9":"M72 48 C61 59 44 60 34 51 C19 37 31 10 50 10 C77 10 82 41 74 64 C67 84 55 91 34 91"
+};
+const writingElements=[
+ {name:"Прямые линии",path:"M50 10 V90"},
+ {name:"Наклонные линии",path:"M28 90 L72 10"},
+ {name:"Крючки",path:"M35 10 V66 C35 96 70 95 73 70"},
+ {name:"Дуги",path:"M20 86 C22 30 77 30 80 86"},
+ {name:"Овалы",path:"M50 10 C31 10 21 26 21 50 C21 74 31 90 50 90 C69 90 79 74 79 50 C79 26 69 10 50 10 Z"},
+ {name:"Волны",path:"M8 59 C22 24 35 24 48 59 C61 92 74 92 92 55"}
+];
+function writingExercises(get){
+ const set=get("set"),times=get("rows")==="12"?12:6;
+ if(set==="Одна цифра"){
+  const digit=Object.hasOwn(writingDigitPaths,get("digit"))?get("digit"):"0";
+  return Array.from({length:times},()=>({name:"Цифра "+digit,path:writingDigitPaths[digit]}));
+ }
+ if(set==="Элементы письма"){
+  const one=writingElements.find(item=>item.name===get("element"));
+  return one?Array.from({length:times},()=>one):writingElements;
+ }
+ return Object.entries(writingDigitPaths).map(([digit,path])=>({name:"Цифра "+digit,path}));
+}
+
 function renderSheet(mode,get,e,lines,clamp,mathSnapshot=null){
 const title=e(get("title"));
 const page=(body,kind="")=>'<section class="sheet-page '+kind+'">'+body+'</section>';
@@ -56,6 +91,26 @@ if(mode==="math"){
  if(get("key")==="Да"){
   for(let i=0;i<answers.length;i+=40)parts.push(page(heading('Ответы','Математика · '+grade)+
    '<div class="answer-grid'+(isWord?' math-word-answer-grid':'')+'">'+answers.slice(i,i+40).join("")+'</div>','answers-page'));
+ }
+}
+if(mode==="writing"){
+ const items=writingExercises(get);
+ const group=get("set")==="Элементы письма"?"Элементы письма":"Цифры";
+ const cell=(item,variant)=>{
+  const visual=variant==="blank"?"":'<svg class="writing-trace-svg" viewBox="0 0 100 100" aria-hidden="true" focusable="false">'+
+   '<path d="'+item.path+'" class="writing-stroke writing-stroke--'+variant+'" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  return '<div class="writing-cell writing-cell--'+variant+'" aria-label="'+
+   (variant==="sample"?"Образец":variant==="trace"?"Обведите пунктир":"Напишите самостоятельно")+'">'+visual+'</div>';
+ };
+ for(let i=0;i<items.length;i+=6){
+  const rows=items.slice(i,i+6).map((item,j)=>
+   '<div class="writing-row"><div class="writing-row-caption"><span class="writing-row-number">'+(i+j+1)+'.</span> '+e(item.name)+'</div>'+
+   '<div class="writing-cells">'+['sample','trace','trace','trace','blank','blank'].map(v=>cell(item,v)).join("")+'</div></div>');
+  parts.push(page(heading('Прописи · '+e(group),
+   'Обведи по образцу и попробуй самостоятельно · Имя: ____________________')+
+   '<div class="writing-list">'+rows.join("")+'</div>'+
+   '<p class="writing-footer">✦ Отличная работа! Продолжай тренироваться.</p>',
+   'writing-page'));
  }
 }
 if(mode==="cards"){

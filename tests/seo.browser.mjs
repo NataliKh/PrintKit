@@ -6,8 +6,8 @@ const base=new URL('../',import.meta.url);
 const modes=['math','cards','labels','diploma','schedule','habits'];
 const defaultKits={math:'brackets',cards:'animals',labels:'notebooks',diploma:'effort',schedule:'school',habits:'healthy'};
 const manifest=JSON.parse(await readFile(new URL('../previews/manifest.json',import.meta.url),'utf8'));
-assert.equal(manifest.previews.length,25,'exactly 25 real A4 previews');
-assert.equal(new Set(manifest.previews.map(x=>x.file)).size,25,'unique previews');
+assert.equal(manifest.previews.length,28,'exactly 28 real A4 previews');
+assert.equal(new Set(manifest.previews.map(x=>x.file)).size,28,'unique previews');
 const browser=await chromium.launch({headless:true});
 try{
  const page=await browser.newPage({viewport:{width:1280,height:900}});
@@ -32,13 +32,13 @@ try{
  assert.equal(await page.locator('meta[property="og:url"]').getAttribute('content'),'https://listokia.ru/');
  assert.equal(await page.locator('link[rel=icon]').getAttribute('href'),'./favicon.svg');
  const thumbs=page.locator('#catalog-grid img.catalog-real-preview');
- assert.equal(await thumbs.count(),6,'six featured template thumbnails');
+ assert.equal(await thumbs.count(),7,'seven featured template thumbnails');
  for(const item of await thumbs.all()){
   const ok=await item.evaluate(el=>el.complete&&el.naturalWidth>200&&!el.hidden);
   assert.ok(ok,'featured catalog has a real A4 thumbnail');
  }
  await page.locator('#catalog-more').click();
- assert.equal(await page.locator('#catalog-grid img.catalog-real-preview').count(),25,'all previews linked from catalog');
+ assert.equal(await page.locator('#catalog-grid img.catalog-real-preview').count(),28,'all previews linked from catalog');
  for(const item of await page.locator('#catalog-grid img.catalog-real-preview').all()){
   await item.scrollIntoViewIfNeeded();
   assert.ok(await item.evaluate(el=>el.complete&&el.naturalWidth>200&&!el.hidden),'gallery image missing');
