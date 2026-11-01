@@ -9,19 +9,20 @@ vm.runInContext(read('presets.js'),context);
 vm.runInContext(read('app.js').split('\n')[1],context);
 const kits=vm.runInContext('starterKits',context);
 const configs=vm.runInContext('configs',context);
-const modes=['math','cards','labels','diploma','schedule','habits'];
+const modes=['math','writing','cards','labels','diploma','schedule','habits'];
 const selectOptions={
  theme:['Лавандовый','Мятный','Персиковый','Минимализм']
 };
-test('every print generator offers four distinct curated quick starts',()=>{
+test('every print generator offers curated, nonduplicate quick starts',()=>{
  assert.deepEqual(Object.keys(kits).sort(),[...modes].sort());
  for(const mode of modes){
-  assert.equal(kits[mode].length,mode==='labels'?5:4,mode);
-  assert.equal(new Set(kits[mode].map(x=>x.id)).size,mode==='labels'?5:4,mode);
+  const expected=mode==='labels'?5:mode==='writing'?3:4;
+  assert.equal(kits[mode].length,expected,mode);
+  assert.equal(new Set(kits[mode].map(x=>x.id)).size,expected,mode);
   for(const kit of kits[mode]){
    assert.match(kit.id,/^[a-z0-9-]+$/);
    assert.ok(kit.title.length>3&&kit.description.length>4);
-   assert.ok(Object.keys(kit.values).length>=2);
+   assert.ok(Object.keys(kit.values).length>=(mode==='writing'?1:2));
   }
  }
 });
