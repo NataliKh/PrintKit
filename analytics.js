@@ -1,7 +1,7 @@
 /* Optional, consent-gated Yandex Metrica. No network requests when METRIKA_ID is 0. */
 (()=>{
  "use strict";
- const METRIKA_ID=0; // Replace with the integer ID from metrika.yandex.ru before launch.
+ const METRIKA_ID=113974859; // PrintKit counter; loads only after visitor consent.
  const CONSENT_KEY="printkit.analytics.consent.v1";
  const permittedGoals=new Set(["print_click","kit_saved","catalog_open"]);
  const scriptUrl=document.currentScript?.src||location.href;
@@ -22,7 +22,7 @@
   window.ym.l=Date.now();
   const tag=document.createElement("script");
   tag.async=true;
-  tag.src="https://mc.yandex.ru/metrika/tag.js";
+  tag.src="https://mc.yandex.ru/metrika/tag.js?id="+METRIKA_ID;
   document.head.appendChild(tag);
   window.ym(METRIKA_ID,"init",{
    clickmap:false,trackLinks:false,accurateTrackBounce:true,webvisor:false

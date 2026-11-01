@@ -21,7 +21,7 @@ function harness(counter,initial){
  const localStorage={getItem(){return stored},setItem(_key,value){stored=value}};
  const location={href:'https://natalikh.github.io/PrintKit/',reload(){refreshes++}};
  const window={};
- const source=original.replace('const METRIKA_ID=0;', 'const METRIKA_ID='+counter+';');
+ const source=original.replace(/const METRIKA_ID=\d+;/, 'const METRIKA_ID='+counter+';');
  vm.runInNewContext(source,{document,localStorage,location,window,URL,Date,Set,Number});
  return {window,tags,children,get banner(){return banner},get stored(){return stored},get refreshes(){return refreshes}};
 }
@@ -51,12 +51,17 @@ test('accepting consent loads Metrica once and allows only anonymous goal names'
  app.banner.children[2].children[0].onclick();
  assert.equal(app.stored,'yes');
  assert.equal(app.tags.length,1);
- assert.equal(app.tags[0].src,'https://mc.yandex.ru/metrika/tag.js');
+ assert.equal(app.tags[0].src,'https://mc.yandex.ru/metrika/tag.js?id=12345678');
  app.window.printKitAnalytics.goal('print_click');
  app.window.printKitAnalytics.goal('kit_saved');
  app.window.printKitAnalytics.goal('private_name_or_text');
  const queued=Array.from(app.window.ym.a,entry=>Array.from(entry));
  assert.equal(queued.length,3);
+ assert.equal(queued[0][0],12345678);
+ assert.equal(queued[0][1],'init');
+ assert.equal(queued[0][2].webvisor,false);
+ assert.equal(queued[0][2].clickmap,false);
+ assert.equal(queued[0][2].trackLinks,false);
  assert.deepEqual(queued[1],[12345678,'reachGoal','print_click']);
  assert.deepEqual(queued[2],[12345678,'reachGoal','kit_saved']);
  app.window.printKitAnalytics.settings();
@@ -67,4 +72,13 @@ test('a saved refusal does not load external code',()=>{
  const app=harness(12345678,'no');
  assert.equal(app.tags.length,0);
  assert.equal(app.banner,undefined);
+});
+
+test('published PrintKit ID is configured exactly once',()=>{
+ assert.match(original,/const METRIKA_ID=113974859;/);
+ assert.doesNotMatch(original,/https:\/\/mc\.yandex\.ru\/watch\//,'no tracking pixel before consent');
+ const app=harness(113974859,'yes');
+ assert.equal(app.tags.length,1);
+ assert.equal(app.tags[0].src,'https://mc.yandex.ru/metrika/tag.js?id=113974859');
+ assert.equal(app.window.printKitAnalytics.enabled(),true);
 });
