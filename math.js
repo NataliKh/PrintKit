@@ -78,6 +78,114 @@ function mathFirstGradeMixed(maximum,total){
  return results;
 }
 
+
+/**
+ * Balanced mixed practice in grades 2–5. Dedicated topics are untouched.
+ * Finite candidate pools avoid random retry loops and permit a safe fallback
+ * when a requested range has fewer unique exercises than the chosen count.
+ */
+function mathUpperGradeMixed(gradeIndex,maximum,total,one,transitions){
+ const skills={
+  1:['add','subtract','missing','transition'],
+  2:['add','subtract','multiply','divide'],
+  3:['add','subtract','multiply','divide','order'],
+  4:['multiply','divide','order','fraction']
+ }[gradeIndex];
+ const topics={
+  add:'Сложение и вычитание',subtract:'Сложение и вычитание',
+  missing:'Пропущенное число',transition:'Переход через десяток',
+  multiply:gradeIndex===2?'Таблица умножения':'Умножение и деление',
+  divide:gradeIndex===2?'Деление без остатка':'Умножение и деление',
+  order:'Порядок действий',fraction:'Доли числа'
+ };
+ const pools=Object.fromEntries(skills.map(skill=>[skill,[]]));
+ for(const skill of skills){
+  if(skill==='transition'&&!transitions.length)continue;
+  const used=new Set();
+  for(let attempt=0;attempt<300;attempt++){
+   const question=one(topics[skill]);
+   if(skill==='add'||skill==='subtract'){
+    const operation=question.text.match(/^\d+ ([+−]) /);
+    if(!operation||(skill==='add')!==(operation[1]==='+'))continue;
+   }else if(skill==='multiply'||skill==='divide'){
+    if((skill==='multiply')!==question.text.includes(' × '))continue;
+   }
+   if(used.has(question.text))continue;
+   used.add(question.text);
+   pools[skill].push(question);
+  }
+ }
+ const quota=Object.fromEntries(skills.map((skill,i)=>[
+  skill,Math.floor(total/skills.length)+(i<total%skills.length?1:0)
+ ]));
+ // For example, only 9 + 1 crosses ten when the maximum is ten.
+ let spare=0;
+ for(const skill of skills){
+  if(quota[skill]>pools[skill].length){
+   spare+=quota[skill]-pools[skill].length;
+   quota[skill]=pools[skill].length;
+  }
+ }
+ while(spare>0){
+  const eligible=skills.filter(skill=>quota[skill]<pools[skill].length);
+  if(!eligible.length)break;
+  eligible.sort((a,b)=>quota[a]-quota[b]||pools[b].length-pools[a].length);
+  quota[eligible[0]]++;
+  spare--;
+ }
+ const sequence=skills.flatMap(skill=>Array(quota[skill]).fill(skill));
+ while(sequence.length<total)sequence.push(skills[sequence.length%skills.length]);
+ // Assign constrained skills first, then shuffle the resulting worksheet.
+ sequence.sort((a,b)=>pools[a].length-pools[b].length);
+ const usedTexts=new Set(),families=new Map(),answers=new Map(),buckets=new Map();
+ const chosen=[];
+ function family(q){
+  const expression=q.blank?q.text.replace('□',String(q.answer)).split(' = ')[0]:q.text;
+  let match=expression.match(/^(\d+) ([+×]) (\d+)$/);
+  if(match)return match[2]+':'+[+match[1],+match[3]].sort((a,b)=>a-b).join(':');
+  match=expression.match(/^(\d+) : (\d+)$/);
+  if(match)return '×:'+[(+match[2]),q.answer].sort((a,b)=>a-b).join(':');
+  match=expression.match(/^(\d+) − (\d+)$/);
+  if(match)return '+:'+[(+match[2]),+match[1]-(+match[2])].sort((a,b)=>a-b).join(':');
+  return expression;
+ }
+ function trivial(q){
+  const expression=q.blank?q.text.replace('□',String(q.answer)).split(' = ')[0]:q.text;
+  return /(?:^|[ (])0 (?:\+|−) |[+−] 0(?:\b|\))/u.test(expression)||
+   /^(\d+) − \1$/u.test(expression)||
+   /^(?:1 × \d+|\d+ (?:×|:) 1)$/u.test(expression);
+ }
+ function bestFrom(candidates){
+  let selected=null,best=-Infinity;
+  for(const q of candidates){
+   if(usedTexts.has(q.text))continue;
+   const fact=family(q),bucket=Math.min(4,Math.floor(q.answer*5/(maximum+1)));
+   const score=-18*Number(trivial(q))-4*(families.get(fact)||0)-
+    2*(answers.get(q.answer)||0)-1.5*(buckets.get(bucket)||0)+Math.random();
+   if(score>best){selected=q;best=score;}
+  }
+  return selected;
+ }
+ const all=skills.flatMap(skill=>pools[skill]);
+ for(const skill of sequence){
+  // Prioritize type quota; then fall back to a different unique skill.
+  const q=bestFrom(pools[skill])||bestFrom(all)||
+   all[Math.floor(Math.random()*all.length)];
+  if(!q)break;
+  usedTexts.add(q.text);
+  const fact=family(q),bucket=Math.min(4,Math.floor(q.answer*5/(maximum+1)));
+  families.set(fact,(families.get(fact)||0)+1);
+  answers.set(q.answer,(answers.get(q.answer)||0)+1);
+  buckets.set(bucket,(buckets.get(bucket)||0)+1);
+  chosen.push(q);
+ }
+ for(let i=chosen.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [chosen[i],chosen[j]]=[chosen[j],chosen[i]];
+ }
+ return chosen;
+}
+
 function mathGenerate(grade,requestedTopic,level,range,count){
  const grades=Object.keys(mathTopicsByGrade);
  const gradeIndex=Math.max(0,grades.indexOf(grade));
@@ -148,6 +256,9 @@ function mathGenerate(grade,requestedTopic,level,range,count){
  }
  if(gradeIndex===0&&selected===topics[0]&&level==='Простые'){
   return {topic:selected,maximum,questions:mathFirstGradeMixed(maximum,total)};
+ }
+ if(gradeIndex>=1&&selected===topics[0]){
+  return {topic:selected,maximum,questions:mathUpperGradeMixed(gradeIndex,maximum,total,one,transitions)};
  }
  const results=[],seen=new Set();
  for(let i=0;i<total;i++){

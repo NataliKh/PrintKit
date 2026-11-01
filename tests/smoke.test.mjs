@@ -76,6 +76,65 @@ test('small first-grade range terminates even if distinct exercises run out',()=
  }
 });
 
+
+test('grades 2–5 mixed worksheets have valid arithmetic and no needless duplicates',()=>{
+ const generate=vm.runInContext('mathGenerate',context);
+ const evaluate=text=>{
+  const fraction=text.match(/^(\d+)\/(\d+) от (\d+)$/);
+  if(fraction)return +fraction[1]/+fraction[2]*(+fraction[3]);
+  assert.match(text,/^[\d+×−:()\s]+$/);
+  return Function('return ('+text.replace(/−/g,'-').replace(/×/g,'*').replace(/ : /g,'/')+')')();
+ };
+ for(const grade of ['2 класс','3 класс','4 класс','5 класс']){
+  for(const limit of [2,10,20,50,100,200]){
+   for(const level of ['Простые','Несколько действий','Со скобками']){
+    for(const count of [10,20,40]){
+     for(let run=0;run<6;run++){
+      const generated=generate(grade,'По программе класса',level,limit,count);
+      assert.equal(generated.questions.length,count);
+      if(limit>=10)assert.equal(new Set(generated.questions.map(q=>q.text)).size,count,
+       grade+' '+limit+' '+level+' has repeated expressions');
+      for(const q of generated.questions){
+       assert.ok(Number.isInteger(q.answer)&&q.answer>=0&&q.answer<=generated.maximum);
+       const filled=q.blank?q.text.replace('□',String(q.answer)):q.text;
+       const parts=filled.split(' = ');
+       if(q.blank){
+        assert.equal(parts.length,2);
+        assert.equal(evaluate(parts[0]),evaluate(parts[1]));
+       }else assert.equal(evaluate(filled),q.answer);
+      }
+     }
+    }
+   }
+  }
+ }
+});
+test('each upper-grade mixed worksheet covers its available skills',()=>{
+ const generate=vm.runInContext('mathGenerate',context);
+ for(let run=0;run<100;run++){
+  const second=generate('2 класс','По программе класса','Простые',20,20).questions;
+  assert.ok(second.some(q=>q.blank));
+  assert.ok(second.some(q=>!q.blank&&q.text.includes(' + ')));
+  assert.ok(second.some(q=>!q.blank&&q.text.includes(' − ')));
+  assert.ok(second.some(q=>!q.blank&&/^\d+ \+ [1-9]$/.test(q.text)&&q.answer>=10));
+  const third=generate('3 класс','По программе класса','Простые',100,20).questions;
+  assert.ok(third.some(q=>q.text.includes(' × ')));
+  assert.ok(third.some(q=>q.text.includes(' : ')));
+  const fourth=generate('4 класс','По программе класса','Простые',100,20).questions;
+  assert.ok(fourth.some(q=>q.text.includes('(')&&q.text.includes(' × ')));
+  const fifth=generate('5 класс','По программе класса','Простые',100,20).questions;
+  assert.ok(fifth.some(q=>q.text.includes(' от ')));
+ }
+});
+test('tiny selected maximum still produces a full mixed sheet',()=>{
+ const generate=vm.runInContext('mathGenerate',context);
+ for(const grade of ['2 класс','3 класс','4 класс','5 класс']){
+  const output=generate(grade,'По программе класса','Простые',2,40);
+  assert.equal(output.questions.length,40);
+  assert.ok(output.questions.every(q=>q.answer>=0&&q.answer<=2));
+ }
+});
+
 test('habit tracker reserves a name column and 31 checkbox columns',()=>{
  const getter=k=>({title:'Мои привычки',items:'Читать\nЗарядка\nПить воду',days:'31'})[k]??'';
  const html=render('habits',getter,escape,lines,clamp);
