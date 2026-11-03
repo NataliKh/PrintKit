@@ -83,6 +83,34 @@ const heading=(text,subtitle="")=>'<h2>'+text+'</h2>'+(subtitle?'<p class="sub">
 const parts=[];
 const layoutClass=(value,allowed)=>allowed[value]||allowed[Object.keys(allowed)[0]];
 if(mode==="math"){
+ const requestedPack=mathSnapshot?.kind==="math-pack"?mathSnapshot:
+  mathPackDays(get("pack"))>1
+   ?mathGeneratePack(get("grade"),get("topic"),get("level"),get("max"),clamp(get("count"),40),get("pack"))
+   :null;
+ if(requestedPack){
+  const days=requestedPack.days;
+  // Every lesson is printed before any of the answer sheets.
+  for(const lesson of days){
+   const label="Занятие "+lesson.number+" из "+days.length;
+   const lessonGet=k=>k==="key"?"Нет":k==="packDay"?label:
+    k==="packStage"?lesson.stage:k==="pack"?"Один лист":get(k);
+   parts.push(renderSheet("math",lessonGet,e,lines,clamp,lesson)
+    .replaceAll('class="sheet-page math-page','class="sheet-page math-pack-page math-page'));
+  }
+  if(get("key")==="Да"){
+   const grade=e(get("grade"));
+   for(const lesson of days){
+    const word=lesson.questions.every(q=>q.kind==="word");
+    const answers=lesson.questions.map((q,i)=>'<span>'+(i+1)+'. '+
+     (q.kind==="word"?e(q.solution)+' ('+e(q.unit)+')':e(q.answer))+'</span>');
+    parts.push(page(heading('Ответы · занятие '+lesson.number,
+     'Математика · '+grade+' · '+e(lesson.topic))+
+     '<div class="answer-grid'+(word?' math-word-answer-grid':'')+'">'+answers.join("")+'</div>',
+     'answers-page math-pack-answers'));
+   }
+  }
+  return parts.join("");
+ }
  const grade=e(get("grade"));
  const generated=mathSnapshot||mathGenerate(get("grade"),get("topic"),get("level"),get("max"),clamp(get("count"),40));
  const density=layoutClass(get("density"),{"Стандартный":"standard","Крупный":"large","Компактный":"compact"});
@@ -108,8 +136,9 @@ if(mode==="math"){
  const answers=generated.questions.map((q,i)=>'<span>'+(i+1)+'. '+
   (q.kind==='word'?e(q.solution)+' ('+e(q.unit)+')':e(q.answer))+'</span>');
  for(let i=0;i<questions.length;i+=perPage){
-  parts.push(page(heading('Математика · '+grade,
-   'Тема: '+e(generated.topic)+' · Имя: ____________________　Дата: ____________')+
+  parts.push(page(heading('Математика · '+grade+(get("packDay")?' · '+e(get("packDay")):''),
+   'Тема: '+e(generated.topic)+(get("packStage")?' · '+e(get("packStage")):'')+
+   ' · Имя: ____________________　Дата: ____________')+
    '<div class="'+(isWord?'math-word-problems':'problems')+'">'+questions.slice(i,i+perPage).join("")+'</div>',
    'math-page math-page--'+density+(isWord?' math-word-page':needsWide?' math-page--wide':'')));
  }
