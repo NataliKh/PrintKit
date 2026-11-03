@@ -48,158 +48,17 @@ test('one digit and pre-writing elements constrain repeats and invalid selection
 });
 
 
-test('first Cyrillic cursive letters have 12 practice rows and print with slanted guidelines',()=>{
- const html=render('writing',key=>({set:'Первые письменные буквы'})[key]??'',escape,lines,clamp);
- assert.equal((html.match(/class="sheet-page writing-page writing-letter-page"/g)||[]).length,2);
- assert.equal((html.match(/class="writing-row"/g)||[]).length,12);
- assert.equal((html.match(/class="writing-cell writing-cell--sample"/g)||[]).length,12);
- assert.equal((html.match(/class="writing-cell writing-cell--trace"/g)||[]).length,36);
- assert.equal((html.match(/class="writing-cell writing-cell--blank"/g)||[]).length,24);
- assert.equal((html.match(/<svg class="writing-trace-svg"/g)||[]).length,48);
- for(const letter of ['а','о','и','м']){
-  assert.equal((html.match(new RegExp('Строчная буква '+letter+'</div>','g'))||[]).length,3);
- }
- assert.doesNotMatch(html,/<foreignObject|<image |<script|@font-face/);
- const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
- assert.match(css,/#paper \.writing-letter-page \.writing-cell\{/);
- assert.match(css,/repeating-linear-gradient\(155deg/);
- assert.match(css,/#paper \.writing-letter-page \.writing-trace-svg\{[^}]*height:10mm/);
-});
-test('single Russian cursive letter supports six/twelve rows and validates letter input',()=>{
- for(const letter of ['а','о','и','м','с','е','л','н']){
-  for(const rows of ['6','12']){
-   const html=render('writing',key=>({set:'Одна письменная буква',letter,rows})[key]??'',
-    escape,lines,clamp);
-   const count=+rows;
-   assert.equal((html.match(/class="writing-row"/g)||[]).length,count);
-   assert.equal((html.match(/class="writing-cell writing-cell--trace"/g)||[]).length,count*3);
-   assert.equal((html.match(/class="sheet-page writing-page writing-letter-page"/g)||[]).length,count/6);
-   assert.equal((html.match(new RegExp('Строчная буква '+letter+'</div>','g'))||[]).length,count);
-  }
- }
- const hacked=render('writing',k=>({set:'Одна письменная буква',letter:'<img src=x onerror=alert(1)>',rows:'999'})[k]??'',escape,lines,clamp);
- assert.doesNotMatch(hacked,/<img|onerror=/);
- assert.equal((hacked.match(/Строчная буква а<\/div>/g)||[]).length,6);
- assert.equal((hacked.match(/class="sheet-page writing-page writing-letter-page"/g)||[]).length,1);
-});
-
-
-test('second handwriting set adds four distinct lowercase contours without altering first set',()=>{
- const first=render('writing',k=>({set:'Первые письменные буквы'})[k]??'',
+test('unverified Russian cursive alphabet is not offered as a printable worksheet',()=>{
+ const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
+ const presets=readFileSync(new URL('../presets.js',import.meta.url),'utf8');
+ const writingConfig=app.match(/writing:\[\["set","Что тренируем","select","([^"]+)"/);
+ assert.ok(writingConfig,'writing mode configuration exists');
+ assert.equal(writingConfig[1],'Цифры 0–9|Одна цифра|Элементы письма');
+ assert.doesNotMatch(presets,/id:"letters"|id:"lowercase-alphabet"|id:"uppercase-alphabet"/);
+ assert.match(app,/Буквенные прописи временно сняты/);
+ const draft=render('writing',k=>({set:'Одна письменная буква',letter:'н'})[k]??'',
   escape,lines,clamp);
- const second=render('writing',k=>({set:'Второй набор букв'})[k]??'',
-  escape,lines,clamp);
- for(const [html,letters] of [
-  [first,['а','о','и','м']],[second,['с','е','л','н']]
- ]){
-  assert.equal((html.match(/class="sheet-page writing-page writing-letter-page"/g)||[]).length,2);
-  assert.equal((html.match(/class="writing-row"/g)||[]).length,12);
-  assert.equal((html.match(/class="writing-cell writing-cell--trace"/g)||[]).length,36);
-  const paths=[...html.matchAll(/<path d="([^"]+)" class="writing-stroke writing-stroke--sample"/g)]
-   .map(m=>m[1]);
-  assert.equal(paths.length,12);
-  assert.equal(new Set(paths).size,4);
-  for(const letter of letters){
-   assert.equal((html.match(new RegExp('Строчная буква '+letter+'</div>','g'))||[]).length,3);
-  }
-  assert.match(html,/рабочая строка 7 мм/);
- }
- const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
- assert.match(css,/calc\(50% - 3\.5mm\)/);
- assert.match(css,/calc\(50% \+ 3\.5mm\)/);
- assert.match(css,/\.writing-letter-page \.writing-trace-svg\{[^}]*width:10mm;height:10mm/);
-});
-
-
-test('Cyrillic л, и and н use distinct, continuous pen contours',()=>{
- const letterPaths=vm.runInContext('writingLetterPaths',context);
- // Former и and н used two pen paths (lifted pen); л had a weakly defined peak.
- for(const letter of ['л','и','н']){
-  const path=letterPaths[letter];
-  assert.equal((path.match(/M/g)||[]).length,1,
-   letter+' must be a continuous SVG pen path');
-  assert.equal((path.match(/Z/g)||[]).length,0,
-   letter+' must not close into an outline');
-  assert.ok(path.length>60,'path needs a visible cursive skeleton: '+letter);
-  assert.ok(!/NaN|undefined|<|>/.test(path));
- }
- assert.notEqual(letterPaths['и'],letterPaths['н']);
- assert.notEqual(letterPaths['л'],letterPaths['м']);
- assert.notEqual(letterPaths['л'],letterPaths['и']);
- for(const letter of ['л','и','н']){
-  const html=render('writing',k=>({set:'Одна письменная буква',letter,rows:'6'})[k]??'',
-    escape,lines,clamp);
-  assert.equal((html.match(/class="writing-row"/g)||[]).length,6);
-  assert.equal((html.match(/class="writing-cell writing-cell--trace"/g)||[]).length,18);
-  assert.ok(html.includes('d="'+letterPaths[letter]+'"'));
-  assert.equal((html.match(new RegExp('Строчная буква '+letter+'</div>','g'))||[]).length,6);
- }
-});
-
-
-test('complete Russian handwritten alphabet has 33 distinct lowercase and uppercase prototypes',()=>{
- const alphabet=vm.runInContext('writingAlphabet',context);
- const lower=vm.runInContext('writingLetterPaths',context);
- const upper=vm.runInContext('writingCapitalPaths',context);
- const letters=[...alphabet];
- assert.equal(letters.join(''),'абвгдеёжзийклмнопрстуфхцчшщъыьэюя');
- assert.equal(letters.length,33);
- assert.equal(Object.keys(lower).join(''),alphabet);
- assert.equal(Object.keys(upper).join(''),alphabet.toUpperCase());
- assert.equal(new Set(Object.values(lower)).size,33);
- assert.equal(new Set(Object.values(upper)).size,33);
- for(const char of letters){
-  for(const path of [lower[char],upper[char.toUpperCase()]]){
-   assert.ok(/^M[\d ]/.test(path),char+' valid start');
-   assert.match(path,/^\s*M/);
-   assert.doesNotMatch(path,/<|>|\\n|undefined|NaN|script|<img/);
-   assert.ok(path.length>25,char+' non-placeholder');
-  }
- }
-});
-test('full Cyrillic alphabet paginates 33+33 samples without dropping Ё or soft signs',()=>{
- const specs=[
-  ['Строчный алфавит а–я',33,6,'writing-letter-page',null],
-  ['Заглавный алфавит А–Я',33,6,'writing-capital-page',null],
-  ['Весь рукописный алфавит',66,11,'writing-letter-page',null]
- ];
- for(const [set,count,pages,pageClass] of specs){
-  const html=render('writing',k=>({set})[k]??'',escape,lines,clamp);
-  assert.equal((html.match(/class="writing-row(?: writing-row--capital)?"/g)||[]).length,count,set);
-  assert.equal((html.match(/class="sheet-page writing-page writing-letter-page(?: writing-capital-page)?"/g)||[]).length,pages,set);
-  assert.equal((html.match(/class="writing-cell writing-cell--trace(?: writing-cell--capital)?"/g)||[]).length,count*3);
-  assert.equal((html.match(/class="writing-cell writing-cell--blank(?: writing-cell--capital)?"/g)||[]).length,count*2);
-  const samples=[...html.matchAll(/class="writing-row-caption"[^>]*><span[^>]*>\d+\.<\/span> ([^<]+)<\/div>/g)]
-   .map(m=>m[1]);
-  assert.equal(samples.length,count,'all captions '+set);
-  if(set==='Строчный алфавит а–я'){
-   assert.ok(samples.some(x=>x.includes('Строчная буква ё')));
-   assert.ok(samples.some(x=>x.includes('Строчная буква ъ')));
-  }
-  if(set==='Заглавный алфавит А–Я'){
-   assert.ok(samples.every(x=>x.startsWith('Заглавная буква')));
-   assert.equal((html.match(/class="writing-cell writing-cell--sample writing-cell--capital"/g)||[]).length,33);
-  }
- }
-});
-test('single-letter writing supports all 33 characters in either case',()=>{
- const alphabet=vm.runInContext('writingAlphabet',context);
- for(const letter of [...alphabet]){
-  for(const register of ['Строчная','Заглавная']){
-   const html=render('writing',k=>({set:'Одна письменная буква',letter,register,rows:'6'})[k]??'',
-    escape,lines,clamp);
-   const label=(register==='Заглавная'?'Заглавная':'Строчная')+' буква '+
-    (register==='Заглавная'?letter.toUpperCase():letter);
-   assert.equal((html.match(/class="writing-row(?: writing-row--capital)?"/g)||[]).length,6);
-   assert.equal(html.split(label).length-1,6);
-   if(register==='Заглавная')assert.match(html,/writing-cell--capital/);
-  }
- }
- const wrong=render('writing',k=>({set:'Одна письменная буква',
-  letter:'<script>alert(1)</script>',register:'Заглавная',rows:'6'})[k]??'',
-  escape,lines,clamp);
- assert.doesNotMatch(wrong,/<script>|onerror/);
- assert.ok(wrong.includes('Заглавная буква А'));
+ assert.doesNotMatch(draft,/Строчная буква|Заглавная буква|writing-letter-page/);
 });
 
 test('math results stay inside the selected range',()=>{

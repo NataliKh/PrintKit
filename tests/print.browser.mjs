@@ -19,13 +19,6 @@ const scenarios = [
   {id:'math-multiply',name:'grade 3 multiplication',mode:'math',fields:{grade:'3 класс',topic:'Таблица умножения',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
   {id:'math-fractions',name:'grade 5 fraction of a number',mode:'math',fields:{grade:'5 класс',topic:'Доли числа',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
   {id:'writing-digits',name:'tracing digits zero to nine',mode:'writing',fields:{set:'Цифры 0–9'},pages:2},
-  {id:'writing-letters',name:'first four Russian lowercase cursive letters',mode:'writing',fields:{set:'Первые письменные буквы'},pages:2},
-  {id:'writing-lowercase-full',name:'complete 33 Cyrillic lowercase handwriting prototypes',mode:'writing',fields:{set:'Строчный алфавит а–я'},pages:6},
-  {id:'writing-uppercase-full',name:'complete 33 Cyrillic uppercase handwriting prototypes',mode:'writing',fields:{set:'Заглавный алфавит А–Я'},pages:6},
-  {id:'writing-letters-second',name:'next four Cyrillic handwriting drafts',mode:'writing',fields:{set:'Второй набор букв'},pages:2},
-  {id:'writing-letter-l-corrected',name:'corrected lowercase cursive l',mode:'writing',fields:{set:'Одна письменная буква',letter:'л',rows:'6'},pages:1},
-  {id:'writing-letter-i-corrected',name:'continuous lowercase cursive i',mode:'writing',fields:{set:'Одна письменная буква',letter:'и',rows:'6'},pages:1},
-  {id:'writing-letter-m',name:'twelve rows of Russian cursive m',mode:'writing',fields:{set:'Одна письменная буква',letter:'м',rows:'12'},pages:2},
   {id:'writing-elements',name:'six pre-writing elements',mode:'writing',fields:{set:'Элементы письма',element:'Все элементы'},pages:1},
   {id:'writing-single',name:'12 rows of a numeral',mode:'writing',fields:{set:'Одна цифра',digit:'5',rows:'12'},pages:2},
   {id:'cards',name:'40 flashcards',mode:'cards',fields:{items:Array.from({length:40},(_,i)=>'Слово '+i+' — перевод '+i).join('\n')},pages:5},
@@ -131,200 +124,20 @@ try {
   }catch(error){failed=true;console.error('FAIL handwriting worksheets',error);}
 
 
-  // Letter forms must use the SVG tracing layout, with no glyph substitution.
   try{
     await page.locator('[data-tab="writing"]').click();
-    await page.locator('#f-set').selectOption({label:'Первые письменные буквы'});
-    assert.equal(await page.locator('#paper .writing-letter-page').count(),2);
-    assert.equal(await page.locator('#paper .writing-row').count(),12);
-    assert.equal(await page.locator('[data-field-id="letter"]').isVisible(),false);
-    const labels=await page.locator('#paper .writing-row-caption').allTextContents();
-    for(const letter of ['а','о','и','м']){
-      assert.equal(labels.filter(s=>s.includes('Строчная буква '+letter)).length,3);
-    }
-    const paths=await page.locator('#paper .writing-cell--sample path').evaluateAll(nodes=>
-      nodes.map(n=>n.getAttribute('d')));
-    assert.equal(new Set(paths).size,4,'four different cursive glyphs');
-    assert.equal(await page.locator('#paper .writing-cell--trace').count(),36);
-    await page.locator('#f-set').selectOption({label:'Одна письменная буква'});
-    assert.equal(await page.locator('[data-field-id="letter"]').isVisible(),true);
-    assert.equal(await page.locator('[data-field-id="rows"]').isVisible(),true);
-    await page.locator('#f-letter').selectOption({label:'и'});
-    await page.locator('#f-rows').selectOption({label:'12'});
-    assert.equal(await page.locator('#paper .writing-letter-page').count(),2);
-    assert.equal(await page.locator('#paper .writing-row').count(),12);
-    assert.ok((await page.locator('#paper .writing-row-caption').allTextContents())
-      .every(s=>s.includes('Строчная буква и')));
-    const before=await page.locator('#paper').innerHTML();
-    await page.evaluate(()=>window.print=()=>{});
-    await page.locator('#print').click();
-    assert.equal(await page.locator('#paper').innerHTML(),before);
-    await page.emulateMedia({media:'print'});
-    const clipped=await page.locator('#paper .writing-letter-page').evaluateAll(pages=>pages.some(page=>{
-      const outer=page.getBoundingClientRect();
-      return [...page.querySelectorAll('.writing-row')].some(row=>{
-        const r=row.getBoundingClientRect();
-        return r.right>outer.right-16||r.bottom>outer.bottom-16;
-      });
-    }));
-    assert.equal(clipped,false,'letter rows remain inside A4');
-    await page.emulateMedia({media:'screen'});
-    console.log('PASS Russian cursive letter selectors, A4, privacy and print snapshot');
+    assert.deepEqual(await page.locator('#f-set option').allTextContents(),
+      ['Цифры 0–9','Одна цифра','Элементы письма']);
+    const note=await page.locator('.writing-quality-notice').innerText();
+    assert.ok(note.includes('Буквенные прописи временно сняты'));
+    assert.equal(await page.locator('#paper .writing-letter-page').count(),0);
+    assert.equal(await page.locator('#paper .writing-row').count(),10);
+    await page.locator('#f-set').selectOption({label:'Элементы письма'});
+    assert.equal(await page.locator('#paper .writing-row').count(),6);
+    console.log('PASS only safe pre-writing exercises remain; retired alphabet is unavailable');
   }catch(error){
     failed=true;
-    console.error('FAIL first Cyrillic letter trace print',error);
-    await page.emulateMedia({media:'screen'});
-  }
-
-
-  // Check physical mm layout for the 5–8 mm handwriting guide interval.
-  try{
-    await page.locator('[data-tab="writing"]').click();
-    await page.locator('#f-set').selectOption({label:'Второй набор букв'});
-    assert.equal(await page.locator('#paper .writing-letter-page').count(),2);
-    assert.equal(await page.locator('#paper .writing-row').count(),12);
-    const captions=await page.locator('#paper .writing-row-caption').allTextContents();
-    for(const letter of ['с','е','л','н'])
-      assert.equal(captions.filter(x=>x.includes('Строчная буква '+letter)).length,3);
-    const shapes=await page.locator('#paper .writing-cell--sample path').evaluateAll(nodes=>
-      nodes.map(node=>node.getAttribute('d')));
-    assert.equal(new Set(shapes).size,4);
-    await page.emulateMedia({media:'print'});
-    const measurements=await page.locator('#paper .writing-letter-page .writing-cell--sample').first()
-      .evaluate(cell=>{
-        const svg=cell.querySelector('svg');
-        const shape=svg.querySelector('path').getBoundingClientRect();
-        const rectangle=cell.getBoundingClientRect();
-        const svgSize=svg.getBoundingClientRect();
-        const styles=getComputedStyle(cell);
-        return {
-          pixelPerMm:96/25.4,
-          svgWidth:svgSize.width,
-          svgHeight:svgSize.height,
-          textTop:shape.top,
-          textBottom:shape.bottom,
-          guideTop:rectangle.top+rectangle.height/2-3.5*96/25.4,
-          guideBottom:rectangle.top+rectangle.height/2+3.5*96/25.4,
-          bg:styles.backgroundImage,
-          noOverflow:cell.scrollWidth<=cell.clientWidth+2
-        };
-      });
-    assert.ok(Math.abs(measurements.svgWidth/(96/25.4)-10)<0.3);
-    assert.ok(Math.abs(measurements.svgHeight/(96/25.4)-10)<0.3);
-    assert.ok(measurements.textTop>=measurements.guideTop-4,'text fits 7 mm zone at top');
-    assert.ok(measurements.textBottom<=measurements.guideBottom+4,'text fits 7 mm zone at bottom');
-    assert.ok(measurements.bg.includes('linear-gradient'));
-    assert.ok(measurements.noOverflow);
-    const notClipped=await page.locator('#paper .writing-letter-page').evaluateAll(sheets=>sheets.every(sheet=>{
-      const bounds=sheet.getBoundingClientRect();
-      return [...sheet.querySelectorAll('.writing-row')].every(row=>{
-        const r=row.getBoundingClientRect();
-        return r.bottom<=bounds.bottom-15&&r.right<=bounds.right-15;
-      });
-    }));
-    assert.ok(notClipped,'all writing lines should fit into A4');
-    await page.emulateMedia({media:'screen'});
-    await page.locator('#f-set').selectOption({label:'Одна письменная буква'});
-    await page.locator('#f-letter').selectOption({label:'н'});
-    await page.locator('#f-rows').selectOption({label:'12'});
-    assert.equal(await page.locator('#paper .writing-row').count(),12);
-    assert.ok((await page.locator('#paper .writing-row-caption').allTextContents())
-      .every(x=>x.includes('Строчная буква н')));
-    console.log('PASS 7 mm working zone, second handwritten set and A4 clipping');
-  }catch(error){
-    failed=true;
-    console.error('FAIL second handwriting set print geometry',error);
-    await page.emulateMedia({media:'screen'});
-  }
-
-
-  // Guard against pen lifts and confusing loops in beginner tracing glyphs.
-  try{
-    await page.locator('[data-tab="writing"]').click();
-    await page.locator('#f-set').selectOption({label:'Одна письменная буква'});
-    for(const letter of ['л','и','н']){
-      await page.locator('#f-letter').selectOption({label:letter});
-      await page.locator('#f-rows').selectOption({label:'6'});
-      const sample=await page.locator('#paper .writing-cell--sample path').first().evaluate(path=>{
-        const data=path.getAttribute('d'),len=path.getTotalLength();
-        const points=Array.from({length:301},(_,i)=>
-          path.getPointAtLength(len*i/300));
-        let peaks=0,nearTopPreviously=false;
-        for(const point of points){
-          const nearTop=point.y<30;
-          if(nearTop&&!nearTopPreviously)peaks++;
-          nearTopPreviously=nearTop;
-        }
-        return {data,peaks,bbox:path.getBoundingClientRect().toJSON()};
-      });
-      assert.equal((sample.data.match(/M/g)||[]).length,1,
-        letter+' must form one continuous pen path');
-      assert.equal(sample.peaks,letter==='л'?1:2,
-        'upper stroke count in '+letter);
-      assert.ok(sample.bbox.width>5&&sample.bbox.height>5);
-      assert.equal(await page.locator('#paper .writing-row').count(),6);
-      await page.emulateMedia({media:'print'});
-      const clipped=await page.locator('#paper .writing-row').evaluateAll(rows=>rows.some(row=>{
-        const page=row.closest('.sheet-page').getBoundingClientRect();
-        const rect=row.getBoundingClientRect();
-        return rect.right>page.right-15||rect.bottom>page.bottom-15;
-      }));
-      assert.equal(clipped,false,letter+' remains inside A4 printable area');
-      await page.emulateMedia({media:'screen'});
-    }
-    console.log('PASS corrected contours for handwritten л, и and н');
-  }catch(error){
-    failed=true;
-    console.error('FAIL corrected Cyrillic letter contours',error);
-    await page.emulateMedia({media:'screen'});
-  }
-
-
-  // Full Cyrillic handwriting alphabet and individual uppercase selections.
-  try{
-    await page.locator('[data-tab="writing"]').click();
-    for(const [set,count,pages,label] of [
-      ['Строчный алфавит а–я',33,6,'Строчная'],
-      ['Заглавный алфавит А–Я',33,6,'Заглавная'],
-      ['Весь рукописный алфавит',66,11,'']
-    ]){
-      await page.locator('#f-set').selectOption({label:set});
-      assert.equal(await page.locator('#paper .writing-row').count(),count);
-      assert.equal(await page.locator('#paper .writing-page').count(),pages);
-      const titles=await page.locator('#paper .writing-row-caption').allTextContents();
-      assert.equal(titles.length,count);
-      assert.ok(titles.some(x=>x.includes('буква Ё')||x.includes('буква ё')),'includes Yo');
-      if(label)assert.ok(titles.every(x=>x.includes(label+' буква')));
-      assert.equal(await page.locator('#paper .writing-cell--trace').count(),count*3);
-      assert.equal(await page.locator('#paper .writing-cell--blank').count(),count*2);
-      assert.equal(await page.locator('[data-field-id="register"]').isVisible(),false);
-      await page.emulateMedia({media:'print'});
-      const clipped=await page.locator('#paper .writing-page').evaluateAll(pages=>pages.some(page=>{
-        const pageRect=page.getBoundingClientRect();
-        return [...page.querySelectorAll('.writing-row')].some(row=>{
-          const rect=row.getBoundingClientRect();
-          return rect.right>pageRect.right-16||rect.bottom>pageRect.bottom-16;
-        });
-      }));
-      assert.equal(clipped,false,set+' fits A4');
-      await page.emulateMedia({media:'screen'});
-    }
-    await page.locator('#f-set').selectOption({label:'Одна письменная буква'});
-    await page.locator('#f-letter').selectOption({label:'я'});
-    await page.locator('#f-register').selectOption({label:'Заглавная'});
-    assert.equal(await page.locator('[data-field-id="register"]').isVisible(),true);
-    assert.ok((await page.locator('#paper .writing-row-caption').allTextContents())
-      .every(x=>x.includes('Заглавная буква Я')));
-    assert.equal(await page.locator('#paper .writing-cell--capital').count(),36);
-    const copy=await page.locator('#paper').innerHTML();
-    await page.evaluate(()=>window.print=()=>{});
-    await page.locator('#print').click();
-    assert.equal(await page.locator('#paper').innerHTML(),copy);
-    console.log('PASS all 66 Cyrillic templates, uppercase/lowercase selection, print stability');
-  }catch(error){
-    failed=true;
-    console.error('FAIL complete handwritten Russian alphabet',error);
-    await page.emulateMedia({media:'screen'});
+    console.error('FAIL quality gate for handwritten letter exercises',error);
   }
 
   // Resizing a worksheet must never regenerate questions or change the answer key.
@@ -719,7 +532,7 @@ try {
     // Catalog discovery: featured, filters, search, quick-open and mobile layout.
     assert.equal(await page.locator('#catalog-grid [data-template]').count(),7,'seven featured catalog cards');
     await page.locator('#catalog-more').click();
-    assert.equal(await page.locator('#catalog-grid [data-template]').count(),32,'all 32 kits visible after expansion');
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),28,'all 28 kits visible after expansion');
     await page.locator('#catalog-search').fill('чтение');
     assert.ok(await page.locator('#catalog-grid [data-template]').count()>0,'catalog finds reading kits');
     await page.locator('#catalog-filters [data-category="habits"]').click();
