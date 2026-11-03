@@ -36,3 +36,5 @@
  #paper .sheet-page{width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:18mm!important;overflow:hidden!important;box-shadow:none!important;break-after:page;page-break-after:always;break-inside:avoid}
  #paper .sheet-page:last-child{break-after:auto;page-break-after:auto}
 }
+.check-brand{display:flex;align-items:center;gap:8px}.check-brand svg{width:32px;height:32px;flex-shrink:0;border-radius:11px;background:linear-gradient(140deg,#56bba2,#7754de);padding:4px}
+@media print{.check-scroll{max-height:none!important}}
