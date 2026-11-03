@@ -407,3 +407,29 @@ function mathGenerate(grade,requestedTopic,level,range,count){
  }
  return {topic:selected,maximum,questions:results};
 }
+
+
+/* M5.1: independent daily snapshots built with the existing classroom-safe
+   arithmetic generator. The requested difficulty and range are upper limits. */
+function mathPackDays(value){
+ return ({"5 занятий":5,"10 занятий":10,"20 занятий":20})[value]||1;
+}
+function mathGeneratePack(grade,topic,level,range,count,pack){
+ const total=mathPackDays(pack);
+ if(total===1)return mathGenerate(grade,topic,level,range,count);
+ const max=Math.max(2,Number(range)||20);
+ const stages=max<=10?[max,max,max]:max<=20?[10,max,max]:
+  [Math.min(20,max),Math.min(50,max),max];
+ const levels=level==="Со скобками"
+  ?["Простые","Несколько действий","Со скобками"]
+  :level==="Несколько действий"
+   ?["Простые","Простые","Несколько действий"]
+   :["Простые","Простые","Простые"];
+ const titles=["Разминка","Практика","Закрепление"];
+ const days=Array.from({length:total},(_,i)=>{
+  const stage=Math.min(2,Math.floor(i*3/total));
+  return {...mathGenerate(grade,topic,levels[stage],stages[stage],count),
+   stage:titles[stage],number:i+1};
+ });
+ return {kind:"math-pack",days};
+}
