@@ -114,10 +114,50 @@ if(mode==="writing"){
  }
 }
 if(mode==="cards"){
- const items=lines(get("items")).slice(0,40);
- const cards=items.map(x=>{const p=x.split(/\s+[—–-]\s+/);return '<article><b>'+e(p[0])+'</b><small>'+e(p.slice(1).join(" — "))+'</small></article>'});
- for(let i=0;i<Math.max(1,cards.length);i+=8)parts.push(page(heading(title)+
-  '<div class="cards">'+cards.slice(i,i+8).join("")+'</div>','cards-page'));
+ const size=layoutClass(get("size"),{
+  "Стандартные · 8 на листе":"standard",
+  "Крупные · 4 на листе":"large",
+  "Компактные · 12 на листе":"compact"
+ });
+ const cols={standard:2,large:2,compact:3}[size];
+ const rows={standard:4,large:2,compact:4}[size];
+ const perPage=cols*rows;
+ const duplex=get("sides")==="Двусторонняя";
+ const shortEdge=get("flip")==="По короткому краю";
+ const items=lines(get("items")).slice(0,40).map(line=>{
+  const pair=line.split(/\s+[—–-]\s+/);
+  return {front:pair[0].trim(),back:pair.slice(1).join(" — ").trim()};
+ });
+ // For portrait A4: long edge mirrors BACK columns, short edge mirrors rows.
+ // Keep blank slots on incomplete last sheets; otherwise backs misalign.
+ const card=(entry,side,index)=>{
+  const empty=!entry;
+  const text=empty?"":side==="back"?e(entry.back):e(entry.front);
+  const extra=side==="single"&&!empty&&entry.back?
+   '<small>'+e(entry.back)+'</small>':'';
+  return '<article class="flashcard'+(empty?' flashcard--empty':'')+'"'+
+   (empty?' aria-hidden="true"':' data-card-index="'+index+'" data-card-side="'+side+'"')+
+   '><b>'+text+'</b>'+extra+'</article>';
+ };
+ const grid=cards=>'<div class="cards cards--grid cards--size-'+size+'">'+cards.join("")+'</div>';
+ for(let offset=0;offset<Math.max(1,items.length);offset+=perPage){
+  const chunk=items.slice(offset,offset+perPage),num=Math.floor(offset/perPage)+1;
+  const front=Array.from({length:perPage},(_,i)=>card(chunk[i],duplex?"front":"single",offset+i));
+  parts.push(page(heading(title)+
+   '<p class="cards-sheet-label">'+(duplex?'Лицевая сторона · комплект '+num:
+    'Разрежьте карточки по пунктирным линиям')+'</p>'+grid(front),
+   'cards-page cards-page--'+size+(duplex?' cards-page--front':'')));
+  if(duplex){
+   const back=Array.from({length:perPage},(_,slot)=>{
+    const row=Math.floor(slot/cols),col=slot%cols;
+    const mirrored=shortEdge?(rows-1-row)*cols+col:row*cols+(cols-1-col);
+    return card(chunk[mirrored],"back",offset+mirrored);
+   });
+   parts.push(page(heading(title)+
+    '<p class="cards-sheet-label">Оборотная сторона · комплект '+num+'</p>'+grid(back),
+    'cards-page cards-page--'+size+' cards-page--back'));
+  }
+ }
 }
 if(mode==="labels"){
  const layout=layoutClass(get("layout"),{"Классический":"classic","Школьный":"school","Нежный":"soft"});

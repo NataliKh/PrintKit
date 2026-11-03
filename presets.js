@@ -13,7 +13,8 @@ const starterKits={
   cards:[
     {id:"animals",icon:"🐾",title:"Животные",description:"8 английских слов",values:{title:"Английский · животные",items:"cat — кошка\ndog — собака\nbird — птица\nfish — рыба\nhorse — лошадь\nmouse — мышь\nrabbit — кролик\nbear — медведь",theme:"Мятный"}},
     {id:"colors",icon:"🌈",title:"Цвета",description:"8 слов для запоминания",values:{title:"Английский · цвета",items:"red — красный\nblue — синий\ngreen — зелёный\nyellow — жёлтый\nwhite — белый\nblack — чёрный\npink — розовый\npurple — фиолетовый",theme:"Персиковый"}},
-    {id:"weekdays",icon:"📆",title:"Дни недели",description:"7 полезных карточек",values:{title:"Английский · дни недели",items:"Monday — понедельник\nTuesday — вторник\nWednesday — среда\nThursday — четверг\nFriday — пятница\nSaturday — суббота\nSunday — воскресенье",theme:"Лавандовый"}}
+    {id:"weekdays",icon:"📆",title:"Дни недели",description:"7 полезных карточек",values:{title:"Английский · дни недели",items:"Monday — понедельник\nTuesday — вторник\nWednesday — среда\nThursday — четверг\nFriday — пятница\nSaturday — суббота\nSunday — воскресенье",theme:"Лавандовый"}},
+    {id:"duplex",icon:"🔁",title:"Карточки с ответом сзади",description:"8 слов · двусторонняя печать",values:{title:"Английский · двусторонние карточки",items:"cat — кошка\ndog — собака\nbird — птица\nfish — рыба\nhorse — лошадь\nmouse — мышь\nrabbit — кролик\nbear — медведь",sides:"Двусторонняя",flip:"По длинному краю",size:"Стандартные · 8 на листе",theme:"Мятный"}}
   ],
   labels:[
     {id:"notebooks",icon:"📒",title:"Для тетрадей",description:"12 школьных наклеек",values:{audience:"Один ребёнок",kit:"Одинаковые",subtitle:"Тетрадь",count:"12",layout:"Школьный",size:"Стандартные 54 × 38 мм",theme:"Лавандовый"}},

@@ -61,6 +61,70 @@ test('unverified Russian cursive alphabet is not offered as a printable workshee
  assert.doesNotMatch(draft,/Строчная буква|Заглавная буква|writing-letter-page/);
 });
 
+
+test('cards 2.0 preserves one-sided pair view and respects 3 A4 sizes',()=>{
+ for(const [size,capacity] of [['Стандартные · 8 на листе',8],
+  ['Крупные · 4 на листе',4],['Компактные · 12 на листе',12]]){
+  for(const count of [1,capacity,capacity+1,40]){
+   const items=Array.from({length:count},(_,i)=>'Term '+i+' — Meaning '+i).join('\n');
+   const html=render('cards',k=>({title:'Pairs',size,items,sides:'Односторонняя'})[k]??'',
+    escape,lines,clamp);
+   assert.equal((html.match(/class="sheet-page cards-page/g)||[]).length,
+    Math.ceil(count/capacity),'A4 pages '+size+' '+count);
+   assert.equal((html.match(/data-card-side="single"/g)||[]).length,count);
+   assert.equal((html.match(/class="flashcard flashcard--empty"/g)||[]).length,
+    Math.ceil(count/capacity)*capacity-count);
+   for(let i=0;i<count;i++){
+    assert.ok(html.includes('Term '+i));assert.ok(html.includes('Meaning '+i));
+   }
+  }
+ }
+});
+test('double-sided flashcards have mirrored backs for both A4 edge flips',()=>{
+ const sizes=[['Стандартные · 8 на листе',2,4],
+  ['Крупные · 4 на листе',2,2],['Компактные · 12 на листе',3,4]];
+ for(const [size,cols,rows] of sizes){
+  const capacity=cols*rows;
+  for(const flip of ['По длинному краю','По короткому краю']){
+   for(const count of [1,capacity-1,capacity,capacity+1,40]){
+    const items=Array.from({length:count},(_,i)=>'Front '+i+' — Back '+i).join('\n');
+    const html=render('cards',k=>({title:'Q&A',size,items,sides:'Двусторонняя',flip})[k]??'',
+     escape,lines,clamp);
+    const pages=[...html.matchAll(/<section class="sheet-page ([^"]+)">([\s\S]*?)<\/section>/g)];
+    assert.equal(pages.length,Math.ceil(count/capacity)*2);
+    for(let pageIdx=0;pageIdx<pages.length;pageIdx+=2){
+     assert.match(pages[pageIdx][1],/cards-page--front/);
+     assert.match(pages[pageIdx+1][1],/cards-page--back/);
+     const readSlots=markup=>[...markup.matchAll(/<article class="flashcard(?: flashcard--empty)?"[^>]*>([\s\S]*?)<\/article>/g)]
+      .map(m=>({index:Number(m[0].match(/data-card-index="(\d+)"/)?.[1]??-1),content:m[1]}));
+     const front=readSlots(pages[pageIdx][2]),back=readSlots(pages[pageIdx+1][2]);
+     assert.equal(front.length,capacity);assert.equal(back.length,capacity);
+     for(let slot=0;slot<capacity;slot++){
+      const row=Math.floor(slot/cols),col=slot%cols;
+      const mirror=flip==='По длинному краю'?row*cols+(cols-1-col):(rows-1-row)*cols+col;
+      assert.equal(back[slot].index,front[mirror].index,
+       'aligned physical slot '+slot+' '+size+' '+flip);
+      if(back[slot].index>=0){
+       assert.ok(back[slot].content.includes('Back '+back[slot].index));
+       assert.ok(!back[slot].content.includes('Front '+back[slot].index));
+      }
+     }
+    }
+   }
+  }
+ }
+});
+test('flashcard text escaping and incomplete translations are safe',()=>{
+ const html=render('cards',k=>({title:'<script>oops</script>',
+  items:'<img src=x onerror=1> — <svg onload=1>\nOnly word',
+  sides:'Двусторонняя'})[k]??'',escape,lines,clamp);
+ assert.doesNotMatch(html,/<script>|<img |<svg /);
+ assert.match(html,/&lt;img src=x onerror=1&gt;/);
+ assert.match(html,/&lt;svg onload=1&gt;/);
+ assert.equal((html.match(/data-card-side="front"/g)||[]).length,2);
+ assert.equal((html.match(/data-card-side="back"/g)||[]).length,2);
+});
+
 test('math results stay inside the selected range',()=>{
  for(const level of ['Простые','Несколько действий','Со скобками']){
   for(let run=0;run<12;run++){
@@ -392,7 +456,7 @@ test('habit tracker reserves a name column and 31 checkbox columns',()=>{
 test('A4 pagination preserves the number of items and hard page boundaries',()=>{
  const cases=[
   ['math',{grade:'1 класс',topic:'Сложение и вычитание',level:'Простые',max:'10',count:'40',key:'Да'},3,/class="problems"/g,2],
-  ['cards',{items:Array.from({length:40},(_,i)=>'Term '+i+' — Value '+i).join('\n')},5,/<article>/g,40],
+  ['cards',{items:Array.from({length:40},(_,i)=>'Term '+i+' — Value '+i).join('\n')},5,/data-card-side="single"/g,40],
   ['labels',{count:'27'},3,/<article>/g,27],
   ['schedule',{items:Array.from({length:7},()=>Array.from({length:19},(_,i)=>'Предмет '+i).join(',')).join('\n')},3,/<tr>/g,22],
   ['habits',{days:'31',items:Array.from({length:15},(_,i)=>'Привычка '+i).join('\n')},3,/class="habit-box"/g,465],

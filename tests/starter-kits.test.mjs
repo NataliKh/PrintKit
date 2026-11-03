@@ -41,6 +41,13 @@ test('preset values match actual input names and available select options',()=>{
   }
  }
 });
+test('duplex starter includes valid flip direction and printing options',()=>{
+ const kit=kits.cards.find(x=>x.id==='duplex');
+ assert.ok(kit,'double-sided flashcards starter exists');
+ assert.equal(kit.values.sides,'Двусторонняя');
+ assert.equal(kit.values.flip,'По длинному краю');
+ assert.ok(kit.values.items.split('\\n').length>=1);
+});
 test('personal names and certificate issuers are never overridden by presets',()=>{
  for(const kit of kits.labels)assert.ok(!Object.hasOwn(kit.values,'name'));
  for(const kit of kits.diploma){

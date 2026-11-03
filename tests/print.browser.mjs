@@ -21,7 +21,11 @@ const scenarios = [
   {id:'writing-digits',name:'tracing digits zero to nine',mode:'writing',fields:{set:'Цифры 0–9'},pages:2},
   {id:'writing-elements',name:'six pre-writing elements',mode:'writing',fields:{set:'Элементы письма',element:'Все элементы'},pages:1},
   {id:'writing-single',name:'12 rows of a numeral',mode:'writing',fields:{set:'Одна цифра',digit:'5',rows:'12'},pages:2},
-  {id:'cards',name:'40 flashcards',mode:'cards',fields:{items:Array.from({length:40},(_,i)=>'Слово '+i+' — перевод '+i).join('\n')},pages:5},
+  {id:'cards',name:'40 flashcards',mode:'cards',fields:{size:'Стандартные · 8 на листе',sides:'Односторонняя',items:Array.from({length:40},(_,i)=>'Слово '+i+' — перевод '+i).join('\n')},pages:5},
+  {id:'cards-compact',name:'25 compact flashcards',mode:'cards',fields:{size:'Компактные · 12 на листе',sides:'Односторонняя',items:Array.from({length:25},(_,i)=>'Номер '+i+' — ответ '+i).join('\n')},pages:3},
+  {id:'cards-large',name:'9 large flashcards',mode:'cards',fields:{size:'Крупные · 4 на листе',sides:'Односторонняя',items:Array.from({length:9},(_,i)=>'Термин '+i+' — перевод '+i).join('\n')},pages:3},
+  {id:'cards-duplex-long',name:'9 aligned long edge duplex flashcards',mode:'cards',fields:{size:'Стандартные · 8 на листе',sides:'Двусторонняя',flip:'По длинному краю',items:Array.from({length:9},(_,i)=>'Term '+i+' — Answer '+i).join('\n')},pages:4},
+  {id:'cards-duplex-short',name:'13 short edge duplex flashcards',mode:'cards',fields:{size:'Компактные · 12 на листе',sides:'Двусторонняя',flip:'По короткому краю',items:Array.from({length:13},(_,i)=>'Q '+i+' — A '+i).join('\n')},pages:4},
   {id:'labels-standard',name:'27 standard labels',mode:'labels',fields:{count:'27'},pages:3},
   {id:'labels-small',name:'27 small labels',mode:'labels',fields:{count:'27',size:'Маленькие 40 × 22 мм'},pages:1},
   {id:'labels-large',name:'27 large labels',mode:'labels',fields:{count:'27',size:'Крупные 80 × 48 мм'},pages:4},
@@ -139,6 +143,76 @@ try {
   }catch(error){
     failed=true;
     console.error('FAIL quality gate for handwritten letter exercises',error);
+  }
+
+
+  // Duplex QA: back placement must mirror the correct slot for each binding
+  // direction, with identical physical card rectangles and blank trailing slots.
+  try{
+    await page.locator('[data-tab="cards"]').click();
+    const questions=Array.from({length:13},(_,i)=>'Question '+i+' — Answer '+i).join('\n');
+    await page.locator('#f-items').fill(questions);
+    await page.locator('#f-items').dispatchEvent('change');
+    await page.locator('#f-sides').selectOption({label:'Двусторонняя'});
+    assert.equal(await page.locator('[data-field-id="flip"]').isVisible(),true);
+    for(const [size,cols,rows] of [
+      ['Стандартные · 8 на листе',2,4],
+      ['Крупные · 4 на листе',2,2],
+      ['Компактные · 12 на листе',3,4]
+    ]){
+      const perPage=cols*rows;
+      await page.locator('#f-size').selectOption({label:size});
+      for(const flip of ['По длинному краю','По короткому краю']){
+        await page.locator('#f-flip').selectOption({label:flip});
+        await page.emulateMedia({media:'print'});
+        const result=await page.locator('#paper .cards-page').evaluateAll((sheets,{cols,rows,flip})=>{
+          if(sheets.length%2!==0)return {error:'odd number of sheets'};
+          const pairs=[];
+          for(let i=0;i<sheets.length;i+=2){
+            const front=sheets[i],back=sheets[i+1];
+            if(!front.classList.contains('cards-page--front')||
+               !back.classList.contains('cards-page--back'))return {error:'page ordering'};
+            const read=(sheet)=>[...sheet.querySelectorAll('.flashcard')].map(card=>{
+              const outer=sheet.getBoundingClientRect(),rect=card.getBoundingClientRect();
+              return {
+                index:Number(card.dataset.cardIndex??-1),
+                x:Math.round((rect.left-outer.left)*10)/10,
+                y:Math.round((rect.top-outer.top)*10)/10,
+                width:Math.round(rect.width*10)/10,
+                height:Math.round(rect.height*10)/10,
+                overflow:card.scrollWidth>card.clientWidth+3||
+                  card.scrollHeight>card.clientHeight+3
+              };
+            });
+            const a=read(front),b=read(back);
+            if(a.length!==cols*rows||b.length!==cols*rows)return {error:'wrong grid'};
+            for(let slot=0;slot<a.length;slot++){
+              const r=Math.floor(slot/cols),c=slot%cols;
+              const mirror=flip==='По длинному краю'?r*cols+(cols-1-c):
+                (rows-1-r)*cols+c;
+              if(b[slot].index!==a[mirror].index)return {error:'wrong answer slot '+slot};
+              if(Math.abs(b[slot].x-a[slot].x)>1||
+                 Math.abs(b[slot].y-a[slot].y)>1||
+                 Math.abs(b[slot].width-a[slot].width)>1||
+                 Math.abs(b[slot].height-a[slot].height)>1)return {error:'front/back geometry mismatch'};
+              if(a[slot].overflow||b[slot].overflow)return {error:'card content overflow'};
+            }
+            pairs.push({front:a.map(x=>x.index),back:b.map(x=>x.index)});
+          }
+          return {pairs};
+        },{cols,rows,flip});
+        assert.ok(!result.error,JSON.stringify({size,flip,result}));
+        assert.equal(result.pairs.length,Math.ceil(13/perPage));
+        await page.emulateMedia({media:'screen'});
+      }
+    }
+    await page.locator('#f-sides').selectOption({label:'Односторонняя'});
+    assert.equal(await page.locator('[data-field-id="flip"]').isVisible(),false);
+    console.log('PASS duplex mirror, front/back geometry and single-sided fallback');
+  }catch(error){
+    failed=true;
+    console.error('FAIL two-sided flashcard alignment',error);
+    await page.emulateMedia({media:'screen'});
   }
 
   // Resizing a worksheet must never regenerate questions or change the answer key.
