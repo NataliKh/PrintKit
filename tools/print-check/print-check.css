@@ -1,0 +1,38 @@
+.check-header{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:auto;padding:18px 24px;border-bottom:1px solid #e9e4f2;font-size:13px;font-weight:800;color:#654dab}
+.check-brand{font-size:24px;font-weight:900;color:#34293f}.check-brand span{color:#499b86}
+.check-main{max-width:1200px;margin:auto;padding:36px 24px 80px}
+.check-intro{max-width:770px;margin-bottom:30px}.check-intro h1{font-size:clamp(32px,4vw,48px);letter-spacing:-1.6px;line-height:1.15;margin:11px 0}.check-intro h1 em{color:#7655bf;font-style:normal}.check-eyebrow{color:#8a72c4;font-size:11px;font-weight:800;letter-spacing:2px}.check-intro p{color:#767080;font-size:15px;line-height:1.8}
+.check-layout{display:grid;grid-template-columns:345px minmax(0,1fr);align-items:start;gap:22px}
+.check-panel,.check-preview{border:1px solid #e8e2f0;background:#fff;border-radius:17px;box-shadow:0 10px 35px #2b174c0b;overflow:hidden}
+.check-panel{padding:23px}.check-panel fieldset{padding:0;margin:0 0 23px;border:0}.check-panel legend{font-weight:850;font-size:15px;margin-bottom:11px}
+.check-option{display:flex;gap:12px;padding:14px 12px;border:1px solid #e8e1f0;border-radius:11px;cursor:pointer;margin:8px 0}
+.check-option:has(input:checked){background:#f6f1ff;border-color:#ab97df}.check-option input{accent-color:#7459c8;margin-top:4px}.check-option strong,.check-option small{display:block}.check-option strong{font-size:13px}.check-option small{font-size:11px;margin-top:5px;color:#7f788c;line-height:1.5}
+.check-duplex[hidden]{display:none!important}.check-duplex label{display:block;font-size:12px;font-weight:800;margin-bottom:15px}.check-duplex select{display:block;width:100%;padding:11px;margin-top:8px;border:1px solid #ded5ef;background:#fefcff;border-radius:9px;font-size:12px}
+.check-instructions{margin-top:20px;padding-top:17px;border-top:1px solid #eeeaf4}.check-instructions h2{font-size:15px;margin:0 0 12px}.check-instructions ol{margin:0 0 18px;padding-left:21px}.check-instructions li,.check-instructions p{font-size:12px;color:#6d6679;line-height:1.7;margin:7px 0}
+.check-print{width:100%;padding:16px;border:0;border-radius:11px;background:#7254c6;color:white;font-size:13px;font-weight:850}.check-print:hover{background:#5b40b0}.check-print:focus-visible{outline:3px solid #b6a5ee;outline-offset:3px}
+.check-status{padding:11px 13px;background:#edf9f2;color:#337353;border-radius:10px;font-size:12px;font-weight:750;line-height:1.5}
+.check-preview-head{padding:18px 21px;display:flex;align-items:center;justify-content:space-between;gap:12px}.check-preview-head h2{margin:0;font-size:17px}.check-preview-head strong{font-size:11px;color:#7259ad;background:#f2ecfb;padding:7px 10px;border-radius:6px}
+.check-scroll{padding:17px;background:#f3f0f8;overflow:auto;max-height:980px}
+.check-note{padding:14px 20px;font-size:11px;color:#89818f;margin:0}
+.check-bottom{font-size:12px;color:#736d7c;line-height:1.6;margin-top:24px}.check-bottom a{font-weight:800;color:#6347b1}
+#paper .calibration-page h2{margin-bottom:9mm}
+#paper .calibration-text{text-align:center;font-size:13px;margin:0 0 15mm}
+#paper .calibration-label{font-size:13px;font-weight:700;margin:0 0 5mm}
+#paper .calibration-ruler{width:100mm;height:11mm;position:relative;border-bottom:1px solid #2b2734;margin-bottom:13mm}
+#paper .calibration-tick{position:absolute;left:var(--tick);bottom:0;height:5mm;border-left:1px solid #2b2734;width:0}
+#paper .calibration-tick span{position:absolute;top:-6mm;left:-5mm;width:10mm;text-align:center;font-size:10px}
+#paper .calibration-square{height:50mm;width:50mm;border:1px solid #2b2734;display:grid;place-items:center;font-size:12px;font-weight:750}
+#paper .calibration-corners{margin-top:14mm;display:grid;grid-template-columns:1fr 1fr;gap:5mm}
+#paper .calibration-corners span{border:1px solid #b5adc4;text-align:center;padding:5mm;font-size:11px}
+#paper .calibration-note{margin-top:12mm;font-size:11px;line-height:1.6}
+@media(max-width:1020px){.check-layout{grid-template-columns:1fr}.check-scroll{max-height:620px}}
+@media(max-width:570px){.check-main{padding:23px 13px 50px}.check-header{padding:15px}.check-panel{padding:17px}.check-intro p{font-size:13px}}
+@media print{
+ @page{size:A4;margin:0}
+ html,body{width:210mm!important;margin:0!important;padding:0!important}
+ .check-header,.check-intro,.check-panel,.check-preview-head,.check-note,.check-bottom{display:none!important}
+ .check-main,.check-layout,.check-preview,.check-scroll{display:block!important;width:210mm!important;max-width:none!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+ #paper{display:block!important;width:210mm!important;margin:0!important;padding:0!important;min-height:0!important;max-width:none!important;transform:none!important;background:#fff!important}
+ #paper .sheet-page{width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:18mm!important;overflow:hidden!important;box-shadow:none!important;break-after:page;page-break-after:always;break-inside:avoid}
+ #paper .sheet-page:last-child{break-after:auto;page-break-after:auto}
+}

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Проверка принтера А4 и двусторонних карточек | Листокия</title>
+<meta name="description" content="Контрольный лист 100 мм и тест совмещения двух сторон карточек на бумаге А4.">
+<link rel="canonical" href="https://listokia.ru/tools/print-check/">
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../style.css"><link rel="stylesheet" href="./print-check.css">
+</head><body>
+<header class="check-header"><a class="check-brand" href="../../index.html">❧ Листо<span>кия</span></a><a href="../../index.html?tool=cards#editor">← К карточкам</a></header>
+<main class="check-main">
+<div class="check-intro"><span class="check-eyebrow">ПРОВЕРКА ПЕЧАТИ · А4</span>
+<h1>Настройте печать <em>до тиража</em></h1>
+<p>Сначала распечатайте линейку для проверки масштаба. Затем проверьте совмещение лицевой и оборотной стороны карточек. Для теста достаточно одного листа либо двух страниц в двустороннем режиме.</p></div>
+<div class="check-layout">
+<aside class="check-panel">
+<fieldset><legend>Что проверяем?</legend>
+<label class="check-option"><input name="check-mode" type="radio" value="scale" checked><span><strong>1. Масштаб А4</strong><small>Линейка 100 мм и квадрат 50 × 50 мм</small></span></label>
+<label class="check-option"><input name="check-mode" type="radio" value="duplex"><span><strong>2. Совмещение карточек</strong><small>Лицевая и оборотная стороны</small></span></label>
+</fieldset>
+<div class="check-duplex" id="duplex-controls" hidden>
+<label for="check-size">Размер карточек<select id="check-size">
+<option value="standard">Стандартные · 8 на листе</option><option value="large">Крупные · 4 на листе</option><option value="compact">Компактные · 12 на листе</option>
+</select></label>
+<label for="check-flip">Переворот листа<select id="check-flip"><option value="long">По длинному краю</option><option value="short">По короткому краю</option></select></label>
+</div>
+<section class="check-instructions"><h2>Настройки окна печати</h2><ol>
+<li>Бумага <strong>А4, книжная ориентация</strong>.</li>
+<li>Масштаб <strong>100% / фактический размер</strong>. Отключите «Подогнать под страницу».</li>
+<li>Отключите колонтитулы браузера и режим нескольких страниц на листе.</li>
+<li id="check-side-tip">Для калибровки используйте одностороннюю печать.</li>
+</ol></section>
+<button class="check-print" id="check-print" type="button">Распечатать контрольный лист ↗</button>
+<p class="check-status" id="check-status" aria-live="polite" role="status">Подготовлен один лист А4.</p>
+<section class="check-instructions"><h2>Что проверить на бумаге</h2>
+<p id="check-result-help">Линейка должна быть <strong>ровно 100 мм</strong>, а обе стороны квадрата — <strong>50 мм</strong>. Измерьте обычной линейкой.</p>
+<p>Проверку фактического смещения может выполнить только человек на распечатанном листе.</p></section>
+</aside>
+<section class="check-preview" aria-labelledby="check-preview-heading"><div class="check-preview-head"><h2 id="check-preview-heading">Печатный лист</h2><strong id="check-pages">1 лист А4</strong></div>
+<div class="check-scroll"><div id="paper" aria-label="Предпросмотр контрольных листов"></div></div>
+<p class="check-note">На экране лист показан для ознакомления. Фактический масштаб оценивайте по бумажному отпечатку.</p></section>
+</div>
+<p class="check-bottom"><a href="../../index.html?tool=cards#editor">← Создать свои карточки</a> · Для проверки физического совмещения сторон приложите распечатанный лист к источнику света.</p>
+</main>
+<script src="../../render.js"></script><script src="./print-check.js"></script></body></html>
