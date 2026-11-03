@@ -27,7 +27,12 @@ try{
   assert.equal(await page.locator('#print').isDisabled(),false,'landing page produces printable document '+mode);
   console.log('SEO PASS',mode);
  }
+ await page.goto(new URL('tools/print-check/index.html',base).href);
+ assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'),'https://listokia.ru/tools/print-check/');
+ assert.equal(await page.locator('h1').count(),1,'one accessible print calibration heading');
+ assert.equal(await page.locator('#paper .calibration-page').count(),1,'calibration loads by default');
  await page.goto(new URL('index.html',base).href);
+ assert.equal(await page.locator('a[href="./tools/print-check/"]').count(),2,'visible print-check entry points');
  assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'),'https://listokia.ru/');
  assert.equal(await page.locator('meta[property="og:url"]').getAttribute('content'),'https://listokia.ru/');
  assert.equal(await page.locator('link[rel=icon]').getAttribute('href'),'./favicon.svg');

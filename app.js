@@ -531,7 +531,7 @@ function render(){
  if(mode==="math")syncMathTopics();
  if(mode==="writing")toggleWritingFields();
  if(mode==="cards"){
-  $("fields").insertAdjacentHTML("beforeend",'<p id="card-print-instruction" class="card-print-instruction" role="status" aria-live="polite"></p>');
+  $("fields").insertAdjacentHTML("beforeend",'<p id="card-print-instruction" class="card-print-instruction" role="status" aria-live="polite"></p><p class="card-print-instruction"><a href="./tools/print-check/">↗ Проверить масштаб и двустороннюю печать на А4</a></p>');
   toggleCardFields();
  }
  document.querySelectorAll("[data-k]").forEach(el=>{
