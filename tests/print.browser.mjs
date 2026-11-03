@@ -607,7 +607,7 @@ try {
     // Catalog discovery: featured, filters, search, quick-open and mobile layout.
     assert.equal(await page.locator('#catalog-grid [data-template]').count(),7,'seven featured catalog cards');
     await page.locator('#catalog-more').click();
-    assert.equal(await page.locator('#catalog-grid [data-template]').count(),28,'all 28 kits visible after expansion');
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),29,'all 29 kits visible after expansion');
     await page.locator('#catalog-search').fill('чтение');
     assert.ok(await page.locator('#catalog-grid [data-template]').count()>0,'catalog finds reading kits');
     await page.locator('#catalog-filters [data-category="habits"]').click();
