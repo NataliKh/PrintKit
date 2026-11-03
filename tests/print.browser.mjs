@@ -622,7 +622,7 @@ try {
     await page.locator('#catalog-grid [data-template="greetings"]').click();
     assert.equal(await page.locator('[data-tab="cards"]').getAttribute('aria-current'),'true','catalog opens cards editor');
     assert.match(await page.locator('#f-items').inputValue(),/Hello!/);
-    assert.equal(await page.locator('#paper .cards article').count(),8,'catalog kit generates cards');
+    assert.equal(await page.locator('#paper .cards article[data-card-index]').count(),8,'catalog kit generates cards');
     await page.locator('[data-tab="labels"]').click();
     await page.locator('#f-name').fill('Тестовое имя');
     await page.locator('#f-name').dispatchEvent('change');
