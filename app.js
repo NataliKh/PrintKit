@@ -104,7 +104,7 @@ function pageWord(n){
 /* Move entire schedule rows across physical A4 sheets according to their
    rendered height, preserving all lesson cells and existing row numbers. */
 function scheduleContentFits(sheet){
- const table=sheet.querySelector(".schedule-table");
+ const table=sheet.querySelector(".schedule-table, .habit");
  if(!table)return true;
  const rect=sheet.getBoundingClientRect();
  const padding=parseFloat(getComputedStyle(sheet).paddingBottom)||0;
