@@ -834,3 +834,6 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
   print-color-adjust:exact;-webkit-print-color-adjust:exact;
  }
 }
+
+/* Multi-day math packs: help text belongs to the editor, never the A4 sheet. */
+.math-pack-hint{margin:0 0 18px;padding:12px 14px;border-radius:11px;background:#f5f0ff;color:#67558b;font-size:12px;line-height:1.65}

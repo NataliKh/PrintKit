@@ -256,6 +256,57 @@ try {
     await page.emulateMedia({media:'screen'});
   }
 
+
+  // M5.1: A4 math bundles preserve content and append answer keys after every lesson.
+  try{
+    await page.locator('[data-tab="math"]').click();
+    await page.locator('#f-grade').selectOption({label:'2 класс'});
+    await page.locator('#f-topic').selectOption({label:'Сложение и вычитание'});
+    await page.locator('#f-level').selectOption({label:'Со скобками'});
+    await page.locator('#f-max').selectOption({label:'100'});
+    await page.locator('#f-count').fill('10');
+    await page.locator('#f-count').dispatchEvent('change');
+    await page.locator('#f-pack').selectOption({label:'5 занятий'});
+    await page.waitForFunction(()=>document.querySelectorAll('#paper .math-pack-page').length===5);
+    assert.equal(await page.locator('#f-key').inputValue(),'Да','new pack defaults to answer pages');
+    assert.equal(await page.locator('#paper .sheet-page').count(),10,'5 lessons and 5 answer pages');
+    assert.equal(await page.locator('#paper .math-pack-answers').count(),5);
+    const before=await page.locator('#paper .math-pack-page .problems').allTextContents();
+    assert.equal(before.length,5);
+    await page.locator('#f-density').selectOption({label:'Крупный'});
+    assert.deepEqual(await page.locator('#paper .math-pack-page .problems').allTextContents(),before,'density never replaces generated questions');
+    await page.locator('#f-density').selectOption({label:'Стандартный'});
+    await page.locator('#f-key').selectOption({label:'Нет'});
+    assert.equal(await page.locator('#paper .math-pack-answers').count(),0);
+    await page.locator('#f-key').selectOption({label:'Да'});
+    assert.deepEqual(await page.locator('#paper .math-pack-page .problems').allTextContents(),before,'show answers without regenerating');
+    assert.ok((await page.locator('#paper .math-pack-page').first().innerHTML()).includes('Занятие 1 из 5'));
+    const snapshot=await page.locator('#paper').innerHTML();
+    await page.evaluate(()=>{window.print=()=>{};});
+    await page.locator('#print').click();
+    assert.equal(await page.locator('#paper').innerHTML(),snapshot,'print keeps same snapshots');
+    await page.emulateMedia({media:'print'});
+    const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
+    const info=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
+    assert.equal(Number(info.match(/^Pages:\s+(\d+)/m)?.[1]),10,'5-day bundle is 10 physical A4 pages');
+    await page.emulateMedia({media:'screen'});
+    for(const [name,n] of [['10 занятий',10],['20 занятий',20]]){
+      await page.locator('#f-pack').selectOption({label:name});
+      await page.waitForFunction(expected=>document.querySelectorAll('#paper .math-pack-page').length===expected,n);
+      assert.equal(await page.locator('#paper .math-pack-answers').count(),n);
+      assert.equal(await page.locator('#paper .sheet-page').count(),n*2);
+      assert.ok((await page.locator('#paper .sheet-page').last().innerText()).includes('Ответы · занятие '+n));
+    }
+    await page.locator('#reset').click();
+    await page.waitForFunction(()=>document.querySelector('#f-pack')?.value==='Один лист');
+    assert.equal(await page.locator('#paper .math-pack-page').count(),0,'reset returns to one-sheet mode');
+    console.log('PASS math 5/10/20 lessons, answer order, stable questions and real A4 PDF');
+  }catch(error){
+    failed=true;
+    console.error('FAIL M5.1 math booklet',error);
+    await page.emulateMedia({media:'screen'});
+  }
+
   // Tracing guides must print in exactly the same order as the preview.
   try{
     await page.locator('[data-tab="writing"]').click();

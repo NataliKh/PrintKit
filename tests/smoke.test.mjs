@@ -764,3 +764,44 @@ test('grade-specific topics, arithmetic correctness and integer answers',()=>{
  assert.equal((html.match(/class="sheet-page /g)||[]).length,2);
  assert.match(html,/Тема: Таблица умножения/);
 });
+
+test('math workbook creates separate graded daily snapshots and places all answers at the end',()=>{
+ const pack=vm.runInContext("mathGeneratePack('2 класс','Сложение и вычитание','Со скобками',100,10,'5 занятий')",context);
+ assert.equal(pack.kind,'math-pack');assert.equal(pack.days.length,5);
+ assert.deepEqual(Array.from(pack.days,d=>d.stage),['Разминка','Разминка','Практика','Практика','Закрепление']);
+ assert.ok(pack.days.every(d=>d.questions.length===10));
+ assert.ok(pack.days[0].questions.every(q=>q.answer>=0&&q.answer<=20));
+ assert.ok(pack.days[2].questions.every(q=>q.answer>=0&&q.answer<=50));
+ assert.ok(pack.days[4].questions.every(q=>q.answer>=0&&q.answer<=100));
+ const get=k=>({grade:'2 класс',topic:'Сложение и вычитание',count:'10',pack:'5 занятий',
+  max:'100',density:'Стандартный',level:'Со скобками',key:'Да'})[k]??'';
+ const before=JSON.stringify(pack.days),html=render('math',get,escape,lines,clamp,pack);
+ assert.equal((html.match(/class="sheet-page math-pack-page math-page /g)||[]).length,5);
+ assert.equal((html.match(/class="sheet-page answers-page math-pack-answers"/g)||[]).length,5);
+ assert.equal((html.match(/class="math-answer-line"/g)||[]).length,50);
+ assert.equal((html.match(/<span>\d+\. \d+<\/span>/g)||[]).length,50);
+ assert.ok(html.indexOf('Ответы · занятие 1')>html.indexOf('Занятие 5 из 5'));
+ for(let d=1;d<=5;d++)assert.match(html,new RegExp('Занятие '+d+' из 5'));
+ assert.equal(JSON.stringify(pack.days),before,'rendering must not mutate math snapshots');
+ const large=render('math',k=>k==='density'?'Крупный':get(k),escape,lines,clamp,pack);
+ assert.ok(large.includes('Ответы · занятие 5'));
+ assert.equal(JSON.stringify(pack.days),before,'density change preserves question snapshot');
+ const noKey=render('math',k=>k==='key'?'Нет':get(k),escape,lines,clamp,pack);
+ assert.doesNotMatch(noKey,/math-pack-answers/);
+});
+test('10 and 20 session workbooks and original single math mode',()=>{
+ const generatePack=vm.runInContext('mathGeneratePack',context);
+ for(const [packName,total] of [['10 занятий',10],['20 занятий',20]]){
+  const p=generatePack('1 класс','По программе класса','Простые','10',8,packName);
+  assert.equal(p.days.length,total);
+  for(const day of p.days)assert.ok(day.questions.length===8&&
+   day.questions.every(q=>Number.isInteger(q.answer)&&q.answer>=0&&q.answer<=10));
+  const html=render('math',k=>({grade:'1 класс',topic:'По программе класса',pack:packName,
+   count:'8',density:'Стандартный',key:'Да',max:'10'})[k]??'',escape,lines,clamp,p);
+  assert.equal((html.match(/class="sheet-page math-pack-page math-page /g)||[]).length,total);
+  assert.equal((html.match(/class="sheet-page answers-page math-pack-answers"/g)||[]).length,total);
+ }
+ assert.equal(vm.runInContext("mathPackDays('unsupported')",context),1);
+ const single=generatePack('1 класс','Сложение и вычитание','Простые',10,10,'Один лист');
+ assert.equal(single.questions.length,10);assert.equal(single.kind,undefined);
+});
