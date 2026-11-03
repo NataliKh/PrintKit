@@ -155,6 +155,73 @@ try {
     console.log('PASS pending input is applied before printing');
   }catch(error){failed=true;console.error('FAIL immediate print update',error);}
 
+  // P0.2: long habit names require additional A4 pages with no lost rows.
+  try{
+    await page.locator('[data-tab="habits"]').click();
+    await page.locator('#f-month').selectOption({label:'Октябрь'});
+    await page.locator('#f-year').fill('2026');
+    const name='Читать и пересказывать книгу каждый вечер ';
+    const longNames=Array.from({length:15},(_,i)=>'Привычка '+(i+1)+': '+name.repeat(15)).join('\n');
+    await page.locator('#f-items').fill(longNames);
+    await page.locator('#f-items').dispatchEvent('change');
+    await page.waitForFunction(()=>document.querySelectorAll('#paper .habits-page').length>3);
+    const details=await page.locator('#paper .habits-page').evaluateAll(pages=>({
+      count:pages.length,
+      names:pages.flatMap(p=>[...p.querySelectorAll('tbody th.habit-name')].map(x=>x.textContent)),
+      sizes:pages.map(p=>p.querySelectorAll('tbody tr').length),
+      fits:pages.map(p=>{
+        const bottom=p.getBoundingClientRect().bottom-parseFloat(getComputedStyle(p).paddingBottom);
+        return p.querySelector('table.habit').getBoundingClientRect().bottom<=bottom+1;
+      }),
+      columns:pages.map(p=>p.querySelectorAll('col.habit-day-col').length),
+      weekends:pages.map(p=>p.querySelectorAll('thead th.habit-weekend').length)
+    }));
+    assert.equal(details.names.length,15,'all 15 habits survive pagination');
+    assert.deepEqual(details.names,Array.from({length:15},(_,i)=>'Привычка '+(i+1)+': '+name.repeat(15)),'habit order and text preserved');
+    assert.ok(details.fits.every(Boolean),'every habits table fits A4');
+    assert.ok(details.sizes.every(n=>n>0&&n<=7),'no empty or overfilled sheets');
+    assert.ok(details.columns.every(n=>n===31),'31 date columns present on every sheet');
+    assert.ok(details.weekends.every(n=>n===9),'October 2026 weekend markers retained');
+    await page.waitForFunction(()=>!document.querySelector('#print').disabled);
+    await page.emulateMedia({media:'print'});
+    const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
+    const info=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
+    assert.equal(Number(info.match(/^Pages:\s+(\d+)/m)?.[1]),details.count,'real A4 PDF matches habit page count');
+    await page.emulateMedia({media:'screen'});
+    await page.locator('#f-items').fill('Очень длинная привычка '.repeat(130));
+    await page.locator('#f-items').dispatchEvent('change');
+    await page.waitForFunction(()=>document.querySelector('#print-status').textContent.includes('даже для отдельного листа'));
+    assert.equal(await page.locator('#print').isDisabled(),true,'unprintably long habit blocks printing');
+    await page.locator('#reset').click();
+    await page.waitForFunction(()=>!document.querySelector('#print').disabled);
+    console.log('PASS long habits content-aware pagination, weekends, A4 PDF and unprintable habit gate');
+  }catch(error){
+    failed=true;
+    console.error('FAIL habits P0.2',error);
+    await page.emulateMedia({media:'screen'});
+  }
+
+  // Fixed label sizes and one-page diplomas must refuse content that would be hidden.
+  try{
+    await page.locator('[data-tab="labels"]').click();
+    await page.locator('#f-size').selectOption({label:'Маленькие 40 × 22 мм'});
+    await page.locator('#f-name').fill('СверхдлинноеФамилияИмяОтчество'.repeat(9));
+    await page.waitForFunction(()=>document.querySelector('#print-status').textContent.includes('Текст наклейки обрезается'));
+    assert.equal(await page.locator('#print').isDisabled(),true);
+    await page.locator('#f-name').fill('Анна');
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
+    await page.locator('[data-tab="diploma"]').click();
+    await page.locator('#f-reason').fill('За достижения и упорство в учёбе! '.repeat(180));
+    await page.waitForFunction(()=>document.querySelector('#print-status').textContent.includes('Текст грамоты выходит'));
+    assert.equal(await page.locator('#print').isDisabled(),true,'truncated diploma cannot be printed');
+    await page.locator('#reset').click();
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
+    console.log('PASS hidden text detection on labels and awards');
+  }catch(error){
+    failed=true;
+    console.error('FAIL fixed-size print overflow P0.2',error);
+  }
+
   // Tracing guides must print in exactly the same order as the preview.
   try{
     await page.locator('[data-tab="writing"]').click();

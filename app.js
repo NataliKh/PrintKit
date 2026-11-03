@@ -128,6 +128,38 @@ function paginateSchedulePages(paper){
  }
 }
 
+
+/* Fixed-size stickers and awards cannot reflow across sheets. Text ranges
+   expose visually hidden fragments even when their containers hide overflow. */
+function clippedTextIn(container,selector){
+ const bounds=container.getBoundingClientRect();
+ return [...container.querySelectorAll(selector)].some(el=>{
+  const range=document.createRange();
+  range.selectNodeContents(el);
+  return [...range.getClientRects()].some(rect=>
+   rect.width>0&&rect.height>0&&
+   (rect.left<bounds.left-2||rect.right>bounds.right+2||
+    rect.top<bounds.top-2||rect.bottom>bounds.bottom+2));
+ });
+}
+function paginateHabitPages(paper){
+ if(mode!=="habits")return;
+ const pages=[...paper.querySelectorAll(".habits-page")];
+ for(let i=0;i<pages.length;i++){
+  const sheet=pages[i],body=sheet.querySelector(".habit tbody");
+  while(body.children.length>1&&!scheduleContentFits(sheet)){
+   let next=pages[i+1];
+   if(!next){
+    next=sheet.cloneNode(true);
+    next.querySelector(".habit tbody").replaceChildren();
+    sheet.after(next);
+    pages.push(next);
+   }
+   next.querySelector(".habit tbody").prepend(body.lastElementChild);
+  }
+ }
+}
+
 function printIssues(){
  const issues=[];
  const inputCount=Number(val("count"));
@@ -155,13 +187,21 @@ function printIssues(){
    if(parseFlashcards(val("items")).length>40)issues.push("Можно распечатать до 40 карточек. Уберите лишние строки.");
    issues.push(...validateFlashcards(val("items"),val("size")));
   }
- if(mode==="habits"&&lines(val("items")).length>15)issues.push("Трекер рассчитан на 15 привычек. Уберите лишние строки.");
+ if(mode==="habits"){
+  if(lines(val("items")).length>15)issues.push("Трекер рассчитан на 15 привычек. Уберите лишние строки.");
+  if([...document.querySelectorAll("#paper .habits-page")].some(sheet=>!scheduleContentFits(sheet)))
+   issues.push("Название привычки слишком длинное даже для отдельного листа А4. Сократите его.");
+ }
  if(mode==="schedule"){
   if(lines(val("items")).length>7)issues.push("В расписании можно указать до семи дней.");
   if([...document.querySelectorAll("#paper .schedule-page")].some(sheet=>!scheduleContentFits(sheet)))
    issues.push("Слишком длинное название урока не помещается даже на отдельный лист А4. Сократите название.");
  }
  if(mode==="habits"&&val("month")==="Без календаря"&&Number(val("days"))>31)issues.push("В трекере без календаря можно указать до 31 дня.");
+ if(mode==="labels"&&[...document.querySelectorAll("#paper .labels article")].some(el=>clippedTextIn(el,"b, small")))
+  issues.push("Текст наклейки обрезается. Сократите имя или подпись либо выберите более крупный размер.");
+ if(mode==="diploma"&&[...document.querySelectorAll("#paper .diploma")].some(el=>clippedTextIn(el,"h2, b, .award-reason, .issuer")))
+  issues.push("Текст грамоты выходит за границы макета. Сократите имя, причину или подписанта.");
  const documentPages=document.querySelectorAll("#paper .sheet-page");
  const clipped=[...documentPages,...document.querySelectorAll("#paper .cards article, #paper .labels article, #paper .diploma")]
   .some(el=>el.scrollWidth>el.clientWidth+3||el.scrollHeight>el.clientHeight+3);
@@ -179,6 +219,8 @@ function generate(forceMath=false){
  if(mode==="labels")updateFamilySummary();
  save();
  const paper=$("paper");
+ // The A4 pagination measurements must not inherit mobile preview scaling.
+ paper.style.transform="";
  paper.dataset.theme=({Мятный:"mint",Персиковый:"peach",Минимализм:"minimal"})[val("theme")]||"lavender";
  // Changes to density and answer-key visibility must preserve the existing questions.
  if(mode==="math"){
@@ -190,6 +232,7 @@ function generate(forceMath=false){
  }
  paper.innerHTML=renderSheet(mode,val,esc,lines,clamp,mode==="math"?currentMath:null);
  paginateSchedulePages(paper);
+ paginateHabitPages(paper);
  const count=paper.querySelectorAll(".sheet-page").length;
  $("page-count").textContent=count+" "+pageWord(count)+" · А4";
  fit();
