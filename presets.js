@@ -52,6 +52,6 @@ starterKits.labels.push({id:"school-kit",icon:"🎒",title:"Школьный к�
 // New school sets: no external requests and no incomplete translations.
 starterKits.cards.push(
  {id:"seasons",icon:"🍂",title:"Времена года",description:"8 слов о сезонах и погоде",values:{title:"Английский · времена года",items:"spring — весна\nsummer — лето\nautumn — осень\nwinter — зима\nsunny — солнечно\nrainy — дождливо\nsnowy — снежно\nwindy — ветрено",size:"Стандартные · 8 на листе",sides:"Односторонняя",theme:"Персиковый"}},
- {id:"classroom",icon:"🎒",title:"Школьные предметы",description:"8 слов для урока английского",values:{title:"Английский · школьные вещи",items:"book — книга\nnotebook — тетрадь\npen — ручка\npencil — карандаш\nruler — линейка\neraser — ластик\nbag — сумка\ndesk — парта",size:"Стандартные · 8 на листе",sides:"Односторонняя",theme:"Мятный"}},
+ {id:"classroom",icon:"🎒",title:"Школьные принадлежности",description:"8 слов для урока английского",values:{title:"Английский · школьные вещи",items:"book — книга\nnotebook — тетрадь\npen — ручка\npencil — карандаш\nruler — линейка\neraser — ластик\nbag — сумка\ndesk — парта",size:"Стандартные · 8 на листе",sides:"Односторонняя",theme:"Мятный"}},
  {id:"nature",icon:"🌱",title:"Природа вокруг нас",description:"8 слов о природе",values:{title:"Английский · природа",items:"tree — дерево\nflower — цветок\nriver — река\nlake — озеро\nforest — лес\nmountain — гора\ncloud — облако\nstar — звезда",size:"Стандартные · 8 на листе",sides:"Односторонняя",theme:"Лавандовый"}}
 );

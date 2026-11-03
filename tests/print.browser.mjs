@@ -549,7 +549,8 @@ try {
     await page.waitForFunction(()=>document.querySelector('#print').disabled===true);
     assert.match(await page.locator('#print-status').innerText(),/40 карточек/,'warn before truncating entries');
     await page.locator('#f-items').fill('');
-    await page.waitForFunction(()=>document.querySelector('#print').disabled===true);
+    await page.waitForFunction(()=>document.querySelector('#print-status').textContent.includes('хотя бы одну карточку'));
+    assert.equal(await page.locator('#print').isDisabled(),true,'empty deck blocks printing');
     assert.match(await page.locator('#print-status').innerText(),/хотя бы одну карточку/);
     await page.locator('#f-items').fill('cat\nfox — лиса');
     await page.waitForFunction(()=>document.querySelector('#print-status').textContent.includes('Строка 1'));
