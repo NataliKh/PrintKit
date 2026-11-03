@@ -9,7 +9,8 @@ const starterKits={
     {id:"digits",icon:"🔢",title:"Все цифры",description:"0–9 · обводка и письмо",values:{set:"Цифры 0–9"}},
     {id:"single",icon:"✏️",title:"Пишем цифру 5",description:"6 строк для тренировки",values:{set:"Одна цифра",digit:"5",rows:"6"}},
     {id:"strokes",icon:"〰️",title:"Готовим руку к письму",description:"Линии, дуги, крючки и овалы",values:{set:"Элементы письма",element:"Все элементы"}},
-    {id:"letters",icon:"🔤",title:"Первые письменные буквы",description:"Строчные а, о, и, м · 2 листа",values:{set:"Первые письменные буквы"}}
+    {id:"letters",icon:"🔤",title:"Первые письменные буквы",description:"Строчные а, о, и, м · 2 листа",values:{set:"Первые письменные буквы"}},
+    {id:"letters-more",icon:"✍️",title:"Продолжаем писать буквы",description:"Строчные с, е, л, н · 2 листа",values:{set:"Второй набор букв"}}
   ],
   cards:[
     {id:"animals",icon:"🐾",title:"Животные",description:"8 английских слов",values:{title:"Английский · животные",items:"cat — кошка\ndog — собака\nbird — птица\nfish — рыба\nhorse — лошадь\nmouse — мышь\nrabbit — кролик\nbear — медведь",theme:"Мятный"}},

@@ -62,10 +62,11 @@ test('first Cyrillic cursive letters have 12 practice rows and print with slante
  assert.doesNotMatch(html,/<foreignObject|<image |<script|@font-face/);
  const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
  assert.match(css,/#paper \.writing-letter-page \.writing-cell\{/);
- assert.match(css,/repeating-linear-gradient\(105deg/);
+ assert.match(css,/repeating-linear-gradient\(155deg/);
+ assert.match(css,/#paper \.writing-letter-page \.writing-trace-svg\{[^}]*height:10mm/);
 });
 test('single Russian cursive letter supports six/twelve rows and validates letter input',()=>{
- for(const letter of ['а','о','и','м']){
+ for(const letter of ['а','о','и','м','с','е','л','н']){
   for(const rows of ['6','12']){
    const html=render('writing',key=>({set:'Одна письменная буква',letter,rows})[key]??'',
     escape,lines,clamp);
@@ -80,6 +81,33 @@ test('single Russian cursive letter supports six/twelve rows and validates lette
  assert.doesNotMatch(hacked,/<img|onerror=/);
  assert.equal((hacked.match(/Строчная буква а<\/div>/g)||[]).length,6);
  assert.equal((hacked.match(/class="sheet-page writing-page writing-letter-page"/g)||[]).length,1);
+});
+
+
+test('second handwriting set adds four distinct lowercase contours without altering first set',()=>{
+ const first=render('writing',k=>({set:'Первые письменные буквы'})[k]??'',
+  escape,lines,clamp);
+ const second=render('writing',k=>({set:'Второй набор букв'})[k]??'',
+  escape,lines,clamp);
+ for(const [html,letters] of [
+  [first,['а','о','и','м']],[second,['с','е','л','н']]
+ ]){
+  assert.equal((html.match(/class="sheet-page writing-page writing-letter-page"/g)||[]).length,2);
+  assert.equal((html.match(/class="writing-row"/g)||[]).length,12);
+  assert.equal((html.match(/class="writing-cell writing-cell--trace"/g)||[]).length,36);
+  const paths=[...html.matchAll(/<path d="([^"]+)" class="writing-stroke writing-stroke--sample"/g)]
+   .map(m=>m[1]);
+  assert.equal(paths.length,12);
+  assert.equal(new Set(paths).size,4);
+  for(const letter of letters){
+   assert.equal((html.match(new RegExp('Строчная буква '+letter+'</div>','g'))||[]).length,3);
+  }
+  assert.match(html,/рабочая строка 7 мм/);
+ }
+ const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
+ assert.match(css,/calc\(50% - 3\.5mm\)/);
+ assert.match(css,/calc\(50% \+ 3\.5mm\)/);
+ assert.match(css,/\.writing-letter-page \.writing-trace-svg\{[^}]*width:10mm;height:10mm/);
 });
 
 test('math results stay inside the selected range',()=>{

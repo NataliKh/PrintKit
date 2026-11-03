@@ -20,6 +20,7 @@ const scenarios = [
   {id:'math-fractions',name:'grade 5 fraction of a number',mode:'math',fields:{grade:'5 класс',topic:'Доли числа',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
   {id:'writing-digits',name:'tracing digits zero to nine',mode:'writing',fields:{set:'Цифры 0–9'},pages:2},
   {id:'writing-letters',name:'first four Russian lowercase cursive letters',mode:'writing',fields:{set:'Первые письменные буквы'},pages:2},
+  {id:'writing-letters-second',name:'next four Cyrillic handwriting drafts',mode:'writing',fields:{set:'Второй набор букв'},pages:2},
   {id:'writing-letter-m',name:'twelve rows of Russian cursive m',mode:'writing',fields:{set:'Одна письменная буква',letter:'м',rows:'12'},pages:2},
   {id:'writing-elements',name:'six pre-writing elements',mode:'writing',fields:{set:'Элементы письма',element:'Все элементы'},pages:1},
   {id:'writing-single',name:'12 rows of a numeral',mode:'writing',fields:{set:'Одна цифра',digit:'5',rows:'12'},pages:2},
@@ -168,6 +169,67 @@ try {
   }catch(error){
     failed=true;
     console.error('FAIL first Cyrillic letter trace print',error);
+    await page.emulateMedia({media:'screen'});
+  }
+
+
+  // Check physical mm layout for the 5–8 mm handwriting guide interval.
+  try{
+    await page.locator('[data-tab="writing"]').click();
+    await page.locator('#f-set').selectOption({label:'Второй набор букв'});
+    assert.equal(await page.locator('#paper .writing-letter-page').count(),2);
+    assert.equal(await page.locator('#paper .writing-row').count(),12);
+    const captions=await page.locator('#paper .writing-row-caption').allTextContents();
+    for(const letter of ['с','е','л','н'])
+      assert.equal(captions.filter(x=>x.includes('Строчная буква '+letter)).length,3);
+    const shapes=await page.locator('#paper .writing-cell--sample path').evaluateAll(nodes=>
+      nodes.map(node=>node.getAttribute('d')));
+    assert.equal(new Set(shapes).size,4);
+    await page.emulateMedia({media:'print'});
+    const measurements=await page.locator('#paper .writing-letter-page .writing-cell--sample').first()
+      .evaluate(cell=>{
+        const svg=cell.querySelector('svg');
+        const shape=svg.querySelector('path').getBoundingClientRect();
+        const rectangle=cell.getBoundingClientRect();
+        const svgSize=svg.getBoundingClientRect();
+        const styles=getComputedStyle(cell);
+        return {
+          pixelPerMm:96/25.4,
+          svgWidth:svgSize.width,
+          svgHeight:svgSize.height,
+          textTop:shape.top,
+          textBottom:shape.bottom,
+          guideTop:rectangle.top+rectangle.height/2-3.5*96/25.4,
+          guideBottom:rectangle.top+rectangle.height/2+3.5*96/25.4,
+          bg:styles.backgroundImage,
+          noOverflow:cell.scrollWidth<=cell.clientWidth+2
+        };
+      });
+    assert.ok(Math.abs(measurements.svgWidth/(96/25.4)-10)<0.3);
+    assert.ok(Math.abs(measurements.svgHeight/(96/25.4)-10)<0.3);
+    assert.ok(measurements.textTop>=measurements.guideTop-4,'text fits 7 mm zone at top');
+    assert.ok(measurements.textBottom<=measurements.guideBottom+4,'text fits 7 mm zone at bottom');
+    assert.ok(measurements.bg.includes('linear-gradient'));
+    assert.ok(measurements.noOverflow);
+    const notClipped=await page.locator('#paper .writing-letter-page').evaluateAll(sheets=>sheets.every(sheet=>{
+      const bounds=sheet.getBoundingClientRect();
+      return [...sheet.querySelectorAll('.writing-row')].every(row=>{
+        const r=row.getBoundingClientRect();
+        return r.bottom<=bounds.bottom-15&&r.right<=bounds.right-15;
+      });
+    }));
+    assert.ok(notClipped,'all writing lines should fit into A4');
+    await page.emulateMedia({media:'screen'});
+    await page.locator('#f-set').selectOption({label:'Одна письменная буква'});
+    await page.locator('#f-letter').selectOption({label:'н'});
+    await page.locator('#f-rows').selectOption({label:'12'});
+    assert.equal(await page.locator('#paper .writing-row').count(),12);
+    assert.ok((await page.locator('#paper .writing-row-caption').allTextContents())
+      .every(x=>x.includes('Строчная буква н')));
+    console.log('PASS 7 mm working zone, second handwritten set and A4 clipping');
+  }catch(error){
+    failed=true;
+    console.error('FAIL second handwriting set print geometry',error);
     await page.emulateMedia({media:'screen'});
   }
 
@@ -563,7 +625,7 @@ try {
     // Catalog discovery: featured, filters, search, quick-open and mobile layout.
     assert.equal(await page.locator('#catalog-grid [data-template]').count(),7,'seven featured catalog cards');
     await page.locator('#catalog-more').click();
-    assert.equal(await page.locator('#catalog-grid [data-template]').count(),29,'all 29 kits visible after expansion');
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),30,'all 30 kits visible after expansion');
     await page.locator('#catalog-search').fill('чтение');
     assert.ok(await page.locator('#catalog-grid [data-template]').count()>0,'catalog finds reading kits');
     await page.locator('#catalog-filters [data-category="habits"]').click();

@@ -32,7 +32,7 @@ const writingDigitPaths={
 };
 
 /**
- * Original approximate Russian lowercase cursive contours (а, о, и, м).
+ * Original approximate Russian lowercase cursive contours (а, о, и, м, с, е, л, н).
  * Designed from foundational oval / hook stroke principles, not traced from
  * proprietary workbook pages. Requires independent teacher review before
  * describing these as certified school models.
@@ -41,7 +41,11 @@ const writingLetterPaths={
  "а":"M56 23 C41 16 27 29 25 47 C22 63 31 78 45 78 C62 78 71 61 70 44 C69 28 63 23 56 23 M69 26 L65 70 C64 79 72 79 84 66",
  "о":"M56 23 C42 17 27 30 25 47 C23 65 32 78 46 78 C62 78 73 62 73 46 C73 30 63 23 56 23 Z M72 45 Q75 54 85 58",
  "и":"M22 25 L17 65 C15 81 28 82 38 69 C44 62 48 45 53 25 M53 25 L48 64 C46 80 61 83 71 69 L85 57",
- "м":"M11 73 Q23 65 34 34 L40 22 L32 67 C30 81 45 83 54 69 L72 22 L64 66 C62 80 75 82 87 67"
+ "м":"M11 73 Q23 65 34 34 L40 22 L32 67 C30 81 45 83 54 69 L72 22 L64 66 C62 80 75 82 87 67",
+ "с":"M77 33 C68 20 48 21 35 36 C22 49 24 66 36 75 C48 84 66 76 82 62",
+ "е":"M25 56 C49 58 73 45 71 32 C69 20 51 22 39 32 C25 45 24 65 37 74 C52 84 70 76 82 63",
+ "л":"M13 72 C24 66 36 48 42 27 C45 19 52 18 57 27 L51 65 C48 81 63 82 76 68 L87 58",
+ "н":"M23 26 L18 63 C15 80 28 83 39 69 L50 52 Q56 45 66 48 L75 26 M75 26 L67 64 C64 80 77 83 87 68"
 };
 
 const writingElements=[
@@ -54,9 +58,11 @@ const writingElements=[
 ];
 function writingExercises(get){
  const set=get("set"),times=get("rows")==="12"?12:6;
- if(set==="Первые письменные буквы"){
-  return Object.entries(writingLetterPaths).flatMap(([letter,path])=>
-   Array.from({length:3},()=>({name:"Строчная буква "+letter,path,kind:"letter"})));
+ if(set==="Первые письменные буквы"||set==="Второй набор букв"){
+  const letters=set==="Первые письменные буквы"?['а','о','и','м']:['с','е','л','н'];
+  return letters.flatMap(letter=>Array.from({length:3},()=>({
+   name:"Строчная буква "+letter,path:writingLetterPaths[letter],kind:"letter"
+  })));
  }
  if(set==="Одна письменная буква"){
   const letter=Object.hasOwn(writingLetterPaths,get("letter"))?get("letter"):"а";
@@ -133,7 +139,7 @@ if(mode==="writing"){
    '<div class="writing-row"><div class="writing-row-caption"><span class="writing-row-number">'+(i+j+1)+'.</span> '+e(item.name)+'</div>'+
    '<div class="writing-cells">'+['sample','trace','trace','trace','blank','blank'].map(v=>cell(item,v)).join("")+'</div></div>');
   parts.push(page(heading('Прописи · '+e(group),
-   (isLetters?'Строчные а, о, и, м · ':'')+
+   (isLetters?'Строчные буквы · рабочая строка 7 мм · ':'')+
    'Обведи по образцу и попробуй самостоятельно · Имя: ____________________')+
    '<div class="writing-list">'+rows.join("")+'</div>'+
    '<p class="writing-footer">✦ Отличная работа! Продолжай тренироваться.</p>',

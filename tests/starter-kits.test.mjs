@@ -16,7 +16,7 @@ const selectOptions={
 test('every print generator offers curated, nonduplicate quick starts',()=>{
  assert.deepEqual(Object.keys(kits).sort(),[...modes].sort());
  for(const mode of modes){
-  const expected=mode==='labels'?5:mode==='writing'?4:4;
+  const expected=mode==='labels'?5:mode==='writing'?5:4;
   assert.equal(kits[mode].length,expected,mode);
   assert.equal(new Set(kits[mode].map(x=>x.id)).size,expected,mode);
   for(const kit of kits[mode]){
