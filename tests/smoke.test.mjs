@@ -110,6 +110,32 @@ test('second handwriting set adds four distinct lowercase contours without alter
  assert.match(css,/\.writing-letter-page \.writing-trace-svg\{[^}]*width:10mm;height:10mm/);
 });
 
+
+test('Cyrillic л, и and н use distinct, continuous pen contours',()=>{
+ const letterPaths=vm.runInContext('writingLetterPaths',context);
+ // Former и and н used two pen paths (lifted pen); л had a weakly defined peak.
+ for(const letter of ['л','и','н']){
+  const path=letterPaths[letter];
+  assert.equal((path.match(/M/g)||[]).length,1,
+   letter+' must be a continuous SVG pen path');
+  assert.equal((path.match(/Z/g)||[]).length,0,
+   letter+' must not close into an outline');
+  assert.ok(path.length>75,'path needs a visible cursive skeleton: '+letter);
+  assert.ok(!/NaN|undefined|<|>/.test(path));
+ }
+ assert.notEqual(letterPaths['и'],letterPaths['н']);
+ assert.notEqual(letterPaths['л'],letterPaths['м']);
+ assert.notEqual(letterPaths['л'],letterPaths['и']);
+ for(const letter of ['л','и','н']){
+  const html=render('writing',k=>({set:'Одна письменная буква',letter,rows:'6'})[k]??'',
+    escape,lines,clamp);
+  assert.equal((html.match(/class="writing-row"/g)||[]).length,6);
+  assert.equal((html.match(/class="writing-cell writing-cell--trace"/g)||[]).length,18);
+  assert.ok(html.includes('d="'+letterPaths[letter]+'"'));
+  assert.equal((html.match(new RegExp('Строчная буква '+letter+'</div>','g'))||[]).length,6);
+ }
+});
+
 test('math results stay inside the selected range',()=>{
  for(const level of ['Простые','Несколько действий','Со скобками']){
   for(let run=0;run<12;run++){

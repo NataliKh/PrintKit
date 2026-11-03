@@ -34,18 +34,20 @@ const writingDigitPaths={
 /**
  * Original approximate Russian lowercase cursive contours (а, о, и, м, с, е, л, н).
  * Designed from foundational oval / hook stroke principles, not traced from
- * proprietary workbook pages. Requires independent teacher review before
+ * proprietary workbook pages. Lowercase л has a clear single upper peak, и
+ * uses a continuous two-hook stroke, and н has a distinct raised bridge.
+ * Requires independent teacher review before
  * describing these as certified school models.
  */
 const writingLetterPaths={
  "а":"M56 23 C41 16 27 29 25 47 C22 63 31 78 45 78 C62 78 71 61 70 44 C69 28 63 23 56 23 M69 26 L65 70 C64 79 72 79 84 66",
  "о":"M56 23 C42 17 27 30 25 47 C23 65 32 78 46 78 C62 78 73 62 73 46 C73 30 63 23 56 23 Z M72 45 Q75 54 85 58",
- "и":"M22 25 L17 65 C15 81 28 82 38 69 C44 62 48 45 53 25 M53 25 L48 64 C46 80 61 83 71 69 L85 57",
+ "и":"M23 20 L17 68 C15 81 28 83 37 72 L53 20 L47 69 C45 82 59 84 69 72 L81 61",
  "м":"M11 73 Q23 65 34 34 L40 22 L32 67 C30 81 45 83 54 69 L72 22 L64 66 C62 80 75 82 87 67",
  "с":"M77 33 C68 20 48 21 35 36 C22 49 24 66 36 75 C48 84 66 76 82 62",
  "е":"M25 56 C49 58 73 45 71 32 C69 20 51 22 39 32 C25 45 24 65 37 74 C52 84 70 76 82 63",
- "л":"M13 72 C24 66 36 48 42 27 C45 19 52 18 57 27 L51 65 C48 81 63 82 76 68 L87 58",
- "н":"M23 26 L18 63 C15 80 28 83 39 69 L50 52 Q56 45 66 48 L75 26 M75 26 L67 64 C64 80 77 83 87 68"
+ "л":"M16 70 C16 80 23 84 31 74 C41 60 44 36 54 21 C56 19 59 22 58 26 L49 68 C46 81 60 85 72 70 L85 60",
+ "н":"M23 20 L17 69 C16 78 29 83 36 70 L42 53 C48 47 59 47 67 53 L74 20 L66 69 C64 81 76 83 85 70"
 };
 
 const writingElements=[

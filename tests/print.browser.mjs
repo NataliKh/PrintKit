@@ -21,6 +21,8 @@ const scenarios = [
   {id:'writing-digits',name:'tracing digits zero to nine',mode:'writing',fields:{set:'Цифры 0–9'},pages:2},
   {id:'writing-letters',name:'first four Russian lowercase cursive letters',mode:'writing',fields:{set:'Первые письменные буквы'},pages:2},
   {id:'writing-letters-second',name:'next four Cyrillic handwriting drafts',mode:'writing',fields:{set:'Второй набор букв'},pages:2},
+  {id:'writing-letter-l-corrected',name:'corrected lowercase cursive l',mode:'writing',fields:{set:'Одна письменная буква',letter:'л',rows:'6'},pages:1},
+  {id:'writing-letter-i-corrected',name:'continuous lowercase cursive i',mode:'writing',fields:{set:'Одна письменная буква',letter:'и',rows:'6'},pages:1},
   {id:'writing-letter-m',name:'twelve rows of Russian cursive m',mode:'writing',fields:{set:'Одна письменная буква',letter:'м',rows:'12'},pages:2},
   {id:'writing-elements',name:'six pre-writing elements',mode:'writing',fields:{set:'Элементы письма',element:'Все элементы'},pages:1},
   {id:'writing-single',name:'12 rows of a numeral',mode:'writing',fields:{set:'Одна цифра',digit:'5',rows:'12'},pages:2},
@@ -230,6 +232,48 @@ try {
   }catch(error){
     failed=true;
     console.error('FAIL second handwriting set print geometry',error);
+    await page.emulateMedia({media:'screen'});
+  }
+
+
+  // Guard against pen lifts and confusing loops in beginner tracing glyphs.
+  try{
+    await page.locator('[data-tab="writing"]').click();
+    await page.locator('#f-set').selectOption({label:'Одна письменная буква'});
+    for(const letter of ['л','и','н']){
+      await page.locator('#f-letter').selectOption({label:letter});
+      await page.locator('#f-rows').selectOption({label:'6'});
+      const sample=await page.locator('#paper .writing-cell--sample path').first().evaluate(path=>{
+        const data=path.getAttribute('d'),len=path.getTotalLength();
+        const points=Array.from({length:301},(_,i)=>
+          path.getPointAtLength(len*i/300));
+        let peaks=0,nearTopPreviously=false;
+        for(const point of points){
+          const nearTop=point.y<30;
+          if(nearTop&&!nearTopPreviously)peaks++;
+          nearTopPreviously=nearTop;
+        }
+        return {data,peaks,bbox:path.getBoundingClientRect().toJSON()};
+      });
+      assert.equal((sample.data.match(/M/g)||[]).length,1,
+        letter+' must form one continuous pen path');
+      assert.equal(sample.peaks,letter==='л'?1:2,
+        'upper stroke count in '+letter);
+      assert.ok(sample.bbox.width>5&&sample.bbox.height>5);
+      assert.equal(await page.locator('#paper .writing-row').count(),6);
+      await page.emulateMedia({media:'print'});
+      const clipped=await page.locator('#paper .writing-row').evaluateAll(rows=>rows.some(row=>{
+        const page=row.closest('.sheet-page').getBoundingClientRect();
+        const rect=row.getBoundingClientRect();
+        return rect.right>page.right-15||rect.bottom>page.bottom-15;
+      }));
+      assert.equal(clipped,false,letter+' remains inside A4 printable area');
+      await page.emulateMedia({media:'screen'});
+    }
+    console.log('PASS corrected contours for handwritten л, и and н');
+  }catch(error){
+    failed=true;
+    console.error('FAIL corrected Cyrillic letter contours',error);
     await page.emulateMedia({media:'screen'});
   }
 
