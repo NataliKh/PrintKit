@@ -100,6 +100,34 @@ function pageWord(n){
  if(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))return "страницы";
  return "страниц";
 }
+
+/* Move entire schedule rows across physical A4 sheets according to their
+   rendered height, preserving all lesson cells and existing row numbers. */
+function scheduleContentFits(sheet){
+ const table=sheet.querySelector(".schedule-table");
+ if(!table)return true;
+ const rect=sheet.getBoundingClientRect();
+ const padding=parseFloat(getComputedStyle(sheet).paddingBottom)||0;
+ return table.getBoundingClientRect().bottom<=rect.bottom-padding+1;
+}
+function paginateSchedulePages(paper){
+ if(mode!=="schedule")return;
+ const pages=[...paper.querySelectorAll(".schedule-page")];
+ for(let i=0;i<pages.length;i++){
+  const sheet=pages[i],body=sheet.querySelector(".schedule-table tbody");
+  while(body.children.length>1&&(body.children.length>8||!scheduleContentFits(sheet))){
+   let next=pages[i+1];
+   if(!next){
+    next=sheet.cloneNode(true);
+    next.querySelector(".schedule-table tbody").replaceChildren();
+    sheet.after(next);
+    pages.push(next);
+   }
+   next.querySelector(".schedule-table tbody").prepend(body.lastElementChild);
+  }
+ }
+}
+
 function printIssues(){
  const issues=[];
  const inputCount=Number(val("count"));
@@ -128,7 +156,11 @@ function printIssues(){
    issues.push(...validateFlashcards(val("items"),val("size")));
   }
  if(mode==="habits"&&lines(val("items")).length>15)issues.push("Трекер рассчитан на 15 привычек. Уберите лишние строки.");
- if(mode==="schedule"&&lines(val("items")).length>7)issues.push("В расписании можно указать до семи дней.");
+ if(mode==="schedule"){
+  if(lines(val("items")).length>7)issues.push("В расписании можно указать до семи дней.");
+  if([...document.querySelectorAll("#paper .schedule-page")].some(sheet=>!scheduleContentFits(sheet)))
+   issues.push("Слишком длинное название урока не помещается даже на отдельный лист А4. Сократите название.");
+ }
  if(mode==="habits"&&val("month")==="Без календаря"&&Number(val("days"))>31)issues.push("В трекере без календаря можно указать до 31 дня.");
  const documentPages=document.querySelectorAll("#paper .sheet-page");
  const clipped=[...documentPages,...document.querySelectorAll("#paper .cards article, #paper .labels article, #paper .diploma")]
@@ -157,6 +189,7 @@ function generate(forceMath=false){
   }
  }
  paper.innerHTML=renderSheet(mode,val,esc,lines,clamp,mode==="math"?currentMath:null);
+ paginateSchedulePages(paper);
  const count=paper.querySelectorAll(".sheet-page").length;
  $("page-count").textContent=count+" "+pageWord(count)+" · А4";
  fit();
@@ -455,7 +488,7 @@ function render(){
    chooseStarter(null);
    $("starter-status").textContent="";
    if(mode==="labels"&&el.dataset.k==="names")updateFamilySummary();
-   inputTimer=setTimeout(generate,240);
+   inputTimer=setTimeout(()=>{inputTimer=0;generate()},240);
   };
  });
  generate();
@@ -470,7 +503,11 @@ $("reset").onclick=()=>{
  render();
 };
 $("print").onclick=()=>{
- clearTimeout(inputTimer);
+ if(inputTimer){
+  clearTimeout(inputTimer);
+  inputTimer=0;
+  generate(); // Flush pending edits without regenerating the math snapshot.
+ }
  save();
  const issues=printIssues();
  if(issues.length){
