@@ -13,9 +13,43 @@ function calibration(){
  '<div class="calibration-corners"><span>Левое поле — 18 мм</span><span>Правое поле — 18 мм</span></div>'+
  '<p class="calibration-note">Если размеры отличаются: выключите «Подогнать», выберите «Фактический размер / 100%», бумагу А4 и отключите колонтитулы.</p></section>';
 }
+/* Four symmetric reference crosses are outside the 18mm content area,
+   but safely inside the typical printable margin. On a backlit duplex
+   sheet the crosses should meet after the selected edge flip. */
+const targetMarkup='<div class="check-targets" aria-hidden="true">'+
+ ['tl','tr','bl','br'].map(pos=>'<span class="check-target check-target--'+pos+'"></span>').join('')+'</div>';
+function readMeasured(id){
+ const input=$(id);
+ if(!input||input.value.trim()===''||!input.checkValidity())return null;
+ const value=Number(input.value);
+ return Number.isFinite(value)?value:null;
+}
+function showMeasureResult(){
+ const duplex=document.querySelector('[name="check-mode"]:checked').value==='duplex';
+ const result=$('check-measure-result');
+ if(duplex){
+  const x=readMeasured('check-offset-x'),y=readMeasured('check-offset-y');
+  if(x===null||y===null){result.textContent='Введите смещение между крестиками на лицевой и оборотной сторонах.';return;}
+  const max=Math.max(x,y);
+  result.textContent=max<=1?
+   'По вашим замерам смещение до 1 мм. Проверьте каждую карточку перед тиражом.':
+   'Смещение до '+max.toFixed(1).replace('.',',')+' мм. Проверьте переворот листа, масштаб и настройку совмещения сторон в драйвере принтера.';
+ }else{
+  const expected=[100,50,50];
+  const measured=['check-ruler-measured','check-square-width','check-square-height'].map(readMeasured);
+  if(measured.some(value=>value===null)){result.textContent='Введите результаты трёх измерений с бумажного листа.';return;}
+  const max=Math.max(...measured.map((value,i)=>Math.abs(value-expected[i])));
+  const error=max.toFixed(1).replace('.',',');
+  result.textContent=max<=1?
+   'Максимальное отклонение '+error+' мм. Масштаб близок к исходному; перед тиражом проверьте поля и обрезку.':
+   'Максимальное отклонение '+error+' мм. Проверьте бумагу А4, масштаб 100% и выключите «Подогнать под страницу».';
+ }
+}
 function update(){
  const duplex=document.querySelector('[name="check-mode"]:checked').value==='duplex';
  $('duplex-controls').hidden=!duplex;
+ $('check-scale-fields').hidden=duplex;
+ $('check-duplex-fields').hidden=!duplex;
  if(!duplex){
   $('paper').innerHTML=calibration();
   $('check-pages').textContent='1 лист А4';
@@ -29,13 +63,16 @@ function update(){
    flip:$('check-flip').value==='short'?'По короткому краю':'По длинному краю',
    items:Array.from({length:n},(_,i)=>'ЛИЦО '+(i+1)+' — ОБОРОТ '+(i+1)).join('\n')};
   $('paper').innerHTML=renderSheet('cards',k=>props[k]||'',esc,lines,clamp);
+  $('paper').querySelectorAll('.cards-page').forEach(sheet=>sheet.insertAdjacentHTML('beforeend',targetMarkup));
   $('check-pages').textContent='2 страницы А4';
   $('check-print').textContent='Распечатать лицевую и оборотную стороны ↗';
   $('check-status').textContent='Подготовлены 2 страницы: лицо → оборот. Включите двустороннюю печать.';
   $('check-side-tip').innerHTML='Включите двустороннюю печать с переворотом <strong>'+($('check-flip').value==='short'?'по короткому':'по длинному')+' краю</strong>.';
-  $('check-result-help').innerHTML='На просвет номера <strong>ЛИЦО 1</strong> и <strong>ОБОРОТ 1</strong> должны совпасть в одной карточке. Проверьте все номера и края рамок.';
+  $('check-result-help').innerHTML='На просвет номера <strong>ЛИЦО 1</strong> и <strong>ОБОРОТ 1</strong> должны совпасть в одной карточке. Четыре крестика в полях — контроль смещения сторон: наложите бумагу на источник света и измерьте расстояние между ними.';
  }
+ showMeasureResult();
 }
+document.querySelectorAll('#check-ruler-measured,#check-square-width,#check-square-height,#check-offset-x,#check-offset-y').forEach(el=>el.addEventListener('input',showMeasureResult));
 document.querySelectorAll('[name="check-mode"],#check-size,#check-flip').forEach(el=>el.addEventListener('change',update));
 $('check-print').addEventListener('click',()=>window.print());
 update();

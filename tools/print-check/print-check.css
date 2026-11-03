@@ -38,3 +38,20 @@
 }
 .check-brand{display:flex;align-items:center;gap:8px}.check-brand svg{width:32px;height:32px;flex-shrink:0;border-radius:11px;background:linear-gradient(140deg,#56bba2,#7754de);padding:4px}
 @media print{.check-scroll{max-height:none!important}}
+
+/* Symmetric corner crosses for measuring the alignment of two printed faces.
+   Their centers are 13mm from each A4 edge, safely clear of 18mm content. */
+#paper .check-targets{position:absolute;inset:0;z-index:2;pointer-events:none}
+#paper .check-target{position:absolute;width:6mm;height:6mm}
+#paper .check-target--tl{top:10mm;left:10mm}
+#paper .check-target--tr{top:10mm;right:10mm}
+#paper .check-target--bl{bottom:10mm;left:10mm}
+#paper .check-target--br{bottom:10mm;right:10mm}
+#paper .check-target::before,#paper .check-target::after{content:"";position:absolute;background:#24213b}
+#paper .check-target::before{height:.25mm;top:calc(50% - .125mm);left:0;right:0}
+#paper .check-target::after{width:.25mm;left:calc(50% - .125mm);top:0;bottom:0}
+.check-measure-fields{display:grid;gap:10px;margin-top:12px}
+.check-measure-fields[hidden]{display:none!important}
+.check-measure-fields label{display:block;font-size:12px;font-weight:700;color:#4d425f}
+.check-measure-fields input{display:block;width:100%;margin-top:5px;padding:10px 12px;border:1px solid #dcd4e9;border-radius:9px;font-size:13px}
+.check-measure-result{background:#f4f1fa;color:#57477a;padding:12px;border-radius:9px;font-size:12px;line-height:1.6;margin:13px 0 0}

@@ -41,6 +41,20 @@
 <section class="check-instructions"><h2>Что проверить на бумаге</h2>
 <p id="check-result-help">Линейка должна быть <strong>ровно 100 мм</strong>, а обе стороны квадрата — <strong>50 мм</strong>. Измерьте обычной линейкой.</p>
 <p>Проверку фактического смещения может выполнить только человек на распечатанном листе.</p></section>
+<section class="check-instructions check-measurements" aria-labelledby="check-measure-heading">
+<h2 id="check-measure-heading">Результаты измерений</h2>
+<p>После печати введите размеры с обычной линейки. Замеры обрабатываются только в этом браузере и не сохраняются.</p>
+<div class="check-measure-fields" id="check-scale-fields">
+<label for="check-ruler-measured">Линия 100 мм — получилось, мм<input id="check-ruler-measured" type="number" min="1" max="200" step="0.1" inputmode="decimal" placeholder="100"></label>
+<label for="check-square-width">Квадрат — ширина, мм<input id="check-square-width" type="number" min="1" max="150" step="0.1" inputmode="decimal" placeholder="50"></label>
+<label for="check-square-height">Квадрат — высота, мм<input id="check-square-height" type="number" min="1" max="150" step="0.1" inputmode="decimal" placeholder="50"></label>
+</div>
+<div class="check-measure-fields" id="check-duplex-fields" hidden>
+<label for="check-offset-x">Смещение меток по горизонтали, мм<input id="check-offset-x" type="number" min="0" max="50" step="0.1" inputmode="decimal" placeholder="0"></label>
+<label for="check-offset-y">Смещение меток по вертикали, мм<input id="check-offset-y" type="number" min="0" max="50" step="0.1" inputmode="decimal" placeholder="0"></label>
+</div>
+<p class="check-measure-result" id="check-measure-result" role="status" aria-live="polite">Введите измеренные значения после распечатки.</p>
+</section>
 </aside>
 <section class="check-preview" aria-labelledby="check-preview-heading"><div class="check-preview-head"><h2 id="check-preview-heading">Печатный лист</h2><strong id="check-pages">1 лист А4</strong></div>
 <div class="check-scroll"><div id="paper" aria-label="Предпросмотр контрольных листов"></div></div>
