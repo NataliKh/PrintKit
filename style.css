@@ -799,3 +799,26 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
 #paper .writing-letter-page .writing-trace-svg{
  width:10mm;height:10mm;max-width:95%;overflow:visible;
 }
+
+
+/* Full handwriting alphabet: uppercase needs extended writing height.
+   Keep all lowercase samples at 7 mm; capitalize per CELL for mixed sets. */
+#paper .writing-letter-page .writing-cell--capital{
+ background-image:
+  repeating-linear-gradient(155deg,
+   transparent 0,transparent 9mm,
+   #e0e4ed 9mm,#e0e4ed calc(9mm + .16mm),
+   transparent calc(9mm + .16mm),transparent 12mm),
+  linear-gradient(to bottom,
+   transparent calc(50% - 7mm),
+   #b8bfd0 calc(50% - 7mm),
+   #b8bfd0 calc(50% - 6.75mm),
+   transparent calc(50% - 6.75mm),
+   transparent calc(50% + 6.75mm),
+   #a9b2c5 calc(50% + 6.75mm),
+   #a9b2c5 calc(50% + 7mm),
+   transparent calc(50% + 7mm));
+}
+#paper .writing-letter-page .writing-trace-svg--capital{
+ width:17mm;height:17mm;max-width:95%;
+}

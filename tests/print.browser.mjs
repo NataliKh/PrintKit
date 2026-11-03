@@ -20,6 +20,8 @@ const scenarios = [
   {id:'math-fractions',name:'grade 5 fraction of a number',mode:'math',fields:{grade:'5 класс',topic:'Доли числа',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
   {id:'writing-digits',name:'tracing digits zero to nine',mode:'writing',fields:{set:'Цифры 0–9'},pages:2},
   {id:'writing-letters',name:'first four Russian lowercase cursive letters',mode:'writing',fields:{set:'Первые письменные буквы'},pages:2},
+  {id:'writing-lowercase-full',name:'complete 33 Cyrillic lowercase handwriting prototypes',mode:'writing',fields:{set:'Строчный алфавит а–я'},pages:6},
+  {id:'writing-uppercase-full',name:'complete 33 Cyrillic uppercase handwriting prototypes',mode:'writing',fields:{set:'Заглавный алфавит А–Я'},pages:6},
   {id:'writing-letters-second',name:'next four Cyrillic handwriting drafts',mode:'writing',fields:{set:'Второй набор букв'},pages:2},
   {id:'writing-letter-l-corrected',name:'corrected lowercase cursive l',mode:'writing',fields:{set:'Одна письменная буква',letter:'л',rows:'6'},pages:1},
   {id:'writing-letter-i-corrected',name:'continuous lowercase cursive i',mode:'writing',fields:{set:'Одна письменная буква',letter:'и',rows:'6'},pages:1},
@@ -274,6 +276,54 @@ try {
   }catch(error){
     failed=true;
     console.error('FAIL corrected Cyrillic letter contours',error);
+    await page.emulateMedia({media:'screen'});
+  }
+
+
+  // Full Cyrillic handwriting alphabet and individual uppercase selections.
+  try{
+    await page.locator('[data-tab="writing"]').click();
+    for(const [set,count,pages,label] of [
+      ['Строчный алфавит а–я',33,6,'Строчная'],
+      ['Заглавный алфавит А–Я',33,6,'Заглавная'],
+      ['Весь рукописный алфавит',66,11,'']
+    ]){
+      await page.locator('#f-set').selectOption({label:set});
+      assert.equal(await page.locator('#paper .writing-row').count(),count);
+      assert.equal(await page.locator('#paper .writing-page').count(),pages);
+      const titles=await page.locator('#paper .writing-row-caption').allTextContents();
+      assert.equal(titles.length,count);
+      assert.ok(titles.some(x=>x.includes('буква Ё')||x.includes('буква ё')),'includes Yo');
+      if(label)assert.ok(titles.every(x=>x.includes(label+' буква')));
+      assert.equal(await page.locator('#paper .writing-cell--trace').count(),count*3);
+      assert.equal(await page.locator('#paper .writing-cell--blank').count(),count*2);
+      assert.equal(await page.locator('[data-field-id="register"]').isVisible(),false);
+      await page.emulateMedia({media:'print'});
+      const clipped=await page.locator('#paper .writing-page').evaluateAll(pages=>pages.some(page=>{
+        const pageRect=page.getBoundingClientRect();
+        return [...page.querySelectorAll('.writing-row')].some(row=>{
+          const rect=row.getBoundingClientRect();
+          return rect.right>pageRect.right-16||rect.bottom>pageRect.bottom-16;
+        });
+      }));
+      assert.equal(clipped,false,set+' fits A4');
+      await page.emulateMedia({media:'screen'});
+    }
+    await page.locator('#f-set').selectOption({label:'Одна письменная буква'});
+    await page.locator('#f-letter').selectOption({label:'я'});
+    await page.locator('#f-register').selectOption({label:'Заглавная'});
+    assert.equal(await page.locator('[data-field-id="register"]').isVisible(),true);
+    assert.ok((await page.locator('#paper .writing-row-caption').allTextContents())
+      .every(x=>x.includes('Заглавная буква Я')));
+    assert.equal(await page.locator('#paper .writing-cell--capital').count(),36);
+    const copy=await page.locator('#paper').innerHTML();
+    await page.evaluate(()=>window.print=()=>{});
+    await page.locator('#print').click();
+    assert.equal(await page.locator('#paper').innerHTML(),copy);
+    console.log('PASS all 66 Cyrillic templates, uppercase/lowercase selection, print stability');
+  }catch(error){
+    failed=true;
+    console.error('FAIL complete handwritten Russian alphabet',error);
     await page.emulateMedia({media:'screen'});
   }
 
@@ -669,7 +719,7 @@ try {
     // Catalog discovery: featured, filters, search, quick-open and mobile layout.
     assert.equal(await page.locator('#catalog-grid [data-template]').count(),7,'seven featured catalog cards');
     await page.locator('#catalog-more').click();
-    assert.equal(await page.locator('#catalog-grid [data-template]').count(),30,'all 30 kits visible after expansion');
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),32,'all 32 kits visible after expansion');
     await page.locator('#catalog-search').fill('чтение');
     assert.ok(await page.locator('#catalog-grid [data-template]').count()>0,'catalog finds reading kits');
     await page.locator('#catalog-filters [data-category="habits"]').click();

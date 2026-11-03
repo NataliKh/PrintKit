@@ -6,8 +6,8 @@ const base=new URL('../',import.meta.url);
 const modes=['math','cards','labels','diploma','schedule','habits'];
 const defaultKits={math:'brackets',cards:'animals',labels:'notebooks',diploma:'effort',schedule:'school',habits:'healthy'};
 const manifest=JSON.parse(await readFile(new URL('../previews/manifest.json',import.meta.url),'utf8'));
-assert.equal(manifest.previews.length,30,'exactly 30 real A4 previews');
-assert.equal(new Set(manifest.previews.map(x=>x.file)).size,30,'unique previews');
+assert.equal(manifest.previews.length,32,'exactly 32 real A4 previews');
+assert.equal(new Set(manifest.previews.map(x=>x.file)).size,32,'unique previews');
 const browser=await chromium.launch({headless:true});
 try{
  const page=await browser.newPage({viewport:{width:1280,height:900}});
@@ -38,7 +38,7 @@ try{
   assert.ok(ok,'featured catalog has a real A4 thumbnail');
  }
  await page.locator('#catalog-more').click();
- assert.equal(await page.locator('#catalog-grid img.catalog-real-preview').count(),30,'all previews linked from catalog');
+ assert.equal(await page.locator('#catalog-grid img.catalog-real-preview').count(),32,'all previews linked from catalog');
  for(const item of await page.locator('#catalog-grid img.catalog-real-preview').all()){
   await item.scrollIntoViewIfNeeded();
   assert.ok(await item.evaluate(el=>el.complete&&el.naturalWidth>200&&!el.hidden),'gallery image missing');
