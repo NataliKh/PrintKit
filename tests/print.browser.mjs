@@ -128,6 +128,7 @@ try {
     await page.locator('[data-tab="writing"]').click();
     assert.deepEqual(await page.locator('#f-set option').allTextContents(),
       ['Цифры 0–9','Одна цифра','Элементы письма']);
+    await page.locator('#f-set').selectOption({label:'Цифры 0–9'});
     const note=await page.locator('.writing-quality-notice').innerText();
     assert.ok(note.includes('Буквенные прописи временно сняты'));
     assert.equal(await page.locator('#paper .writing-letter-page').count(),0);
