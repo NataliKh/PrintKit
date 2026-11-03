@@ -48,3 +48,10 @@ starterKits.habits.push({id:"reading",icon:"📚",title:"Марафон чтен
 
 // A one-click subject-by-subject sticker sheet; names remain personalized.
 starterKits.labels.push({id:"school-kit",icon:"🎒",title:"Школьный комплект",description:"12 наклеек для разных предметов",values:{audience:"Один ребёнок",kit:"Школьный комплект",layout:"Школьный",size:"Стандартные 54 × 38 мм",theme:"Лавандовый",subjects:"[{\"name\":\"Математика\",\"selected\":true,\"qty\":2},{\"name\":\"Русский язык\",\"selected\":true,\"qty\":2},{\"name\":\"Литература\",\"selected\":true,\"qty\":1},{\"name\":\"Английский язык\",\"selected\":true,\"qty\":1},{\"name\":\"Окружающий мир\",\"selected\":true,\"qty\":1},{\"name\":\"История\",\"selected\":true,\"qty\":1},{\"name\":\"Биология\",\"selected\":false,\"qty\":1},{\"name\":\"География\",\"selected\":false,\"qty\":1},{\"name\":\"Тетрадь\",\"selected\":true,\"qty\":2},{\"name\":\"Черновик\",\"selected\":true,\"qty\":2}]"}});
+
+// New school sets: no external requests and no incomplete translations.
+starterKits.cards.push(
+ {id:"seasons",icon:"🍂",title:"Времена года",description:"8 слов о сезонах и погоде",values:{title:"Английский · времена года",items:"spring — весна\nsummer — лето\nautumn — осень\nwinter — зима\nsunny — солнечно\nrainy — дождливо\nsnowy — снежно\nwindy — ветрено",size:"Стандартные · 8 на листе",sides:"Односторонняя",theme:"Персиковый"}},
+ {id:"classroom",icon:"🎒",title:"Школьные предметы",description:"8 слов для урока английского",values:{title:"Английский · школьные вещи",items:"book — книга\nnotebook — тетрадь\npen — ручка\npencil — карандаш\nruler — линейка\neraser — ластик\nbag — сумка\ndesk — парта",size:"Стандартные · 8 на листе",sides:"Односторонняя",theme:"Мятный"}},
+ {id:"nature",icon:"🌱",title:"Природа вокруг нас",description:"8 слов о природе",values:{title:"Английский · природа",items:"tree — дерево\nflower — цветок\nriver — река\nlake — озеро\nforest — лес\nmountain — гора\ncloud — облако\nstar — звезда",size:"Стандартные · 8 на листе",sides:"Односторонняя",theme:"Лавандовый"}}
+);

@@ -125,6 +125,33 @@ test('flashcard text escaping and incomplete translations are safe',()=>{
  assert.equal((html.match(/data-card-side="back"/g)||[]).length,2);
 });
 
+
+test('flashcard validation flags missing translations, source lines and size limits',()=>{
+ const parse=vm.runInContext('parseFlashcards',context),validate=vm.runInContext('validateFlashcards',context);
+ const rows=parse('cat — кошка\n\nfox — лиса\nsingle');
+ assert.deepEqual(Array.from(rows,r=>r.line),[1,3,4]);
+ assert.equal(rows[1].back,'лиса');
+ assert.match(validate('','Стандартные · 8 на листе')[0],/хотя бы одну/);
+ assert.match(validate('\ncat\nfox — лиса','Стандартные · 8 на листе')[0],/Строка 2/);
+ assert.match(validate('cat — ','Стандартные · 8 на листе')[0],/Строка 1/);
+ assert.equal(validate('cat — кошка','Стандартные · 8 на листе').length,0);
+ const long='слово '.repeat(11);
+ assert.match(validate('cat — '+long,'Компактные · 12 на листе')[0],/Строка 1/);
+ assert.equal(validate('cat — '+long,'Стандартные · 8 на листе').length,0);
+ assert.equal(validate('cat — '+long,'Крупные · 4 на листе').length,0);
+});
+test('flashcard starter packs contain complete safe pairs',()=>{
+ const kits=vm.runInNewContext(readFileSync(new URL('../presets.js',import.meta.url),'utf8')+';starterKits.cards');
+ assert.equal(kits.length,8);
+ assert.equal(new Set(kits.map(x=>x.id)).size,8);
+ const validate=vm.runInContext('validateFlashcards',context);
+ for(const kit of kits){
+  assert.equal(validate(kit.values.items,kit.values.size||'Стандартные · 8 на листе').length,0,kit.id);
+  assert.ok(kit.values.items.split('\n').length>=7);
+ }
+ for(const id of ['seasons','classroom','nature'])assert.ok(kits.some(x=>x.id===id));
+});
+
 test('math results stay inside the selected range',()=>{
  for(const level of ['Простые','Несколько действий','Со скобками']){
   for(let run=0;run<12;run++){

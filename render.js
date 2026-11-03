@@ -17,6 +17,31 @@ function parseLabelNames(raw){
  return raw.split(/\r?\n/).map(name=>name.replace(/\s+/g," ").trim()).filter(Boolean).slice(0,6);
 }
 
+// Shared parsing and pre-print checks for the live editor and printed cards.
+function parseFlashcards(raw){
+ return String(raw??"").split(/\r?\n/).map((text,i)=>({text:text.trim(),line:i+1}))
+  .filter(row=>row.text).map(({text,line})=>{
+   const parts=text.split(/\s+[—–-]\s+/);
+   return {front:parts.shift().trim(),back:parts.join(" — ").trim(),line};
+  });
+}
+function validateFlashcards(raw,size){
+ const entries=parseFlashcards(raw);
+ const limits={
+  "Компактные · 12 на листе":[36,48],
+  "Стандартные · 8 на листе":[60,80],
+  "Крупные · 4 на листе":[100,120]
+ }[size]||[60,80];
+ const issues=[];
+ if(!entries.length)issues.push("Добавьте хотя бы одну карточку в формате «термин — перевод».");
+ for(const {front,back,line} of entries){
+  if(!front||!back)issues.push("Строка "+line+": укажите термин и перевод через « — ».");
+  else if([...front].length>limits[0]||[...back].length>limits[1])
+   issues.push("Строка "+line+": текст слишком длинный для выбранного размера. Сократите его или выберите карточки крупнее.");
+ }
+ return issues.length>3?[...issues.slice(0,3),"Ещё ошибок: "+(issues.length-3)+"."]:issues;
+}
+
 /** Original vector paths: digits and pre-writing exercises without font assets. */
 const writingDigitPaths={
  "0":"M50 10 C31 10 21 26 21 50 C21 74 31 90 50 90 C69 90 79 74 79 50 C79 26 69 10 50 10 Z",
@@ -124,10 +149,7 @@ if(mode==="cards"){
  const perPage=cols*rows;
  const duplex=get("sides")==="Двусторонняя";
  const shortEdge=get("flip")==="По короткому краю";
- const items=lines(get("items")).slice(0,40).map(line=>{
-  const pair=line.split(/\s+[—–-]\s+/);
-  return {front:pair[0].trim(),back:pair.slice(1).join(" — ").trim()};
- });
+ const items=parseFlashcards(get("items")).slice(0,40);
  // For portrait A4: long edge mirrors BACK columns, short edge mirrors rows.
  // Keep blank slots on incomplete last sheets; otherwise backs misalign.
  const card=(entry,side,index)=>{

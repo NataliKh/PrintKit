@@ -42,7 +42,7 @@ try {
       // Seed random math questions so PNG comparisons are reproducible.
       await page.evaluate(()=>{
         let seed=0xC0FFEE;
-        Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+        Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4324967326;};
       });
       await page.locator('[data-tab="'+scenario.mode+'"]').click();
       for (const [key,value] of Object.entries(scenario.fields)) {
@@ -548,6 +548,25 @@ try {
     await page.locator('#f-items').fill(Array.from({length:41},(_,i)=>'Слово '+i+' — перевод').join('\n'));
     await page.waitForFunction(()=>document.querySelector('#print').disabled===true);
     assert.match(await page.locator('#print-status').innerText(),/40 карточек/,'warn before truncating entries');
+    await page.locator('#f-items').fill('');
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===true);
+    assert.match(await page.locator('#print-status').innerText(),/хотя бы одну карточку/);
+    await page.locator('#f-items').fill('cat\nfox — лиса');
+    await page.waitForFunction(()=>document.querySelector('#print-status').textContent.includes('Строка 1'));
+    assert.equal(await page.locator('#print').isDisabled(),true,'missing answer blocks print');
+    await page.locator('#f-size').selectOption({label:'Компактные · 12 на листе'});
+    await page.locator('#f-items').fill('cat — '+('слово '.repeat(11)));
+    await page.waitForFunction(()=>document.querySelector('#print-status').textContent.includes('слишком длинный'));
+    assert.equal(await page.locator('#print').isDisabled(),true,'compact overlong card blocks print');
+    await page.locator('#f-size').selectOption({label:'Стандартные · 8 на листе'});
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
+    await page.locator('[data-starter="seasons"]').click();
+    assert.equal(await page.locator('#paper .cards article[data-card-index]').count(),8);
+    assert.equal(await page.locator('#print').isDisabled(),false);
+    await page.locator('[data-starter="classroom"]').click();
+    assert.match(await page.locator('#f-items').inputValue(),/notebook/);
+    await page.locator('[data-starter="nature"]').click();
+    assert.match(await page.locator('#f-items').inputValue(),/forest/);
     await page.locator('#reset').click();
     assert.equal(await page.locator('#f-items').inputValue(),'cat — кошка\ndog — собака\nsun — солнце','reset restores defaults');
     await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
@@ -607,7 +626,7 @@ try {
     // Catalog discovery: featured, filters, search, quick-open and mobile layout.
     assert.equal(await page.locator('#catalog-grid [data-template]').count(),7,'seven featured catalog cards');
     await page.locator('#catalog-more').click();
-    assert.equal(await page.locator('#catalog-grid [data-template]').count(),29,'all 29 kits visible after expansion');
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),32,'all 32 kits visible after expansion');
     await page.locator('#catalog-search').fill('чтение');
     assert.ok(await page.locator('#catalog-grid [data-template]').count()>0,'catalog finds reading kits');
     await page.locator('#catalog-filters [data-category="habits"]').click();

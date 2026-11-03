@@ -11,7 +11,7 @@ try{
  const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
  await page.goto(new URL('../index.html',import.meta.url).href);
  const entries=await page.evaluate(()=>Object.entries(starterKits).flatMap(([mode,kits])=>kits.map(kit=>({mode,id:kit.id,title:kit.title}))));
- assert.equal(entries.length,29,'all 29 catalog templates must have real previews');
+ assert.equal(entries.length,32,'all 32 catalog templates must have real previews');
  for(const {mode,id,title} of entries){
   try{
    await page.emulateMedia({media:'screen'});
@@ -19,7 +19,7 @@ try{
    await page.locator('#reset').click();
    await page.evaluate(()=>{
     let seed=0xC0FFEE;
-    Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+    Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4324967326;};
    });
    await page.locator('#starter-grid [data-starter="'+id+'"]').click();
    await page.evaluate(()=>document.fonts.ready);
@@ -47,4 +47,4 @@ try{
 }
 await writeFile(new URL('manifest.json',out),JSON.stringify({generatedAt:new Date().toISOString(),previews:manifest},null,2)+'\n');
 assert.equal(failures,0,'all thumbnails must render');
-assert.equal(manifest.length,29,'all 29 thumbnails must be built');
+assert.equal(manifest.length,32,'all 32 thumbnails must be built');

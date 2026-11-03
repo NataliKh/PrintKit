@@ -123,7 +123,10 @@ function printIssues(){
   if(total===0)issues.push("Выберите хотя бы один предмет для школьного комплекта.");
   // Per-child quantities are checked against the shared 96-label limit above.
  }
- if(mode==="cards"&&lines(val("items")).length>40)issues.push("Можно распечатать до 40 карточек. Уберите лишние строки.");
+ if(mode==="cards"){
+   if(parseFlashcards(val("items")).length>40)issues.push("Можно распечатать до 40 карточек. Уберите лишние строки.");
+   issues.push(...validateFlashcards(val("items"),val("size")));
+  }
  if(mode==="habits"&&lines(val("items")).length>15)issues.push("Трекер рассчитан на 15 привычек. Уберите лишние строки.");
  if(mode==="schedule"&&lines(val("items")).length>7)issues.push("В расписании можно указать до семи дней.");
  if(mode==="habits"&&val("month")==="Без календаря"&&Number(val("days"))>31)issues.push("В трекере без календаря можно указать до 31 дня.");
