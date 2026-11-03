@@ -542,8 +542,8 @@ try {
   try{
     await page.locator('[data-tab="cards"]').click();
     await page.locator('#f-items').fill(['кот — cat','собака — dog','дом — house','окно — window'].join('\n'));
-    await page.waitForFunction(()=>document.querySelectorAll('#paper .cards article').length===4);
-    assert.equal(await page.locator('#paper .cards article').count(),4,'live card preview');
+    await page.waitForFunction(()=>document.querySelectorAll('#paper .cards article[data-card-index]').length===4);
+    assert.equal(await page.locator('#paper .cards article[data-card-index]').count(),4,'live card preview (ignores alignment placeholders)');
 
     await page.locator('#f-items').fill(Array.from({length:41},(_,i)=>'Слово '+i+' — перевод').join('\n'));
     await page.waitForFunction(()=>document.querySelector('#print').disabled===true);
