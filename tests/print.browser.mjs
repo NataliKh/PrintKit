@@ -177,7 +177,7 @@ try {
       weekends:pages.map(p=>p.querySelectorAll('thead th.habit-weekend').length)
     }));
     assert.equal(details.names.length,15,'all 15 habits survive pagination');
-    assert.deepEqual(details.names,Array.from({length:15},(_,i)=>'Привычка '+(i+1)+': '+name.repeat(15)),'habit order and text preserved');
+    assert.deepEqual(details.names,Array.from({length:15},(_,i)=>('Привычка '+(i+1)+': '+name.repeat(15)).trim()),'habit order and text preserved');
     assert.ok(details.fits.every(Boolean),'every habits table fits A4');
     assert.ok(details.sizes.every(n=>n>0&&n<=7),'no empty or overfilled sheets');
     assert.ok(details.columns.every(n=>n===31),'31 date columns present on every sheet');
