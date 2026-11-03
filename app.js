@@ -160,6 +160,27 @@ function paginateHabitPages(paper){
  }
 }
 
+
+/* Detect escaped text fragments, not only box scroll sizes: white-space:nowrap
+   maths can paint outside the A4 content bounds without enlarging their parent. */
+function outsidePrintableText(page,selector){
+ const box=page.getBoundingClientRect(),style=getComputedStyle(page);
+ const scale=box.width/page.offsetWidth;
+ const inset=side=>(parseFloat(style.getPropertyValue("padding-"+side))||0)*scale;
+ const edges={
+  left:box.left+inset("left"),right:box.right-inset("right"),
+  top:box.top+inset("top"),bottom:box.bottom-inset("bottom")
+ };
+ return [...page.querySelectorAll(selector)].some(node=>{
+  const range=document.createRange();
+  range.selectNodeContents(node);
+  return [...range.getClientRects()].some(rect=>rect.width>1&&rect.height>1&&(
+   rect.left<edges.left-3||rect.right>edges.right+3||
+   rect.top<edges.top-3||rect.bottom>edges.bottom+3
+  ));
+ });
+}
+
 function printIssues(){
  const issues=[];
  const inputCount=Number(val("count"));
@@ -203,6 +224,13 @@ function printIssues(){
  if(mode==="diploma"&&[...document.querySelectorAll("#paper .diploma")].some(el=>clippedTextIn(el,"h2, b, .award-reason, .issuer")))
   issues.push("Текст грамоты выходит за границы макета. Сократите имя, причину или подписанта.");
  const documentPages=document.querySelectorAll("#paper .sheet-page");
+ if([...documentPages].some(sheet=>outsidePrintableText(sheet,":scope > h2, :scope > p.sub, :scope > .cards-sheet-label")))
+  issues.push("Заголовок или подзаголовок выходит за печатные поля А4. Сократите заголовок.");
+ if([...documentPages].some(sheet=>sheet.classList.contains("math-page")&&
+  outsidePrintableText(sheet,".problems > div, .math-word-question"))||
+  [...documentPages].some(sheet=>sheet.classList.contains("answers-page")&&
+  outsidePrintableText(sheet,".answer-grid > span")))
+  issues.push("Математическое задание или ответ выходит за печатные поля А4. Измените размер примеров.");
  const clipped=[...documentPages,...document.querySelectorAll("#paper .cards article, #paper .labels article, #paper .diploma")]
   .some(el=>el.scrollWidth>el.clientWidth+3||el.scrollHeight>el.clientHeight+3);
  if(clipped)issues.push("Часть текста не помещается на листе. Сократите текст или выберите более крупный шаблон.");

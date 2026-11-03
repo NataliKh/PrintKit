@@ -222,6 +222,39 @@ try {
     console.error('FAIL fixed-size print overflow P0.2',error);
   }
 
+
+  // P0.3: A4 overflow checks must catch actual glyphs outside printable margins.
+  try{
+    await page.locator('[data-tab="cards"]').click();
+    await page.locator('#f-title').fill('Очень длинный заголовок для печати '.repeat(220));
+    await page.waitForFunction(()=>document.querySelector('#print-status').textContent.includes('Заголовок или подзаголовок'));
+    assert.equal(await page.locator('#print').isDisabled(),true,'unprintable page title blocks print');
+    await page.locator('#f-title').fill('Слова для повторения');
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
+    assert.equal(await page.locator('#paper .sheet-page').count(),1,'normal title preserves page count');
+
+    await page.locator('[data-tab="math"]').click();
+    await page.evaluate(()=>{
+      currentMath.questions[0].text='12345678901234567890 + '.repeat(18)+'1';
+      generate();
+    });
+    await page.waitForFunction(()=>document.querySelector('#print-status').textContent.includes('Математическое задание'));
+    assert.equal(await page.locator('#print').isDisabled(),true,'unwrapped oversized expression blocks print');
+    await page.locator('#reset').click();
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
+    assert.equal(await page.locator('#paper .math-page').count(),1,'reset restores ordinary worksheet');
+    await page.emulateMedia({media:'print'});
+    const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
+    const info=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
+    assert.equal(Number(info.match(/^Pages:\s+(\d+)/m)?.[1]),1,'normal math PDF remains single-page A4');
+    await page.emulateMedia({media:'screen'});
+    console.log('PASS P0.3 printable text margins, title and math expression gates');
+  }catch(error){
+    failed=true;
+    console.error('FAIL P0.3 A4 text margins',error);
+    await page.emulateMedia({media:'screen'});
+  }
+
   // Tracing guides must print in exactly the same order as the preview.
   try{
     await page.locator('[data-tab="writing"]').click();
