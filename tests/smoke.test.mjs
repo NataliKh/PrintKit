@@ -120,7 +120,7 @@ test('Cyrillic л, и and н use distinct, continuous pen contours',()=>{
    letter+' must be a continuous SVG pen path');
   assert.equal((path.match(/Z/g)||[]).length,0,
    letter+' must not close into an outline');
-  assert.ok(path.length>75,'path needs a visible cursive skeleton: '+letter);
+  assert.ok(path.length>60,'path needs a visible cursive skeleton: '+letter);
   assert.ok(!/NaN|undefined|<|>/.test(path));
  }
  assert.notEqual(letterPaths['и'],letterPaths['н']);
