@@ -94,6 +94,67 @@ try {
   }
 
 
+  // P0: rows with long subject names must be repaginated without clipping.
+  try{
+    await page.locator('[data-tab="schedule"]').click();
+    const verbose='Углублённое изучение окружающего мира и природных явлений '.repeat(3);
+    const longWeek=Array.from({length:7},()=>Array.from({length:12},(_,i)=>
+      'Занятие '+(i+1)+' '+verbose).join(',')).join('\n');
+    await page.locator('#f-items').fill(longWeek);
+    await page.locator('#f-items').dispatchEvent('change');
+    const stats=await page.locator('#paper .schedule-page').evaluateAll(pages=>({
+      total:pages.length,
+      numbers:pages.flatMap(p=>[...p.querySelectorAll('tbody tr th')].map(th=>Number(th.textContent))),
+      sizes:pages.map(p=>p.querySelectorAll('tbody tr').length),
+      fits:pages.map(p=>{
+        const bottom=p.getBoundingClientRect().bottom-parseFloat(getComputedStyle(p).paddingBottom);
+        return p.querySelector('table').getBoundingClientRect().bottom<=bottom+1;
+      })
+    }));
+    assert.ok(stats.total>2,'long timetable should need more than two A4 pages');
+    assert.deepEqual(stats.numbers,Array.from({length:12},(_,i)=>i+1),'row order stays intact');
+    assert.ok(stats.fits.every(Boolean),'all schedule tables remain within A4');
+    assert.ok(stats.sizes.every(n=>n>0&&n<=8),'no empty page or oversized group');
+    assert.equal(await page.locator('#paper .schedule-table td').count(),12*7,'all school-day cells remain');
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
+    const snapshot=await page.locator('#paper').innerHTML();
+    await page.evaluate(()=>{window.print=()=>{};});
+    await page.locator('#print').click();
+    assert.equal(await page.locator('#paper').innerHTML(),snapshot,'print does not repaginate');
+    await page.emulateMedia({media:'print'});
+    const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
+    const info=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
+    assert.equal(Number(info.match(/^Pages:\s+(\d+)/m)?.[1]),stats.total,'real PDF has the same A4 pages');
+    await page.emulateMedia({media:'screen'});
+    await page.locator('#f-items').fill('Очень длинное название дополнительного занятия '.repeat(160));
+    await page.locator('#f-items').dispatchEvent('change');
+    await page.waitForFunction(()=>document.querySelector('#print-status').textContent.includes('даже на отдельный лист'));
+    assert.equal(await page.locator('#print').isDisabled(),true,'oversized single row cannot print clipped');
+    await page.locator('#reset').click();
+    await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
+    console.log('PASS adaptive schedule pages, PDF count and overlong row warning');
+  }catch(error){
+    failed=true;
+    console.error('FAIL schedule A4 pagination',error);
+    await page.emulateMedia({media:'screen'});
+  }
+
+  // Clicking print immediately after typing must flush the latest form value.
+  try{
+    await page.locator('[data-tab="schedule"]').click();
+    const state=await page.evaluate(()=>{
+      const input=document.querySelector('#f-items');
+      input.value='Новая химия, Новая физика\nНовое чтение, Новая математика';
+      input.dispatchEvent(new Event('input',{bubbles:true}));
+      window.print=()=>{window.__printedHTML=document.querySelector('#paper').innerHTML;};
+      document.querySelector('#print').click();
+      return {preview:document.querySelector('#paper').innerHTML,printed:window.__printedHTML};
+    });
+    assert.ok(state.preview.includes('Новая химия'));
+    assert.equal(state.preview,state.printed,'print uses the latest user input');
+    console.log('PASS pending input is applied before printing');
+  }catch(error){failed=true;console.error('FAIL immediate print update',error);}
+
   // Tracing guides must print in exactly the same order as the preview.
   try{
     await page.locator('[data-tab="writing"]').click();
