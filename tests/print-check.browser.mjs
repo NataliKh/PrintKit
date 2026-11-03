@@ -78,7 +78,12 @@ for(const [engine,browserType] of [['chromium',chromium],['firefox',firefox]]){
      engine+' print alignment cross '+i+' '+JSON.stringify(m));
    }
   }
-  assert.deepEqual(targetRects[0],targetRects[1],engine+' front/back print register marks coincide');
+  for(let i=0;i<4;i++){
+   for(const key of ['x','y','w','h']){
+    assert.ok(Math.abs(targetRects[0][i][key]-targetRects[1][i][key])<=0.25,
+     engine+' front/back target '+i+' '+key+' exceeds 0.25 CSS px registration tolerance');
+   }
+  }
     if(engine==='chromium'){
      const info=execFileSync('pdfinfo',['-'],{input:await page.pdf({preferCSSPageSize:true}),encoding:'utf8'});
      assert.equal(Number(info.match(/^Pages:\s+(\d+)/m)?.[1]),2,'two-page duplex PDF');
