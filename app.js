@@ -147,7 +147,7 @@ function paginateHabitPages(paper){
  const pages=[...paper.querySelectorAll(".habits-page")];
  for(let i=0;i<pages.length;i++){
   const sheet=pages[i],body=sheet.querySelector(".habit tbody");
-  while(body.children.length>1&&!scheduleContentFits(sheet)){
+  while(body.children.length>1&&(body.children.length>7||!scheduleContentFits(sheet))){
    let next=pages[i+1];
    if(!next){
     next=sheet.cloneNode(true);
