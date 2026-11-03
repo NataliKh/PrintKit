@@ -226,12 +226,13 @@ try {
   // P0.3: A4 overflow checks must catch actual glyphs outside printable margins.
   try{
     await page.locator('[data-tab="cards"]').click();
+    const initialCardPages=await page.locator('#paper .sheet-page').count();
     await page.locator('#f-title').fill('Очень длинный заголовок для печати '.repeat(220));
     await page.waitForFunction(()=>document.querySelector('#print-status').textContent.includes('Заголовок или подзаголовок'));
     assert.equal(await page.locator('#print').isDisabled(),true,'unprintable page title blocks print');
     await page.locator('#f-title').fill('Слова для повторения');
     await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
-    assert.equal(await page.locator('#paper .sheet-page').count(),1,'normal title preserves page count');
+    assert.equal(await page.locator('#paper .sheet-page').count(),initialCardPages,'normal title preserves original page count');
 
     await page.locator('[data-tab="math"]').click();
     await page.evaluate(()=>{
