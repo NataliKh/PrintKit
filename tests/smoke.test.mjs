@@ -509,7 +509,8 @@ test('math page breaks keep exactly twenty questions per sheet without regenerat
  assert.equal((pages[2].match(/<span>\d+\. /g)||[]).length,40);
  const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
  assert.match(app,/window\.print\(\)/);
- assert.doesNotMatch(app,/\$\("print"\)\.onclick=\(\)=>\{[^}]*generate\(/);
+ assert.match(app,/if\(inputTimer\)\{/,'only pending edits should trigger a refresh before print');
+ assert.match(app,/currentMathSignature!==signature/,'math regenerates only for changed exercise settings');
 });
 test('missing-number problems render clear writing lines without box glyphs',()=>{
  const html=render('math',k=>({...vals,grade:'1 класс',topic:'Пропущенное число',count:'40',key:'Да'})[k]??'',escape,lines,clamp);
