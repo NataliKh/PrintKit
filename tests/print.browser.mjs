@@ -19,6 +19,8 @@ const scenarios = [
   {id:'math-multiply',name:'grade 3 multiplication',mode:'math',fields:{grade:'3 класс',topic:'Таблица умножения',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
   {id:'math-fractions',name:'grade 5 fraction of a number',mode:'math',fields:{grade:'5 класс',topic:'Доли числа',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
   {id:'writing-digits',name:'tracing digits zero to nine',mode:'writing',fields:{set:'Цифры 0–9'},pages:2},
+  {id:'writing-letters',name:'first four Russian lowercase cursive letters',mode:'writing',fields:{set:'Первые письменные буквы'},pages:2},
+  {id:'writing-letter-m',name:'twelve rows of Russian cursive m',mode:'writing',fields:{set:'Одна письменная буква',letter:'м',rows:'12'},pages:2},
   {id:'writing-elements',name:'six pre-writing elements',mode:'writing',fields:{set:'Элементы письма',element:'Все элементы'},pages:1},
   {id:'writing-single',name:'12 rows of a numeral',mode:'writing',fields:{set:'Одна цифра',digit:'5',rows:'12'},pages:2},
   {id:'cards',name:'40 flashcards',mode:'cards',fields:{items:Array.from({length:40},(_,i)=>'Слово '+i+' — перевод '+i).join('\n')},pages:5},
@@ -122,6 +124,52 @@ try {
     assert.equal(await page.locator('#print').isDisabled(),false);
     console.log('PASS tracing vectors, form controls and stable print snapshot');
   }catch(error){failed=true;console.error('FAIL handwriting worksheets',error);}
+
+
+  // Letter forms must use the SVG tracing layout, with no glyph substitution.
+  try{
+    await page.locator('[data-tab="writing"]').click();
+    await page.locator('#f-set').selectOption({label:'Первые письменные буквы'});
+    assert.equal(await page.locator('#paper .writing-letter-page').count(),2);
+    assert.equal(await page.locator('#paper .writing-row').count(),12);
+    assert.equal(await page.locator('[data-field-id="letter"]').isVisible(),false);
+    const labels=await page.locator('#paper .writing-row-caption').allTextContents();
+    for(const letter of ['а','о','и','м']){
+      assert.equal(labels.filter(s=>s.includes('Строчная буква '+letter)).length,3);
+    }
+    const paths=await page.locator('#paper .writing-cell--sample path').evaluateAll(nodes=>
+      nodes.map(n=>n.getAttribute('d')));
+    assert.equal(new Set(paths).size,4,'four different cursive glyphs');
+    assert.equal(await page.locator('#paper .writing-cell--trace').count(),36);
+    await page.locator('#f-set').selectOption({label:'Одна письменная буква'});
+    assert.equal(await page.locator('[data-field-id="letter"]').isVisible(),true);
+    assert.equal(await page.locator('[data-field-id="rows"]').isVisible(),true);
+    await page.locator('#f-letter').selectOption({label:'и'});
+    await page.locator('#f-rows').selectOption({label:'12'});
+    assert.equal(await page.locator('#paper .writing-letter-page').count(),2);
+    assert.equal(await page.locator('#paper .writing-row').count(),12);
+    assert.ok((await page.locator('#paper .writing-row-caption').allTextContents())
+      .every(s=>s.includes('Строчная буква и')));
+    const before=await page.locator('#paper').innerHTML();
+    await page.evaluate(()=>window.print=()=>{});
+    await page.locator('#print').click();
+    assert.equal(await page.locator('#paper').innerHTML(),before);
+    await page.emulateMedia({media:'print'});
+    const clipped=await page.locator('#paper .writing-letter-page').evaluateAll(pages=>pages.some(page=>{
+      const outer=page.getBoundingClientRect();
+      return [...page.querySelectorAll('.writing-row')].some(row=>{
+        const r=row.getBoundingClientRect();
+        return r.right>outer.right-16||r.bottom>outer.bottom-16;
+      });
+    }));
+    assert.equal(clipped,false,'letter rows remain inside A4');
+    await page.emulateMedia({media:'screen'});
+    console.log('PASS Russian cursive letter selectors, A4, privacy and print snapshot');
+  }catch(error){
+    failed=true;
+    console.error('FAIL first Cyrillic letter trace print',error);
+    await page.emulateMedia({media:'screen'});
+  }
 
   // Resizing a worksheet must never regenerate questions or change the answer key.
   try{
@@ -515,7 +563,7 @@ try {
     // Catalog discovery: featured, filters, search, quick-open and mobile layout.
     assert.equal(await page.locator('#catalog-grid [data-template]').count(),7,'seven featured catalog cards');
     await page.locator('#catalog-more').click();
-    assert.equal(await page.locator('#catalog-grid [data-template]').count(),28,'all 28 kits visible after expansion');
+    assert.equal(await page.locator('#catalog-grid [data-template]').count(),29,'all 29 kits visible after expansion');
     await page.locator('#catalog-search').fill('чтение');
     assert.ok(await page.locator('#catalog-grid [data-template]').count()>0,'catalog finds reading kits');
     await page.locator('#catalog-filters [data-category="habits"]').click();

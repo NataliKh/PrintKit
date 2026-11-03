@@ -47,6 +47,41 @@ test('one digit and pre-writing elements constrain repeats and invalid selection
  assert.match(css,/\.writing-cells\{display:grid/);
 });
 
+
+test('first Cyrillic cursive letters have 12 practice rows and print with slanted guidelines',()=>{
+ const html=render('writing',key=>({set:'Первые письменные буквы'})[key]??'',escape,lines,clamp);
+ assert.equal((html.match(/class="sheet-page writing-page writing-letter-page"/g)||[]).length,2);
+ assert.equal((html.match(/class="writing-row"/g)||[]).length,12);
+ assert.equal((html.match(/class="writing-cell writing-cell--sample"/g)||[]).length,12);
+ assert.equal((html.match(/class="writing-cell writing-cell--trace"/g)||[]).length,36);
+ assert.equal((html.match(/class="writing-cell writing-cell--blank"/g)||[]).length,24);
+ assert.equal((html.match(/<svg class="writing-trace-svg"/g)||[]).length,48);
+ for(const letter of ['а','о','и','м']){
+  assert.equal((html.match(new RegExp('Строчная буква '+letter+'</div>','g'))||[]).length,3);
+ }
+ assert.doesNotMatch(html,/<foreignObject|<image |<script|@font-face/);
+ const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
+ assert.match(css,/#paper \.writing-letter-page \.writing-cell\{/);
+ assert.match(css,/repeating-linear-gradient\(105deg/);
+});
+test('single Russian cursive letter supports six/twelve rows and validates letter input',()=>{
+ for(const letter of ['а','о','и','м']){
+  for(const rows of ['6','12']){
+   const html=render('writing',key=>({set:'Одна письменная буква',letter,rows})[key]??'',
+    escape,lines,clamp);
+   const count=+rows;
+   assert.equal((html.match(/class="writing-row"/g)||[]).length,count);
+   assert.equal((html.match(/class="writing-cell writing-cell--trace"/g)||[]).length,count*3);
+   assert.equal((html.match(/class="sheet-page writing-page writing-letter-page"/g)||[]).length,count/6);
+   assert.equal((html.match(new RegExp('Строчная буква '+letter+'</div>','g'))||[]).length,count);
+  }
+ }
+ const hacked=render('writing',k=>({set:'Одна письменная буква',letter:'<img src=x onerror=alert(1)>',rows:'999'})[k]??'',escape,lines,clamp);
+ assert.doesNotMatch(hacked,/<img|onerror=/);
+ assert.equal((hacked.match(/Строчная буква а<\/div>/g)||[]).length,6);
+ assert.equal((hacked.match(/class="sheet-page writing-page writing-letter-page"/g)||[]).length,1);
+});
+
 test('math results stay inside the selected range',()=>{
  for(const level of ['Простые','Несколько действий','Со скобками']){
   for(let run=0;run<12;run++){

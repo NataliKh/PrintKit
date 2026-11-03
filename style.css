@@ -775,3 +775,18 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
   -webkit-print-color-adjust:exact;print-color-adjust:exact;
  }
 }
+
+
+/* M6.2: a separate slanted guide for preliminary handwritten lowercase letters. */
+#paper .writing-letter-page .writing-cell{
+ background-image:
+  repeating-linear-gradient(105deg,transparent 0,transparent 28px,
+   #e3e3ec 28px,#e3e3ec 29px,transparent 29px,transparent 35px),
+  linear-gradient(to bottom,
+   transparent 20%,#c4c8d5 20%,#c4c8d5 calc(20% + 1px),
+   transparent calc(20% + 1px),transparent 49%,
+   #dadce7 49%,#dadce7 calc(49% + 1px),
+   transparent calc(49% + 1px),transparent 80%,
+   #b8bdce 80%,#b8bdce calc(80% + 1px),transparent calc(80% + 1px));
+}
+#paper .writing-letter-page .writing-trace-svg{overflow:hidden}

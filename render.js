@@ -30,6 +30,20 @@ const writingDigitPaths={
  "8":"M49 50 C29 37 27 21 40 13 C55 4 75 13 72 29 C70 41 58 46 49 50 C34 56 22 69 30 83 C41 101 73 94 75 77 C77 63 60 55 49 50",
  "9":"M72 48 C61 59 44 60 34 51 C19 37 31 10 50 10 C77 10 82 41 74 64 C67 84 55 91 34 91"
 };
+
+/**
+ * Original approximate Russian lowercase cursive contours (а, о, и, м).
+ * Designed from foundational oval / hook stroke principles, not traced from
+ * proprietary workbook pages. Requires independent teacher review before
+ * describing these as certified school models.
+ */
+const writingLetterPaths={
+ "а":"M56 23 C41 16 27 29 25 47 C22 63 31 78 45 78 C62 78 71 61 70 44 C69 28 63 23 56 23 M69 26 L65 70 C64 79 72 79 84 66",
+ "о":"M56 23 C42 17 27 30 25 47 C23 65 32 78 46 78 C62 78 73 62 73 46 C73 30 63 23 56 23 Z M72 45 Q75 54 85 58",
+ "и":"M22 25 L17 65 C15 81 28 82 38 69 C44 62 48 45 53 25 M53 25 L48 64 C46 80 61 83 71 69 L85 57",
+ "м":"M11 73 Q23 65 34 34 L40 22 L32 67 C30 81 45 83 54 69 L72 22 L64 66 C62 80 75 82 87 67"
+};
+
 const writingElements=[
  {name:"Прямые линии",path:"M50 10 V90"},
  {name:"Наклонные линии",path:"M28 90 L72 10"},
@@ -40,6 +54,16 @@ const writingElements=[
 ];
 function writingExercises(get){
  const set=get("set"),times=get("rows")==="12"?12:6;
+ if(set==="Первые письменные буквы"){
+  return Object.entries(writingLetterPaths).flatMap(([letter,path])=>
+   Array.from({length:3},()=>({name:"Строчная буква "+letter,path,kind:"letter"})));
+ }
+ if(set==="Одна письменная буква"){
+  const letter=Object.hasOwn(writingLetterPaths,get("letter"))?get("letter"):"а";
+  return Array.from({length:times},()=>({
+   name:"Строчная буква "+letter,path:writingLetterPaths[letter],kind:"letter"
+  }));
+ }
  if(set==="Одна цифра"){
   const digit=Object.hasOwn(writingDigitPaths,get("digit"))?get("digit"):"0";
   return Array.from({length:times},()=>({name:"Цифра "+digit,path:writingDigitPaths[digit]}));
@@ -95,7 +119,9 @@ if(mode==="math"){
 }
 if(mode==="writing"){
  const items=writingExercises(get);
- const group=get("set")==="Элементы письма"?"Элементы письма":"Цифры";
+ const isLetters=items.some(item=>item.kind==="letter");
+ const group=isLetters?"Письменные буквы":
+  get("set")==="Элементы письма"?"Элементы письма":"Цифры";
  const cell=(item,variant)=>{
   const visual=variant==="blank"?"":'<svg class="writing-trace-svg" viewBox="0 0 100 100" aria-hidden="true" focusable="false">'+
    '<path d="'+item.path+'" class="writing-stroke writing-stroke--'+variant+'" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -107,10 +133,11 @@ if(mode==="writing"){
    '<div class="writing-row"><div class="writing-row-caption"><span class="writing-row-number">'+(i+j+1)+'.</span> '+e(item.name)+'</div>'+
    '<div class="writing-cells">'+['sample','trace','trace','trace','blank','blank'].map(v=>cell(item,v)).join("")+'</div></div>');
   parts.push(page(heading('Прописи · '+e(group),
+   (isLetters?'Строчные а, о, и, м · ':'')+
    'Обведи по образцу и попробуй самостоятельно · Имя: ____________________')+
    '<div class="writing-list">'+rows.join("")+'</div>'+
    '<p class="writing-footer">✦ Отличная работа! Продолжай тренироваться.</p>',
-   'writing-page'));
+   'writing-page'+(isLetters?' writing-letter-page':'')));
  }
 }
 if(mode==="cards"){
