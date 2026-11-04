@@ -11,7 +11,7 @@ try{
  const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
  await page.goto(new URL('../index.html',import.meta.url).href);
  const entries=await page.evaluate(()=>Object.entries(starterKits).flatMap(([mode,kits])=>kits.map(kit=>({mode,id:kit.id,title:kit.title}))));
- assert.equal(entries.length,32,'all 32 catalog templates must have real previews');
+ assert.equal(entries.length,42,'all 42 catalog templates must have real previews');
  for(const {mode,id,title} of entries){
   try{
    await page.emulateMedia({media:'screen'});
@@ -21,7 +21,15 @@ try{
     let seed=0xC0FFEE;
     Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4324967326;};
    });
-   await page.locator('#starter-grid [data-starter="'+id+'"]').click();
+   const course=mode==='math'&&await page.locator('#math-library-grid [data-math-kit="'+id+'"]').count();
+   if(course){
+    const library=page.locator('#math-library');
+    if(!(await library.evaluate(el=>el.open)))await library.locator('summary').click();
+    await page.locator('[data-math-grade="all"]').click();
+   }
+   await page.locator(course
+    ? '#math-library-grid [data-math-kit="'+id+'"]'
+    : '#starter-grid [data-starter="'+id+'"]').click();
    await page.evaluate(()=>document.fonts.ready);
    await page.waitForFunction(()=>!document.getElementById('print').disabled);
    await page.emulateMedia({media:'print'});
@@ -47,4 +55,4 @@ try{
 }
 await writeFile(new URL('manifest.json',out),JSON.stringify({generatedAt:new Date().toISOString(),previews:manifest},null,2)+'\n');
 assert.equal(failures,0,'all thumbnails must render');
-assert.equal(manifest.length,32,'all 32 thumbnails must be built');
+assert.equal(manifest.length,42,'all 42 thumbnails must be built');

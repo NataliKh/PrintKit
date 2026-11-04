@@ -847,3 +847,30 @@ nav#tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;mar
 #paper .math-mixed-page .math-word-text{font-size:16px;line-height:1.3}
 #paper .math-mixed-page.math-page--compact .math-word-question{min-height:91px}
 #paper .math-mixed-page.math-page--compact .math-word-text{font-size:14px}
+
+/* M5.4: optional grade-filtered workbooks with compact one-column cards. */
+.math-library{margin:-7px 0 22px;border:1px solid #e6dcf5;border-radius:14px;background:#faf8ff;overflow:hidden}
+.math-library[hidden]{display:none!important}
+.math-library>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;cursor:pointer;list-style:none}
+.math-library>summary::-webkit-details-marker{display:none}
+.math-library>summary strong{display:block;font-size:12px;color:#443365;line-height:1.5}
+.math-library>summary small{display:block;font-size:10px;color:#817593;line-height:1.4}
+.math-library>summary:focus-visible{outline:3px solid #9075df;outline-offset:-3px}
+.math-library-chevron{font-size:20px;color:#7960c1;transition:transform .2s}
+.math-library[open] .math-library-chevron{transform:rotate(180deg)}
+.math-library-content{border-top:1px solid #e9e1f3;padding:13px}
+.math-library-content>p{font-size:11px;line-height:1.6;color:#76698a;margin:0 0 12px}
+.math-library-filters{display:flex;gap:5px;overflow-x:auto;padding:2px 0 11px;scrollbar-width:thin}
+.math-library-filters button{border:1px solid #e1d7f0;background:white;color:#685481;border-radius:100px;padding:7px 10px;white-space:nowrap;font-size:10px;font-weight:800}
+.math-library-filters button[aria-pressed="true"]{background:#7054c9;border-color:#7054c9;color:white}
+.math-library-grid{display:grid;grid-template-columns:1fr;gap:7px}
+.math-library-card{min-width:0;display:flex;align-items:center;gap:10px;text-align:left;border:1px solid #e8e0f3;border-radius:11px;background:#fff;padding:11px 12px}
+.math-library-card:hover{border-color:#b8a3e5;background:#fdfbff}
+.math-library-card:focus-visible,.math-library-filters button:focus-visible{outline:3px solid #9075df;outline-offset:2px}
+.math-library-card[aria-pressed="true"]{border-color:#8269d5;background:#f4efff}
+.math-library-icon{font-size:19px;flex:none}
+.math-library-copy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.math-library-copy strong{font-size:11px;color:#352949;line-height:1.4}
+.math-library-copy small{font-size:10px;color:#847892;line-height:1.4}
+.math-library-arrow{font-size:14px;color:#8264ce}
+@media print{.math-library{display:none!important}}

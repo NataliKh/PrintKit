@@ -10,6 +10,7 @@ const galleryMiniatures={
 };
 const galleryCategoryNames={all:"Все",math:"Математика",writing:"Прописи",cards:"Карточки",labels:"Наклейки",diploma:"Грамоты",schedule:"Расписание",habits:"Привычки"};
 const galleryTemplates=modes.flatMap(type=>starterKits[type].map((kit,index)=>({type,...kit,featured:index===0})));
+document.getElementById("catalog-total").textContent=galleryTemplates.length+" готовых наборов";
 let galleryCategory="all",galleryExpanded=false;
 const gallerySearch=document.getElementById("catalog-search");
 const galleryFilters=document.getElementById("catalog-filters");

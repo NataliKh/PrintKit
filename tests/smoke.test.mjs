@@ -912,3 +912,34 @@ test('classroom curricula include age-appropriate word problems on every daily s
   assert.ok(html.indexOf('Ответы · занятие 1')>html.indexOf('Занятие 5 из 5'));
  }
 });
+
+test('M5.4 curated workbooks span five grades and preserve quick starts',()=>{
+ const kits=vm.runInNewContext(readFileSync(new URL('../presets.js',import.meta.url),'utf8')+';starterKits.math');
+ const courses=Array.from(kits).filter(kit=>kit.collection);
+ assert.equal(kits.length,14);
+ assert.equal(courses.length,10);
+ assert.equal(new Set(Array.from(kits,kit=>kit.id)).size,14);
+ for(const grade of ['1 класс','2 класс','3 класс','4 класс','5 класс'])
+  assert.equal(courses.filter(kit=>kit.values.grade===grade).length,2);
+ const topics=vm.runInContext('mathTopicsByGrade',context);
+ const generate=vm.runInContext('mathGeneratePack',context);
+ for(const kit of kits){
+  const v=kit.values;
+  assert.ok(Array.from(topics[v.grade]).includes(v.topic),kit.id);
+  assert.equal(v.density,'Стандартный',kit.id);
+  if(!kit.collection){assert.equal(v.pack,'Один лист',kit.id);continue}
+  assert.equal(v.key,'Да',kit.id);
+  const result=generate(v.grade,v.topic,v.level,v.max,Number(v.count),v.pack);
+  const count=v.pack==='10 занятий'?10:5;
+  assert.equal(result.days.length,count,kit.id);
+  for(const day of result.days){
+   assert.equal(day.questions.length,Number(v.count),kit.id);
+   assert.ok(day.questions.every(q=>Number.isInteger(q.answer)&&q.answer>=0&&q.answer<=day.maximum),kit.id);
+  }
+  const html=render('math',key=>v[key]??'',escape,lines,clamp,result);
+  assert.equal((html.match(/class="sheet-page answers-page math-pack-answers"/g)||[]).length,count,kit.id);
+  assert.ok(html.indexOf('Ответы · занятие 1')>html.indexOf('Занятие '+count+' из '+count),kit.id);
+ }
+ assert.match(readFileSync(new URL('../index.html',import.meta.url),'utf8'),/id="math-library"/);
+ assert.match(readFileSync(new URL('../app.js',import.meta.url),'utf8'),/data-math-kit/);
+});

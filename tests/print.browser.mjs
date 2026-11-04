@@ -309,6 +309,45 @@ try {
   }
 
 
+
+  // M5.4: curated grade-filtered workbooks produce unchanged, printable A4 pages.
+  try{
+    await page.locator('[data-tab="math"]').click();
+    await page.locator('#reset').click();
+    const library=page.locator('#math-library');
+    assert.equal(await library.isHidden(),false);
+    if(!(await library.evaluate(el=>el.open)))await library.locator('summary').click();
+    await page.locator('[data-math-grade="2 класс"]').click();
+    assert.equal(await page.locator('#math-library-grid [data-math-kit]').count(),2);
+    await page.locator('[data-math-kit="week-grade2"]').click();
+    assert.equal(await page.locator('#f-grade').inputValue(),'2 класс');
+    assert.equal(await page.locator('#f-pack').inputValue(),'5 занятий');
+    assert.equal(await page.locator('#f-key').inputValue(),'Да');
+    assert.equal(await page.locator('#f-count').inputValue(),'12');
+    assert.equal(await page.locator('#math-library-grid [data-math-kit="week-grade2"]').getAttribute('aria-pressed'),'true');
+    assert.equal(await page.locator('#paper .math-pack-answers').count(),5);
+    assert.equal(await page.locator('#print').isDisabled(),false);
+    const before=await page.locator('#paper').innerHTML();
+    await page.evaluate(()=>{window.print=()=>{};});
+    await page.locator('#print').click();
+    assert.equal(await page.locator('#paper').innerHTML(),before);
+    const pages=await page.locator('#paper .sheet-page').count();
+    await page.emulateMedia({media:'print'});
+    const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
+    const info=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
+    assert.equal(Number(info.match(/^Pages:\s+(\d+)/m)?.[1]),pages);
+    await page.emulateMedia({media:'screen'});
+    await page.locator('#starter-grid [data-starter="first"]').click();
+    assert.equal(await page.locator('#f-pack').inputValue(),'Один лист');
+    assert.equal(await page.locator('#paper .math-pack-page').count(),0);
+    assert.equal(await page.locator('#print').isDisabled(),false);
+    console.log('PASS M5.4 math workbooks, grade filter, PDF A4 and quick-start reset');
+  }catch(error){
+    failed=true;
+    console.error('FAIL M5.4 math workbooks',error);
+    await page.emulateMedia({media:'screen'});
+  }
+
   // M5.2: word problems in "По программе класса", plus older-grade dedicated stories.
   try{
     await page.locator('[data-tab="math"]').click();

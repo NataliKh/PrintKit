@@ -385,9 +385,31 @@ function renderSchoolPicker(){
  addName.onkeydown=event=>{if(event.key==="Enter"){event.preventDefault();addButton.click()}};
  updateTotal();
 }
+let mathLibraryGrade="all";
+function renderMathLibrary(){
+ const section=$("math-library");
+ section.hidden=mode!=="math";
+ if(mode!=="math")return;
+ const grades=["all",...Object.keys(mathTopicsByGrade)];
+ const items=starterKits.math.filter(item=>item.collection&&
+  (mathLibraryGrade==="all"||item.values.grade===mathLibraryGrade));
+ $("math-library-filters").innerHTML=grades.map(grade=>
+  '<button type="button" data-math-grade="'+esc(grade)+'" aria-pressed="'+String(grade===mathLibraryGrade)+'">'+
+  (grade==="all"?"Все":esc(grade))+'</button>').join("");
+ $("math-library-grid").innerHTML=items.map(item=>
+  '<button type="button" class="math-library-card" data-math-kit="'+esc(item.id)+'" aria-pressed="false">'+
+   '<span class="math-library-icon" aria-hidden="true">'+esc(item.icon)+'</span>'+
+   '<span class="math-library-copy"><strong>'+esc(item.title)+'</strong><small>'+esc(item.description)+'</small></span>'+
+   '<span class="math-library-arrow" aria-hidden="true">↗</span></button>').join("");
+ section.querySelectorAll("[data-math-grade]").forEach(button=>button.onclick=()=>{
+  mathLibraryGrade=button.dataset.mathGrade;
+  renderMathLibrary();
+ });
+ section.querySelectorAll("[data-math-kit]").forEach(button=>button.onclick=()=>useStarter(button.dataset.mathKit));
+}
 function chooseStarter(selectedId){
- document.querySelectorAll("#starter-grid [data-starter]").forEach(button=>{
-  button.setAttribute("aria-pressed",String(button.dataset.starter===selectedId));
+ document.querySelectorAll("#starter-grid [data-starter], #math-library-grid [data-math-kit]").forEach(button=>{
+  button.setAttribute("aria-pressed",String((button.dataset.starter||button.dataset.mathKit)===selectedId));
  });
 }
 function useStarter(id){
@@ -403,6 +425,11 @@ function useStarter(id){
  if(mode==="math"){syncMathTopics();toggleMathPackHint();}
  if(mode==="writing")toggleWritingFields();
  if(mode==="cards")toggleCardFields();
+ if(mode==="math"&&kit.collection){
+  mathLibraryGrade=kit.values.grade;
+  renderMathLibrary();
+  $("math-library").open=true;
+ }
  chooseStarter(kit.id);
  $("starter-status").textContent="Готово: «"+kit.title+"». Можно изменить параметры ниже.";
  generate(mode==="math");
@@ -419,7 +446,7 @@ function applyCatalogStarter(nextMode,id){
  $("title").focus({preventScroll:true});
 }
 function renderStarters(){
- const items=starterKits[mode]||[];
+ const items=(starterKits[mode]||[]).filter(item=>!item.collection);
  $("starter-grid").innerHTML=items.map(item=>
   '<button type="button" class="starter-card" data-starter="'+esc(item.id)+'" aria-pressed="false">'+
   '<span class="starter-icon" aria-hidden="true">'+esc(item.icon)+'</span>'+
@@ -525,6 +552,7 @@ function render(){
  $("title").textContent=names[modes.indexOf(mode)];
  $("regenerate").textContent=mode==="math"?"↻ Новые примеры":"↻ Обновить лист";
  renderStarters();
+ renderMathLibrary();
  renderSavedSets();
  $("fields").innerHTML=configs[mode].map(field).join("");
  if(mode==="math")$("fields").insertAdjacentHTML("beforeend",'<p class="math-pack-hint" id="math-pack-hint" role="status" aria-live="polite"></p>');

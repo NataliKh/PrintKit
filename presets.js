@@ -1,9 +1,9 @@
 // Curated, local-only quick starts. Personal names and issuer fields are deliberately not overwritten.
 const starterKits={
   math:[
-    {id:"first",icon:"✏️",title:"Первые примеры",description:"1 класс · до 10",values:{grade:"1 класс",topic:"Сложение и вычитание",count:"12",level:"Простые",max:"10",key:"Нет"}},
-    {id:"brackets",icon:"🧩",title:"Со скобками",description:"2 класс · с ответами",values:{grade:"2 класс",topic:"Сложение и вычитание",count:"16",level:"Со скобками",max:"20",key:"Да"}},
-    {id:"practice",icon:"🎯",title:"Большая тренировка",description:"5 класс · 40 заданий",values:{grade:"5 класс",topic:"По программе класса",count:"40",level:"Несколько действий",max:"100",key:"Да"}}
+    {id:"first",icon:"✏️",title:"Первые примеры",description:"1 класс · до 10",values:{grade:"1 класс",topic:"Сложение и вычитание",count:"12",level:"Простые",max:"10",key:"Нет",pack:"Один лист",density:"Стандартный"}},
+    {id:"brackets",icon:"🧩",title:"Со скобками",description:"2 класс · с ответами",values:{grade:"2 класс",topic:"Сложение и вычитание",count:"16",level:"Со скобками",max:"20",key:"Да",pack:"Один лист",density:"Стандартный"}},
+    {id:"practice",icon:"🎯",title:"Большая тренировка",description:"5 класс · 40 заданий",values:{grade:"5 класс",topic:"По программе класса",count:"40",level:"Несколько действий",max:"100",key:"Да",pack:"Один лист",density:"Стандартный"}}
   ],
   writing:[
     {id:"digits",icon:"🔢",title:"Все цифры",description:"0–9 · обводка и письмо",values:{set:"Цифры 0–9"}},
@@ -38,8 +38,22 @@ const starterKits={
   ]
 };
 
+// M5.4: curated parameters; exercises stay generated locally on each opening.
+starterKits.math.push(
+ {id:"week-grade1",collection:true,icon:"🌱",title:"Повторение · 1 класс",description:"5 занятий · 12 заданий до 10",values:{grade:"1 класс",topic:"По программе класса",pack:"5 занятий",count:"12",level:"Простые",max:"10",density:"Стандартный",key:"Да"}},
+ {id:"stories-grade1",collection:true,icon:"📚",title:"Первые текстовые задачи",description:"5 занятий · по 6 задач до 10",values:{grade:"1 класс",topic:"Текстовые задачи",pack:"5 занятий",count:"6",level:"Простые",max:"10",density:"Стандартный",key:"Да"}},
+ {id:"week-grade2",collection:true,icon:"✍️",title:"Повторение · 2 класс",description:"5 занятий · 12 заданий до 50",values:{grade:"2 класс",topic:"По программе класса",pack:"5 занятий",count:"12",level:"Простые",max:"50",density:"Стандартный",key:"Да"}},
+ {id:"brackets-grade2",collection:true,icon:"🧩",title:"Сложение и скобки · 2 класс",description:"5 занятий · по 12 примеров до 50",values:{grade:"2 класс",topic:"Сложение и вычитание",pack:"5 занятий",count:"12",level:"Со скобками",max:"50",density:"Стандартный",key:"Да"}},
+ {id:"week-grade3",collection:true,icon:"🎯",title:"Повторение · 3 класс",description:"5 занятий · 12 заданий до 100",values:{grade:"3 класс",topic:"По программе класса",pack:"5 занятий",count:"12",level:"Простые",max:"100",density:"Стандартный",key:"Да"}},
+ {id:"times-grade3",collection:true,icon:"✖️",title:"Таблица умножения · 3 класс",description:"10 занятий · по 12 примеров",values:{grade:"3 класс",topic:"Таблица умножения",pack:"10 занятий",count:"12",level:"Простые",max:"100",density:"Стандартный",key:"Да"}},
+ {id:"week-grade4",collection:true,icon:"📝",title:"Повторение · 4 класс",description:"5 занятий · 12 заданий до 100",values:{grade:"4 класс",topic:"По программе класса",pack:"5 занятий",count:"12",level:"Простые",max:"100",density:"Стандартный",key:"Да"}},
+ {id:"order-grade4",collection:true,icon:"🔢",title:"Порядок действий · 4 класс",description:"5 занятий · по 12 примеров",values:{grade:"4 класс",topic:"Порядок действий",pack:"5 занятий",count:"12",level:"Простые",max:"100",density:"Стандартный",key:"Да"}},
+ {id:"week-grade5",collection:true,icon:"📐",title:"Повторение · 5 класс",description:"5 занятий · 12 заданий до 100",values:{grade:"5 класс",topic:"По программе класса",pack:"5 занятий",count:"12",level:"Простые",max:"100",density:"Стандартный",key:"Да"}},
+ {id:"fractions-grade5",collection:true,icon:"🍰",title:"Доли числа · 5 класс",description:"5 занятий · по 12 заданий",values:{grade:"5 класс",topic:"Доли числа",pack:"5 занятий",count:"12",level:"Простые",max:"100",density:"Стандартный",key:"Да"}}
+);
+
 // Additional ready-to-print ideas for the visual gallery.
-starterKits.math.push({id:"second-grade",icon:"📐",title:"Устный счёт",description:"2 класс · 20 примеров до 50",values:{grade:"2 класс",topic:"Сложение и вычитание",count:"20",level:"Несколько действий",max:"50",key:"Да"}});
+starterKits.math.push({id:"second-grade",icon:"📐",title:"Устный счёт",description:"2 класс · 20 примеров до 50",values:{grade:"2 класс",topic:"Сложение и вычитание",count:"20",level:"Несколько действий",max:"50",key:"Да",pack:"Один лист",density:"Стандартный"}});
 starterKits.cards.push({id:"greetings",icon:"👋",title:"Английские фразы",description:"8 фраз для начинающих",values:{title:"Английский · общение",items:"Hello! — Привет!\nGood morning! — Доброе утро!\nThank you! — Спасибо!\nPlease — Пожалуйста\nGoodbye! — До свидания!\nHow are you? — Как дела?\nI'm fine — У меня всё хорошо\nSee you! — Увидимся!",theme:"Мятный"}});
 starterKits.labels.push({id:"art",icon:"🎨",title:"Для творчества",description:"12 наклеек для коробок и альбомов",values:{audience:"Один ребёнок",kit:"Одинаковые",subtitle:"Творчество",count:"12",layout:"Нежный",size:"Стандартные 54 × 38 мм",theme:"Персиковый"}});
 starterKits.diploma.push({id:"kindness",icon:"💛",title:"За доброту",description:"Грамота за хорошие поступки",values:{kind:"Грамота",reason:"За доброту, отзывчивость и заботу о других!",layout:"Детский",theme:"Персиковый"}});
