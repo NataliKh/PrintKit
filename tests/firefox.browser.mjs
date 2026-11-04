@@ -10,7 +10,7 @@ const folder='artifacts/firefox-print';
 const week=Array.from({length:7},()=>Array.from({length:19},(_,i)=>'Урок '+(i+1)).join(',')).join('\n');
 const scenarios=[
  {id:'math',mode:'math',fields:{count:'40',density:'Стандартный',key:'Да'},
-  pages:3,selector:'.problems>div',items:40},
+  pages:4,selector:'.problems>div',items:34},
  {id:'math-words',mode:'math',fields:{grade:'1 класс',topic:'Текстовые задачи',max:'10',
   density:'Стандартный',count:'10',key:'Да'},pages:3,selector:'.math-word-question',items:10},
  {id:'writing',mode:'writing',fields:{set:'Цифры 0–9'},
