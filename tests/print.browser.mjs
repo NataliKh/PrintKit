@@ -7,15 +7,15 @@ import {chromium} from 'playwright';
 const url = new URL('../index.html', import.meta.url).href;
 const browser = await chromium.launch({headless: true});
 const scenarios = [
-  {id:'math',name:'math and answers',mode:'math',fields:{count:'40',density:'Стандартный',key:'Да'},pages:3},
-  {id:'math-large',name:'large first-grade writing spaces',mode:'math',fields:{grade:'1 класс',topic:'По программе класса',level:'Простые',max:'10',count:'40',density:'Крупный',key:'Да'},pages:5},
-  {id:'math-compact',name:'compact mixed first-grade worksheet',mode:'math',fields:{grade:'1 класс',topic:'По программе класса',level:'Простые',max:'10',count:'40',density:'Компактный',key:'Да'},pages:3},
+  {id:'math',name:'math and answers',mode:'math',fields:{count:'40',density:'Стандартный',key:'Да'},pages:4},
+  {id:'math-large',name:'large first-grade writing spaces',mode:'math',fields:{grade:'1 класс',topic:'По программе класса',level:'Простые',max:'10',count:'40',density:'Крупный',key:'Да'},pages:6},
+  {id:'math-compact',name:'compact mixed first-grade worksheet',mode:'math',fields:{grade:'1 класс',topic:'По программе класса',level:'Простые',max:'10',count:'40',density:'Компактный',key:'Да'},pages:4},
   {id:'math-large-10',name:'large grade-two ten problems',mode:'math',fields:{grade:'2 класс',topic:'Сложение и вычитание',level:'Со скобками',max:'20',count:'10',density:'Крупный',key:'Нет'},pages:1},
   {id:'math-compare',name:'first-grade comparisons with symbolic answers',mode:'math',fields:{grade:'1 класс',topic:'Сравнение чисел',max:'10',density:'Стандартный',count:'20',key:'Да'},pages:2},
   {id:'math-story-10',name:'ten first-grade word problems',mode:'math',fields:{grade:'1 класс',topic:'Текстовые задачи',max:'10',density:'Стандартный',count:'10',key:'Да'},pages:3},
   {id:'math-story-large',name:'ten second-grade large word problems',mode:'math',fields:{grade:'2 класс',topic:'Текстовые задачи',max:'20',density:'Крупный',count:'10',key:'Да'},pages:4},
   {id:'math-composition',name:'second-grade number composition',mode:'math',fields:{grade:'2 класс',topic:'Состав числа',max:'20',density:'Крупный',count:'40',key:'Да'},pages:5},
-  {id:'math-compact-20',name:'compact grade-five twenty problems',mode:'math',fields:{grade:'5 класс',topic:'По программе класса',level:'Простые',max:'100',count:'20',density:'Компактный',key:'Да'},pages:2},
+  {id:'math-compact-20',name:'compact grade-five twenty problems',mode:'math',fields:{grade:'5 класс',topic:'По программе класса',level:'Простые',max:'100',count:'20',density:'Компактный',key:'Да'},pages:3},
   {id:'math-multiply',name:'grade 3 multiplication',mode:'math',fields:{grade:'3 класс',topic:'Таблица умножения',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
   {id:'math-fractions',name:'grade 5 fraction of a number',mode:'math',fields:{grade:'5 класс',topic:'Доли числа',count:'40',max:'100',density:'Стандартный',key:'Да'},pages:3},
   {id:'writing-digits',name:'tracing digits zero to nine',mode:'writing',fields:{set:'Цифры 0–9'},pages:2},
@@ -243,11 +243,12 @@ try {
     assert.equal(await page.locator('#print').isDisabled(),true,'unwrapped oversized expression blocks print');
     await page.locator('#reset').click();
     await page.waitForFunction(()=>document.querySelector('#print').disabled===false);
-    assert.equal(await page.locator('#paper .math-page').count(),1,'reset restores ordinary worksheet');
+    const ordinaryPages=await page.locator('#paper .math-page').count();
+    assert.ok(ordinaryPages>=1,'reset restores ordinary worksheet');
     await page.emulateMedia({media:'print'});
     const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
     const info=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
-    assert.equal(Number(info.match(/^Pages:\s+(\d+)/m)?.[1]),1,'normal math PDF remains single-page A4');
+    assert.equal(Number(info.match(/^Pages:\s+(\d+)/m)?.[1]),ordinaryPages,'default math PDF matches generated A4 pages');
     await page.emulateMedia({media:'screen'});
     console.log('PASS P0.3 printable text margins, title and math expression gates');
   }catch(error){
@@ -304,6 +305,53 @@ try {
   }catch(error){
     failed=true;
     console.error('FAIL M5.1 math booklet',error);
+    await page.emulateMedia({media:'screen'});
+  }
+
+
+  // M5.2: word problems in "По программе класса", plus older-grade dedicated stories.
+  try{
+    await page.locator('[data-tab="math"]').click();
+    await page.locator('#f-pack').selectOption({label:'Один лист'});
+    await page.locator('#f-count').fill('20');
+    await page.locator('#f-count').dispatchEvent('change');
+    await page.locator('#f-density').selectOption({label:'Стандартный'});
+    for(const grade of ['1 класс','2 класс','3 класс','4 класс','5 класс']){
+      await page.locator('#f-grade').selectOption({label:grade});
+      await page.locator('#f-topic').selectOption({label:'По программе класса'});
+      await page.waitForFunction(()=>document.querySelectorAll('#paper .math-word-question').length===4);
+      assert.equal(await page.locator('#paper .math-word-question').count(),4,'four stories in '+grade);
+      assert.equal(await page.locator('#paper .problems>div').count(),16,'sixteen examples in '+grade);
+      assert.equal(await page.locator('#print').isDisabled(),false,'grade-specific mixed A4 fits '+grade);
+      const texts=await page.locator('#paper .math-word-text').allTextContents();
+      assert.ok(texts.every(t=>t.trim().endsWith('?')));
+    }
+    await page.locator('#f-grade').selectOption({label:'4 класс'});
+    await page.locator('#f-topic').selectOption({label:'Текстовые задачи'});
+    await page.locator('#f-count').fill('10');
+    await page.locator('#f-count').dispatchEvent('change');
+    await page.waitForFunction(()=>document.querySelectorAll('#paper .math-word-question').length===10);
+    assert.equal(await page.locator('#paper .problems>div').count(),0);
+    await page.locator('#f-topic').selectOption({label:'По программе класса'});
+    await page.locator('#f-pack').selectOption({label:'5 занятий'});
+    await page.waitForFunction(()=>document.querySelectorAll('#paper .math-word-question').length===10);
+    assert.equal(await page.locator('#paper .math-pack-answers').count(),5);
+    assert.equal(await page.locator('#print').isDisabled(),false,'grade 4 bundle is printable');
+    const expected=await page.locator('#paper .sheet-page').count();
+    assert.ok(expected>=10,'work and answer pages present');
+    const preview=await page.locator('#paper').innerHTML();
+    await page.evaluate(()=>{window.print=()=>{};});
+    await page.locator('#print').click();
+    assert.equal(await page.locator('#paper').innerHTML(),preview,'print preserves math questions');
+    await page.emulateMedia({media:'print'});
+    const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});
+    const info=execFileSync('pdfinfo',['-'],{input:pdf,encoding:'utf8'});
+    assert.equal(Number(info.match(/^Pages:\s+(\d+)/m)?.[1]),expected,'mixed A4 PDF pages');
+    await page.emulateMedia({media:'screen'});
+    await page.locator('#reset').click();
+    console.log('PASS M5.2 curriculum stories and printable grade 4 mixed bundle');
+  }catch(error){
+    failed=true;console.error('FAIL M5.2 word problems',error);
     await page.emulateMedia({media:'screen'});
   }
 
@@ -440,8 +488,10 @@ try {
     await page.locator('#f-density').selectOption({label:'Стандартный'});
     const before=await page.locator('#paper .problems>div').allTextContents();
     const answerKey=await page.locator('#paper .answer-grid span').allTextContents();
-    assert.equal(before.length,40);
-    for(const [density,expected] of [['Крупный',4],['Компактный',2],['Стандартный',2]]){
+    const wordCount=await page.locator('#paper .math-word-question').count();
+    assert.equal(before.length+wordCount,40,'40 numbered tasks including stories');
+    assert.equal(wordCount,6,'six stories in a 40-task mixed worksheet');
+    for(const [density,expected] of [['Крупный',5],['Компактный',3],['Стандартный',3]]){
       await page.locator('#f-density').selectOption({label:density});
       assert.deepEqual(await page.locator('#paper .problems>div').allTextContents(),before);
       assert.deepEqual(await page.locator('#paper .answer-grid span').allTextContents(),answerKey);
