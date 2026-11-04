@@ -21,7 +21,8 @@ try{
     let seed=0xC0FFEE;
     Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4324967326;};
    });
-   const course=mode==='math'&&await page.locator('#math-library-grid [data-math-kit="'+id+'"]').count();
+   const course=mode==='math'&&await page.evaluate(kitId=>
+    starterKits.math.some(kit=>kit.id===kitId&&kit.collection),id);
    if(course){
     const library=page.locator('#math-library');
     if(!(await library.evaluate(el=>el.open)))await library.locator('summary').click();
