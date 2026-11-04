@@ -17,6 +17,14 @@ function parseLabelNames(raw){
  return raw.split(/\r?\n/).map(name=>name.replace(/\s+/g," ").trim()).filter(Boolean).slice(0,6);
 }
 
+// Keep blank weekdays in schedules: an empty line means a day off, not
+// permission to shift every following lesson one day earlier.
+function parseScheduleDays(raw){
+ const days=String(raw??"").split(/\r?\n/).map(day=>day.trim());
+ while(days.length&&days[days.length-1]==="")days.pop();
+ return days.map(day=>day.split(",").map(lesson=>lesson.trim()));
+}
+
 // Shared parsing and pre-print checks for the live editor and printed cards.
 function parseFlashcards(raw){
  return String(raw??"").split(/\r?\n/).map((text,i)=>({text:text.trim(),line:i+1}))
@@ -260,7 +268,7 @@ if(mode==="diploma"){
 }
 if(mode==="schedule"){
  const days=["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"];
- const data=lines(get("items")).slice(0,7).map(x=>x.split(",").map(y=>y.trim()));
+ const data=parseScheduleDays(get("items")).slice(0,7);
  const n=Math.max(1,...data.map(x=>x.length));
  const head='<thead><tr><th scope="col">№</th>'+data.map((_,i)=>'<th scope="col">'+days[i]+'</th>').join("")+'</tr></thead>';
  const limit=8;

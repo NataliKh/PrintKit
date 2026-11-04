@@ -480,6 +480,26 @@ test('habit tracker reserves a name column and 31 checkbox columns',()=>{
  assert.match(html,/>Пить воду<\/th>/);
 });
 
+
+test('schedule keeps empty weekdays and validates all seven positions',()=>{
+ const parse=vm.runInContext('parseScheduleDays',context);
+ const days=parse('Математика\n\nИстория, Музыка\n');
+ assert.equal(days.length,3);
+ assert.deepEqual(Array.from(days,day=>day[0]),['Математика','','История']);
+ const html=render('schedule',k=>({title:'Уроки',
+  items:'Математика\n\nИстория, Музыка\n'})[k]??'',escape,lines,clamp);
+ assert.match(html,/<th scope="col">Понедельник<\/th><th scope="col">Вторник<\/th><th scope="col">Среда<\/th>/);
+ assert.match(html,/<tr><th scope="row">1<\/th><td>Математика<\/td><td><\/td><td>История<\/td><\/tr>/);
+ assert.match(html,/<tr><th scope="row">2<\/th><td><\/td><td><\/td><td>Музыка<\/td><\/tr>/);
+ const firstDayOff=render('schedule',k=>({title:'Уроки',
+  items:'\nАнглийский'})[k]??'',escape,lines,clamp);
+ assert.match(firstDayOff,/<th scope="col">Понедельник<\/th><th scope="col">Вторник<\/th>/);
+ assert.match(firstDayOff,/<td><\/td><td>Английский<\/td>/);
+ assert.equal(parse('Пн\n\n\nЧт\nПт\nСб\nВс\nВосьмой').length,8);
+ const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
+ assert.match(app,/parseScheduleDays\(val\("items"\)\)\.length>7/);
+});
+
 test('A4 pagination preserves the number of items and hard page boundaries',()=>{
  const cases=[
   ['math',{grade:'1 класс',topic:'Сложение и вычитание',level:'Простые',max:'10',count:'40',key:'Да'},3,/class="problems"/g,2],
