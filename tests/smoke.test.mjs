@@ -725,12 +725,12 @@ test('grade-specific topics, arithmetic correctness and integer answers',()=>{
       if(topic==='Текстовые задачи'){
        assert.equal(q.kind,'word');
        assert.ok(Number.isInteger(q.answer)&&q.answer>=1&&q.answer<=result.maximum);
-       const m=q.solution.match(/^(\d+) ([+−]) (\d+) = (\d+)$/);
-       assert.ok(m,'solution '+q.solution);
-       const a=+m[1],b=+m[3],value=+m[4];
-       assert.equal(m[2]==='+'?a+b:a-b,value);
-       assert.equal(q.answer,value);
-       assert.ok(q.text.includes(String(a))&&q.text.includes(String(b))&&q.text.endsWith('?'));
+       const [expression,resultText]=q.solution.split(' = ');
+       assert.match(expression,/^[\d+−×:/()\s.-]+$/,'safe numerical expression');
+       const result=Function('return ('+expression.replace(/−/g,'-').replace(/×/g,'*').replace(/:/g,'/')+')')();
+       assert.equal(result,q.answer,'arithmetically correct story '+q.text);
+       assert.equal(Number(resultText),q.answer,'shown answer matches calculation');
+       assert.ok(q.text.endsWith('?'));
        continue;
       }
       if(topic==='Сравнение чисел'){
@@ -804,4 +804,51 @@ test('10 and 20 session workbooks and original single math mode',()=>{
  assert.equal(vm.runInContext("mathPackDays('unsupported')",context),1);
  const single=generatePack('1 класс','Сложение и вычитание','Простые',10,10,'Один лист');
  assert.equal(single.questions.length,10);assert.equal(single.kind,undefined);
+});
+
+test('classroom curricula include age-appropriate word problems on every daily sheet',()=>{
+ const mixed=vm.runInContext('mathGenerateCurriculum',context);
+ const pack=vm.runInContext('mathGeneratePack',context);
+ const gradeTopics=vm.runInContext('mathTopicsByGrade',context);
+ function validate(q){
+  const [expression,result]=q.solution.split(' = ');
+  assert.match(expression,/^[\d+−×:/()\s.-]+$/);
+  const value=Function('return ('+expression.replace(/−/g,'-').replace(/×/g,'*').replace(/:/g,'/')+')')();
+  assert.equal(value,q.answer,q.text);
+  assert.equal(Number(result),q.answer,q.text);
+  assert.ok(q.answer>0&&q.text.endsWith('?'));
+ }
+ for(const grade of Object.keys(gradeTopics)){
+  assert.ok(gradeTopics[grade].includes('Текстовые задачи'));
+  const single=mixed(grade,'По программе класса','Со скобками',100,20);
+  const words=single.questions.filter(q=>q.kind==='word');
+  assert.equal(single.questions.length,20);
+  assert.equal(words.length,4,grade+' story quota');
+  words.forEach(validate);
+  const direct=vm.runInContext('mathGenerate',context)(grade,'Текстовые задачи','Простые',100,10);
+  assert.equal(direct.questions.length,10);
+  assert.ok(direct.questions.every(q=>q.kind==='word'));
+  direct.questions.forEach(validate);
+  const workbook=pack(grade,'По программе класса','Со скобками',100,10,'5 занятий');
+  const skills=new Set();
+  for(const day of workbook.days){
+   assert.equal(day.questions.length,10);
+   const stories=day.questions.filter(q=>q.kind==='word');
+   assert.equal(stories.length,2,'two stories on every day');
+   for(const story of stories){
+    validate(story);
+    assert.ok(story.answer<=day.maximum);
+    if(story.skill)skills.add(story.skill);
+   }
+  }
+  if(grade==='3 класс')assert.ok(skills.has('Умножение')&&skills.has('Деление'));
+  if(grade==='4 класс')assert.ok(skills.has('Два действия'));
+  if(grade==='5 класс')assert.ok(skills.has('Доли числа'));
+  const values={grade,topic:'По программе класса',pack:'5 занятий',count:'10',
+   max:'100',level:'Со скобками',density:'Стандартный',key:'Да'};
+  const html=render('math',k=>values[k]??'',escape,lines,clamp,workbook);
+  assert.equal((html.match(/class="math-word-question"/g)||[]).length,10);
+  assert.equal((html.match(/class="sheet-page answers-page math-pack-answers"/g)||[]).length,5);
+  assert.ok(html.indexOf('Ответы · занятие 1')>html.indexOf('Занятие 5 из 5'));
+ }
 });
