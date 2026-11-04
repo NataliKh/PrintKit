@@ -118,10 +118,10 @@ if(mode==="math"){
  const isMixed=generated.questions.some(q=>q.kind==='word')&&!isWord;
  // Keep the writing line with the arithmetic expression. Use a full-width
  // page for long examples rather than wrapping the line in a narrow column.
- const needsWide=!isWord&&density!=="large"&&generated.questions.some(q=>{
+ const needsWide=!isWord&&density!=="large"&&generated.questions.some(q=>q.kind!=="word"&&(()=>{
   const written=q.blank?q.text.replace('□','________'):q.text+' = ________';
   return written.length>(density==="compact"?27:22);
- });
+ })());
  const perPage=isWord?{large:4,standard:6,compact:8}[density]:
   density==="large"?12:needsWide?(density==="compact"?20:16):
   density==="compact"?30:20;
@@ -143,7 +143,7 @@ if(mode==="math"){
   const ordinary=questions.slice(0,questions.length-generated.questions.filter(q=>q.kind==='word').length);
   const stories=questions.slice(ordinary.length);
   // Short mixed lessons share a sheet; larger ones use dedicated story pages.
-  const combine=questions.length<=12&&density!=="large";
+  const combine=questions.length<=12&&density!=="large"&&!needsWide;
   if(combine){
    parts.push(page(pageHeading()+
     '<div class="math-mixed-content"><div class="problems">'+ordinary.join("")+'</div>'+
