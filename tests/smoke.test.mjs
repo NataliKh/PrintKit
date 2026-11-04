@@ -826,6 +826,46 @@ test('10 and 20 session workbooks and original single math mode',()=>{
  assert.equal(single.questions.length,10);assert.equal(single.kind,undefined);
 });
 
+
+test('M5.3 short curriculum sheets still include one solvable story',()=>{
+ const generate=vm.runInContext('mathGenerateCurriculum',context);
+ for(const grade of ['1 класс','2 класс','3 класс','4 класс','5 класс']){
+  for(const count of [1,2,3,4,5,6]){
+   for(let run=0;run<8;run++){
+    const result=generate(grade,'По программе класса','Простые',20,count);
+    assert.equal(result.questions.length,count,grade+' '+count);
+    const stories=result.questions.filter(q=>q.kind==='word');
+    assert.equal(stories.length,1,grade+' '+count+' should include a story');
+    assert.ok(stories[0].text.endsWith('?'));
+    assert.ok(stories[0].answer>=0&&stories[0].answer<=result.maximum);
+   }
+  }
+ }
+});
+
+test('M5.3 upper-grade story sets avoid duplicate wording and respect limits',()=>{
+ const generate=vm.runInContext('mathGenerate',context);
+ const gradeTopics=['3 класс','4 класс','5 класс'];
+ for(const grade of gradeTopics){
+  for(const maximum of [2,10,20,100]){
+   for(let run=0;run<12;run++){
+    const result=generate(grade,'Текстовые задачи','Простые',maximum,40);
+    assert.equal(result.questions.length,40);
+    assert.ok(result.questions.every(q=>q.kind==='word'));
+    if(maximum>=10)assert.equal(new Set(result.questions.map(q=>q.text)).size,40,
+     'Avoid repeating the same story on a sheet: '+grade+' '+maximum);
+    for(const q of result.questions){
+     const [expression,resultText]=q.solution.split(' = ');
+     const actual=Function('return ('+expression.replace(/−/g,'-').replace(/×/g,'*').replace(/:/g,'/')+')')();
+     assert.equal(actual,q.answer,q.text);
+     assert.equal(Number(resultText),q.answer,q.text);
+     assert.ok(Number.isInteger(q.answer)&&q.answer>=0&&q.answer<=result.maximum,q.text);
+    }
+   }
+  }
+ }
+});
+
 test('classroom curricula include age-appropriate word problems on every daily sheet',()=>{
  const mixed=vm.runInContext('mathGenerateCurriculum',context);
  const pack=vm.runInContext('mathGeneratePack',context);

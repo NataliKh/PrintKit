@@ -448,17 +448,22 @@ function mathCurriculumStories(grade,maximum,total,day=0){
   const v=n%100,u=n%10;
   return v>=11&&v<=14?many:u===1?one:u>=2&&u<=4?few:many;
  };
- const results=[];
+ const results=[],usedStories=new Set();
  const label=gradeIndex===2?["Умножение","Деление"]:
   gradeIndex===3?["Умножение","Деление","Два действия"]:
   ["Доли числа","Деление","Два действия"];
  for(let i=0;i<total;i++){
-  const skill=label[(day+i)%label.length];
+  // Retry fresh numbers and a different scenario when a story repeats verbatim.
+  // Small numeric ranges have finite combinations, so retries are bounded.
+  for(let attempt=0;attempt<48;attempt++){
+  const plannedSkill=label[(day+i)%label.length];
+  // Two positive steps cannot fit inside a maximum of two.
+  const skill=maximum<=2&&plannedSkill==="Два действия"?"Деление":plannedSkill;
   const upper=Math.min(gradeIndex===2?10:20,Math.max(2,Math.floor(maximum/2)));
   const a=random(2,Math.max(2,Math.min(upper,skill==="Два действия"?Math.floor((maximum-1)/2):upper)));
   const b=random(1,Math.max(1,Math.min(10,Math.floor((skill==="Два действия"?maximum-1:maximum)/a))));
   const product=a*b;
-  const variant=(day+Math.floor(i/label.length))%3;
+  const variant=(day+Math.floor(i/label.length)+attempt)%3;
   if(skill==="Умножение"){
    const variants=[
     {unit:"наклеек",text:"В одном наборе "+b+" "+noun(b,"наклейка","наклейки","наклеек")+
@@ -513,12 +518,19 @@ function mathCurriculumStories(grade,maximum,total,day=0){
    results.push({kind:"word",skill,answer,solution:all+" : "+d+" × "+n+" = "+answer,
     operands:[all,d,n],...variants[variant]});
   }
+  const story=results[results.length-1];
+  if(!usedStories.has(story.text)||attempt===47){
+   usedStories.add(story.text);
+   break;
+  }
+  results.pop();
+  }
  }
  return results;
 }
 function mathGenerateCurriculum(grade,topic,level,range,count,day=0){
  const generated=mathGenerate(grade,topic,level,range,count);
- if(topic!=="По программе класса"||generated.questions.length<6)return generated;
+ if(topic!=="По программе класса"||!generated.questions.length)return generated;
  const countStories=Math.min(6,Math.max(1,Math.round(generated.questions.length*0.2)));
  const stories=mathCurriculumStories(grade,generated.maximum,countStories,day);
  if(!stories.length)return generated;
