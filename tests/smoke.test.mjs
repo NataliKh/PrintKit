@@ -727,8 +727,8 @@ test('grade-specific topics, arithmetic correctness and integer answers',()=>{
        assert.ok(Number.isInteger(q.answer)&&q.answer>=1&&q.answer<=result.maximum);
        const [expression,resultText]=q.solution.split(' = ');
        assert.match(expression,/^[\d+−×:/()\s.-]+$/,'safe numerical expression');
-       const result=Function('return ('+expression.replace(/−/g,'-').replace(/×/g,'*').replace(/:/g,'/')+')')();
-       assert.equal(result,q.answer,'arithmetically correct story '+q.text);
+       const solved=Function('return ('+expression.replace(/−/g,'-').replace(/×/g,'*').replace(/:/g,'/')+')')();
+       assert.equal(solved,q.answer,'arithmetically correct story '+q.text);
        assert.equal(Number(resultText),q.answer,'shown answer matches calculation');
        assert.ok(q.text.endsWith('?'));
        continue;
