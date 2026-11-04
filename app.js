@@ -191,7 +191,7 @@ function outsidePrintableText(page,selector){
 function printIssues(){
  const issues=[];
  const inputCount=Number(val("count"));
- if(mode==="math"&&inputCount>40)issues.push("За один раз можно создать до 40 примеров. Уменьшите количество.");
+ if(mode==="math"&&inputCount>40)issues.push("За одно занятие можно создать до 40 заданий. Уменьшите количество.");
  if(mode==="labels"){
   const multi=val("audience")==="Несколько детей";
   const rawNames=val("names").split(/\r?\n/).map(name=>name.replace(/\s+/g," ").trim()).filter(Boolean);
@@ -263,7 +263,7 @@ function generate(forceMath=false){
   if(forceMath||!currentMath||currentMathSignature!==signature){
    currentMath=mathPackDays(val("pack"))>1
     ?mathGeneratePack(val("grade"),val("topic"),val("level"),val("max"),clamp(val("count"),40),val("pack"))
-    :mathGenerate(val("grade"),val("topic"),val("level"),val("max"),clamp(val("count"),40));
+    :mathGenerateCurriculum(val("grade"),val("topic"),val("level"),val("max"),clamp(val("count"),40));
    currentMathSignature=signature;
   }
  }

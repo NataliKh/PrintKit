@@ -428,8 +428,65 @@ function mathGeneratePack(grade,topic,level,range,count,pack){
  const titles=["Разминка","Практика","Закрепление"];
  const days=Array.from({length:total},(_,i)=>{
   const stage=Math.min(2,Math.floor(i*3/total));
-  return {...mathGenerate(grade,topic,levels[stage],stages[stage],count),
+  return {...mathGenerateCurriculum(grade,topic,levels[stage],stages[stage],count,i),
    stage:titles[stage],number:i+1};
  });
  return {kind:"math-pack",days};
+}
+
+
+/* Classroom practice: stories with verifiable arithmetic and grade-aware
+   operations. "По программе класса" keeps the usual skill balance but adds
+   a short problem-solving section, including one in each daily workbook. */
+function mathCurriculumStories(grade,maximum,total,day=0){
+ const gradeIndex=Math.max(0,Object.keys(mathTopicsByGrade).indexOf(grade));
+ if(gradeIndex<=1)return mathWordProblems(maximum,total);
+ const choose=arr=>arr[Math.floor(Math.random()*arr.length)];
+ const random=(min,max)=>min+Math.floor(Math.random()*(max-min+1));
+ const results=[];
+ const label=gradeIndex===2?["Умножение","Деление"]:
+  gradeIndex===3?["Умножение","Деление","Два действия"]:
+  ["Доли числа","Деление","Два действия"];
+ for(let i=0;i<total;i++){
+  const skill=label[(day+i)%label.length];
+  const upper=Math.min(gradeIndex===2?10:20,Math.max(2,Math.floor(maximum/2)));
+  const a=random(2,upper),b=random(1,Math.max(1,Math.min(10,Math.floor(maximum/a))));
+  const product=a*b;
+  if(skill==="Умножение"){
+   results.push({kind:"word",skill,answer:product,solution:a+" × "+b+" = "+product,
+    unit:"наклеек",operands:[a,b],text:"В наборе "+b+
+    " наклеек. Для класса купили "+a+
+    " таких наборов. Сколько наклеек купили всего?"});
+  }else if(skill==="Деление"){
+   results.push({kind:"word",skill,answer:b,solution:product+" : "+a+" = "+b,
+    unit:"карандашей",operands:[product,a],text:"В "+a+
+    " пеналов поровну разложили "+product+
+    " карандашей. Сколько карандашей в одном пенале?"});
+  }else if(skill==="Два действия"){
+   const extra=random(1,Math.max(1,maximum-product));
+   const answer=Math.min(maximum,product+extra);
+   results.push({kind:"word",skill,answer,solution:a+" × "+b+" + "+(answer-product)+" = "+answer,
+    unit:"значков",operands:[a,b,answer-product],
+    text:"Для выставки собрали "+a+" коробок по "+b+
+    " значков. Затем принесли ещё "+(answer-product)+
+    " значков. Сколько значков стало?"});
+  }else{
+   const denominators=[2,3,4,5].filter(n=>n<=maximum);
+   const d=choose(denominators),units=random(1,Math.max(1,Math.floor(maximum/d)));
+   const all=d*units,n=random(1,d-1),answer=units*n;
+   results.push({kind:"word",skill,answer,solution:all+" : "+d+" × "+n+" = "+answer,
+    unit:"листов",operands:[all,d,n],
+    text:"В мастерской было "+all+" листов бумаги. На поделки взяли "+n+
+    "/"+d+" всех листов. Сколько листов взяли?"});
+  }
+ }
+ return results;
+}
+function mathGenerateCurriculum(grade,topic,level,range,count,day=0){
+ const generated=mathGenerate(grade,topic,level,range,count);
+ if(topic!=="По программе класса"||generated.questions.length<6)return generated;
+ const countStories=Math.min(6,Math.max(1,Math.round(generated.questions.length*0.2)));
+ const stories=mathCurriculumStories(grade,generated.maximum,countStories,day);
+ if(!stories.length)return generated;
+ return {...generated,questions:generated.questions.slice(0,generated.questions.length-stories.length).concat(stories)};
 }

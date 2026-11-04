@@ -105,16 +105,17 @@ if(mode==="math"){
      (q.kind==="word"?e(q.solution)+' ('+e(q.unit)+')':e(q.answer))+'</span>');
     parts.push(page(heading('Ответы · занятие '+lesson.number,
      'Математика · '+grade+' · '+e(lesson.topic))+
-     '<div class="answer-grid'+(word?' math-word-answer-grid':'')+'">'+answers.join("")+'</div>',
+     '<div class="answer-grid'+(word||lesson.questions.some(q=>q.kind==="word")?' math-word-answer-grid':'')+'">'+answers.join("")+'</div>',
      'answers-page math-pack-answers'));
    }
   }
   return parts.join("");
  }
  const grade=e(get("grade"));
- const generated=mathSnapshot||mathGenerate(get("grade"),get("topic"),get("level"),get("max"),clamp(get("count"),40));
+ const generated=mathSnapshot||mathGenerateCurriculum(get("grade"),get("topic"),get("level"),get("max"),clamp(get("count"),40));
  const density=layoutClass(get("density"),{"Стандартный":"standard","Крупный":"large","Компактный":"compact"});
- const isWord=generated.topic==='Текстовые задачи'&&generated.questions.every(q=>q.kind==='word');
+ const isWord=generated.questions.length>0&&generated.questions.every(q=>q.kind==='word');
+ const isMixed=generated.questions.some(q=>q.kind==='word')&&!isWord;
  // Keep the writing line with the arithmetic expression. Use a full-width
  // page for long examples rather than wrapping the line in a narrow column.
  const needsWide=!isWord&&density!=="large"&&generated.questions.some(q=>{
@@ -135,16 +136,40 @@ if(mode==="math"){
    e(q.text)+' = '+answerLine)+'</div>');
  const answers=generated.questions.map((q,i)=>'<span>'+(i+1)+'. '+
   (q.kind==='word'?e(q.solution)+' ('+e(q.unit)+')':e(q.answer))+'</span>');
- for(let i=0;i<questions.length;i+=perPage){
-  parts.push(page(heading('Математика · '+grade+(get("packDay")?' · '+e(get("packDay")):''),
-   'Тема: '+e(generated.topic)+(get("packStage")?' · '+e(get("packStage")):'')+
-   ' · Имя: ____________________　Дата: ____________')+
-   '<div class="'+(isWord?'math-word-problems':'problems')+'">'+questions.slice(i,i+perPage).join("")+'</div>',
-   'math-page math-page--'+density+(isWord?' math-word-page':needsWide?' math-page--wide':'')));
+ const pageHeading=()=>heading('Математика · '+grade+(get("packDay")?' · '+e(get("packDay")):''),
+  'Тема: '+e(generated.topic)+(get("packStage")?' · '+e(get("packStage")):'')+
+  ' · Имя: ____________________　Дата: ____________');
+ if(isMixed){
+  const ordinary=questions.slice(0,questions.length-generated.questions.filter(q=>q.kind==='word').length);
+  const stories=questions.slice(ordinary.length);
+  // Short mixed lessons share a sheet; larger ones use dedicated story pages.
+  const combine=questions.length<=12&&density!=="large";
+  if(combine){
+   parts.push(page(pageHeading()+
+    '<div class="math-mixed-content"><div class="problems">'+ordinary.join("")+'</div>'+
+    '<div class="math-word-problems">'+stories.join("")+'</div></div>',
+    'math-page math-page--'+density+' math-mixed-page'));
+  }else{
+   for(let i=0;i<ordinary.length;i+=perPage){
+    parts.push(page(pageHeading()+'<div class="problems">'+ordinary.slice(i,i+perPage).join("")+'</div>',
+     'math-page math-page--'+density+(needsWide?' math-page--wide':'')));
+   }
+   const storyPerPage={large:4,standard:6,compact:8}[density];
+   for(let i=0;i<stories.length;i+=storyPerPage){
+    parts.push(page(pageHeading()+'<div class="math-word-problems">'+stories.slice(i,i+storyPerPage).join("")+'</div>',
+     'math-page math-word-page math-page--'+density));
+   }
+  }
+ }else{
+  for(let i=0;i<questions.length;i+=perPage){
+   parts.push(page(pageHeading()+'<div class="'+(isWord?'math-word-problems':'problems')+'">'+
+    questions.slice(i,i+perPage).join("")+'</div>',
+    'math-page math-page--'+density+(isWord?' math-word-page':needsWide?' math-page--wide':'')));
+  }
  }
  if(get("key")==="Да"){
   for(let i=0;i<answers.length;i+=40)parts.push(page(heading('Ответы','Математика · '+grade)+
-   '<div class="answer-grid'+(isWord?' math-word-answer-grid':'')+'">'+answers.slice(i,i+40).join("")+'</div>','answers-page'));
+   '<div class="answer-grid'+(isWord||isMixed?' math-word-answer-grid':'')+'">'+answers.slice(i,i+40).join("")+'</div>','answers-page'));
  }
 }
 if(mode==="writing"){
