@@ -679,7 +679,8 @@ try {
       assert.equal(await page.locator('#paper').innerHTML(),preview);
     }
     await page.locator('#f-grade').selectOption({label:'3 класс'});
-    assert.ok(!(await page.locator('#f-topic option').allTextContents()).includes('Текстовые задачи'));
+    assert.ok((await page.locator('#f-topic option').allTextContents()).includes('Текстовые задачи'),
+      'third grade now supports dedicated word problems');
     console.log('PASS new story worksheets and stable answer keys');
   }catch(error){
     failed=true;
