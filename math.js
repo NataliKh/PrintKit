@@ -443,6 +443,10 @@ function mathCurriculumStories(grade,maximum,total,day=0){
  if(gradeIndex<=1)return mathWordProblems(maximum,total);
  const choose=arr=>arr[Math.floor(Math.random()*arr.length)];
  const random=(min,max)=>min+Math.floor(Math.random()*(max-min+1));
+ const noun=(n,one,few,many)=>{
+  const v=n%100,u=n%10;
+  return v>=11&&v<=14?many:u===1?one:u>=2&&u<=4?few:many;
+ };
  const results=[];
  const label=gradeIndex===2?["Умножение","Деление"]:
   gradeIndex===3?["Умножение","Деление","Два действия"]:
@@ -450,33 +454,37 @@ function mathCurriculumStories(grade,maximum,total,day=0){
  for(let i=0;i<total;i++){
   const skill=label[(day+i)%label.length];
   const upper=Math.min(gradeIndex===2?10:20,Math.max(2,Math.floor(maximum/2)));
-  const a=random(2,upper),b=random(1,Math.max(1,Math.min(10,Math.floor(maximum/a))));
+  const a=random(2,Math.max(2,Math.min(upper,skill==="Два действия"?Math.floor((maximum-1)/2):upper)));
+  const b=random(1,Math.max(1,Math.min(10,Math.floor((skill==="Два действия"?maximum-1:maximum)/a))));
   const product=a*b;
   if(skill==="Умножение"){
    results.push({kind:"word",skill,answer:product,solution:a+" × "+b+" = "+product,
-    unit:"наклеек",operands:[a,b],text:"В наборе "+b+
-    " наклеек. Для класса купили "+a+
-    " таких наборов. Сколько наклеек купили всего?"});
+    unit:"наклеек",operands:[a,b],text:"В одном наборе "+b+" "+noun(b,"наклейка","наклейки","наклеек")+
+    ". Для класса купили "+a+" "+noun(a,"набор","набора","наборов")+
+    ". Сколько наклеек купили всего?"});
   }else if(skill==="Деление"){
    results.push({kind:"word",skill,answer:b,solution:product+" : "+a+" = "+b,
-    unit:"карандашей",operands:[product,a],text:"В "+a+
-    " пеналов поровну разложили "+product+
-    " карандашей. Сколько карандашей в одном пенале?"});
+    unit:"карандашей",operands:[product,a],
+    text:"В "+a+" "+noun(a,"пенал","пенала","пеналов")+" поровну разложили "+product+
+    " "+noun(product,"карандаш","карандаша","карандашей")+
+    ". Сколько карандашей в одном пенале?"});
   }else if(skill==="Два действия"){
    const extra=random(1,Math.max(1,maximum-product));
-   const answer=Math.min(maximum,product+extra);
+   const answer=product+extra;
    results.push({kind:"word",skill,answer,solution:a+" × "+b+" + "+(answer-product)+" = "+answer,
     unit:"значков",operands:[a,b,answer-product],
-    text:"Для выставки собрали "+a+" коробок по "+b+
-    " значков. Затем принесли ещё "+(answer-product)+
-    " значков. Сколько значков стало?"});
+    text:"Для выставки в каждую из "+a+" коробок положили по "+b+
+    " "+noun(b,"значку","значка","значков")+
+    ". Затем принесли ещё "+extra+" "+noun(extra,"значок","значка","значков")+
+    ". Сколько значков стало?"});
   }else{
    const denominators=[2,3,4,5].filter(n=>n<=maximum);
    const d=choose(denominators),units=random(1,Math.max(1,Math.floor(maximum/d)));
    const all=d*units,n=random(1,d-1),answer=units*n;
    results.push({kind:"word",skill,answer,solution:all+" : "+d+" × "+n+" = "+answer,
     unit:"листов",operands:[all,d,n],
-    text:"В мастерской было "+all+" листов бумаги. На поделки взяли "+n+
+    text:"В мастерской было "+all+" "+noun(all,"лист","листа","листов")+
+    " бумаги. На поделки взяли "+n+
     "/"+d+" всех листов. Сколько листов взяли?"});
   }
  }
