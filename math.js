@@ -3,9 +3,9 @@
 const mathTopicsByGrade={
  '1 класс':['По программе класса','Сложение и вычитание','Пропущенное число','Сравнение чисел','Состав числа','Текстовые задачи'],
  '2 класс':['По программе класса','Сложение и вычитание','Переход через десяток','Пропущенное число','Сравнение чисел','Состав числа','Текстовые задачи'],
- '3 класс':['По программе класса','Таблица умножения','Деление без остатка','Сложение и вычитание'],
- '4 класс':['По программе класса','Умножение и деление','Порядок действий','Сложение и вычитание'],
- '5 класс':['По программе класса','Доли числа','Умножение и деление','Порядок действий']
+ '3 класс':['По программе класса','Таблица умножения','Деление без остатка','Сложение и вычитание','Текстовые задачи'],
+ '4 класс':['По программе класса','Умножение и деление','Порядок действий','Сложение и вычитание','Текстовые задачи'],
+ '5 класс':['По программе класса','Доли числа','Умножение и деление','Порядок действий','Текстовые задачи']
 };
 
 /**
@@ -383,8 +383,9 @@ function mathGenerate(grade,requestedTopic,level,range,count){
   }
   return {text:'0 + 0',answer:0};
  }
- if(gradeIndex<=1&&selected==='Текстовые задачи'){
-  return {topic:selected,maximum,questions:mathWordProblems(maximum,total)};
+ if(selected==='Текстовые задачи'){
+  return {topic:selected,maximum,questions:gradeIndex<=1?
+   mathWordProblems(maximum,total):mathCurriculumStories(grade,maximum,total)};
  }
  if(gradeIndex<=1&&(selected==='Сравнение чисел'||selected==='Состав числа')){
   return {topic:selected,maximum,questions:mathFoundations(selected,maximum,total)};
@@ -457,35 +458,60 @@ function mathCurriculumStories(grade,maximum,total,day=0){
   const a=random(2,Math.max(2,Math.min(upper,skill==="Два действия"?Math.floor((maximum-1)/2):upper)));
   const b=random(1,Math.max(1,Math.min(10,Math.floor((skill==="Два действия"?maximum-1:maximum)/a))));
   const product=a*b;
+  const variant=(day+Math.floor(i/label.length))%3;
   if(skill==="Умножение"){
+   const variants=[
+    {unit:"наклеек",text:"В одном наборе "+b+" "+noun(b,"наклейка","наклейки","наклеек")+
+     ". Для класса купили "+a+" "+noun(a,"набор","набора","наборов")+". Сколько наклеек купили всего?"},
+    {unit:"книг",text:"На каждой из "+a+" полок стоят по "+b+" "+noun(b,"книге","книги","книг")+
+     ". Сколько книг стоит на всех полках?"},
+    {unit:"цветков",text:"В "+a+" "+noun(a,"ряду","рядах","рядах")+" посадили по "+b+
+     " "+noun(b,"цветку","цветка","цветков")+". Сколько цветков посадили?"}
+   ];
    results.push({kind:"word",skill,answer:product,solution:a+" × "+b+" = "+product,
-    unit:"наклеек",operands:[a,b],text:"В одном наборе "+b+" "+noun(b,"наклейка","наклейки","наклеек")+
-    ". Для класса купили "+a+" "+noun(a,"набор","набора","наборов")+
-    ". Сколько наклеек купили всего?"});
+    operands:[a,b],...variants[variant]});
   }else if(skill==="Деление"){
+   const variants=[
+    {unit:"карандашей",text:"В "+a+" "+noun(a,"пенал","пенала","пеналов")+" поровну разложили "+product+
+     " "+noun(product,"карандаш","карандаша","карандашей")+". Сколько карандашей в одном пенале?"},
+    {unit:"карточек",text:product+" "+noun(product,"карточку","карточки","карточек")+
+     " поровну разделили между "+a+" "+noun(a,"игроком","игроками","игроками")+
+     ". Сколько карточек получил каждый?"},
+    {unit:"флажков",text:"Для каждой из "+a+" команд приготовили одинаковое число флажков. Всего "+product+
+     " "+noun(product,"флажок","флажка","флажков")+". Сколько флажков для одной команды?"}
+   ];
    results.push({kind:"word",skill,answer:b,solution:product+" : "+a+" = "+b,
-    unit:"карандашей",operands:[product,a],
-    text:"В "+a+" "+noun(a,"пенал","пенала","пеналов")+" поровну разложили "+product+
-    " "+noun(product,"карандаш","карандаша","карандашей")+
-    ". Сколько карандашей в одном пенале?"});
+    operands:[product,a],...variants[variant]});
   }else if(skill==="Два действия"){
    const extra=random(1,Math.max(1,maximum-product));
    const answer=product+extra;
-   results.push({kind:"word",skill,answer,solution:a+" × "+b+" + "+(answer-product)+" = "+answer,
-    unit:"значков",operands:[a,b,answer-product],
-    text:"Для выставки в каждую из "+a+" коробок положили по "+b+
-    " "+noun(b,"значку","значка","значков")+
-    ". Затем принесли ещё "+extra+" "+noun(extra,"значок","значка","значков")+
-    ". Сколько значков стало?"});
+   const variants=[
+    {unit:"значков",text:"Для выставки в каждую из "+a+" коробок положили по "+b+
+     " "+noun(b,"значку","значка","значков")+". Затем принесли ещё "+extra+
+     " "+noun(extra,"значок","значка","значков")+". Сколько значков стало?"},
+    {unit:"рисунков",text:"На каждой из "+a+" страниц сделали по "+b+
+     " "+noun(b,"рисунку","рисунка","рисунков")+". Потом нарисовали ещё "+extra+
+     " "+noun(extra,"рисунок","рисунка","рисунков")+". Сколько рисунков получилось?"},
+    {unit:"карандашей",text:"В каждую из "+a+" коробок положили по "+b+
+     " "+noun(b,"карандашу","карандаша","карандашей")+". Добавили ещё "+extra+
+     " "+noun(extra,"карандаш","карандаша","карандашей")+". Сколько карандашей всего?"}
+   ];
+   results.push({kind:"word",skill,answer,solution:a+" × "+b+" + "+extra+" = "+answer,
+    operands:[a,b,extra],...variants[variant]});
   }else{
    const denominators=[2,3,4,5].filter(n=>n<=maximum);
    const d=choose(denominators),units=random(1,Math.max(1,Math.floor(maximum/d)));
    const all=d*units,n=random(1,d-1),answer=units*n;
+   const variants=[
+    {unit:"листов",text:"В мастерской было "+all+" "+noun(all,"лист","листа","листов")+
+     " бумаги. На поделки взяли "+n+"/"+d+" всех листов. Сколько листов взяли?"},
+    {unit:"открыток",text:"В кружке сделали "+all+" "+noun(all,"открытку","открытки","открыток")+
+     ". Детям подарили "+n+"/"+d+" всех открыток. Сколько открыток подарили?"},
+    {unit:"яблок",text:"Школьники собрали "+all+" "+noun(all,"яблоко","яблока","яблок")+
+     ". Для пирога использовали "+n+"/"+d+" всех яблок. Сколько яблок использовали?"}
+   ];
    results.push({kind:"word",skill,answer,solution:all+" : "+d+" × "+n+" = "+answer,
-    unit:"листов",operands:[all,d,n],
-    text:"В мастерской было "+all+" "+noun(all,"лист","листа","листов")+
-    " бумаги. На поделки взяли "+n+
-    "/"+d+" всех листов. Сколько листов взяли?"});
+    operands:[all,d,n],...variants[variant]});
   }
  }
  return results;
