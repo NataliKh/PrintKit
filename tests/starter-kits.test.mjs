@@ -16,7 +16,7 @@ const selectOptions={
 test('every print generator offers curated, nonduplicate quick starts',()=>{
  assert.deepEqual(Object.keys(kits).sort(),[...modes].sort());
  for(const mode of modes){
-  const expected=mode==='labels'?5:mode==='writing'?3:mode==='cards'?8:4;
+  const expected=mode==='math'?14:mode==='labels'?5:mode==='writing'?3:mode==='cards'?8:4;
   assert.equal(kits[mode].length,expected,mode);
   assert.equal(new Set(kits[mode].map(x=>x.id)).size,expected,mode);
   for(const kit of kits[mode]){
@@ -26,6 +26,13 @@ test('every print generator offers curated, nonduplicate quick starts',()=>{
   }
  }
 });
+test('math course presets remain separate from four one-click quick starts',()=>{
+ assert.equal(kits.math.filter(kit=>!kit.collection).length,4);
+ assert.equal(kits.math.filter(kit=>kit.collection).length,10);
+ for(const grade of ['1 класс','2 класс','3 класс','4 класс','5 класс'])
+  assert.equal(kits.math.filter(kit=>kit.collection&&kit.values.grade===grade).length,2);
+});
+
 test('preset values match actual input names and available select options',()=>{
  for(const mode of modes){
   const controls=new Map(configs[mode].map(([id,,type,choices])=>[id,{type,choices}]));
