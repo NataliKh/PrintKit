@@ -201,6 +201,52 @@ try {
     await page.emulateMedia({media:'screen'});
   }
 
+  // Mobile preview scales the A4 page; the print-safety test must scale
+  // the inset as well. Test both sides of the true printable boundary.
+  try{
+    for(const testMode of ['schedule','habits']){
+      await page.locator('[data-tab="'+testMode+'"]').click();
+      await page.setViewportSize({width:390,height:844});
+      await page.waitForFunction(()=>{
+        const paper=document.querySelector('#paper');
+        return paper&&paper.offsetWidth>0&&paper.getBoundingClientRect().width/paper.offsetWidth<0.8;
+      });
+      const measured=await page.evaluate(()=>{
+        const sheet=document.querySelector('#paper .sheet-page');
+        const table=sheet.querySelector('table');
+        const rect=sheet.getBoundingClientRect();
+        const scale=rect.width/sheet.offsetWidth;
+        const padding=parseFloat(getComputedStyle(sheet).paddingBottom)*scale;
+        const original=table.style.transform;
+        const tableBottom=table.getBoundingClientRect().bottom;
+        const fitsAt=offset=>{
+          const move=(rect.bottom-padding+offset-tableBottom)/scale;
+          table.style.transform='translateY('+move+'px)';
+          const fits=scheduleContentFits(sheet);
+          updatePrintStatus();
+          return {fits,enabled:!document.querySelector('#print').disabled};
+        };
+        try{
+          return {scale,inside:fitsAt(-6),outside:fitsAt(8)};
+        }finally{
+          table.style.transform=original;
+          updatePrintStatus();
+        }
+      });
+      assert.ok(measured.scale<0.8,'A4 preview is scaled on mobile: '+testMode);
+      assert.deepEqual(measured.inside,{fits:true,enabled:true},
+        'valid '+testMode+' A4 content must remain printable on mobile');
+      assert.deepEqual(measured.outside,{fits:false,enabled:false},
+        'content below '+testMode+' A4 inner margin must block printing');
+      await page.setViewportSize({width:1440,height:900});
+    }
+    console.log('PASS scaled mobile A4 bounds for schedules and habits');
+  }catch(error){
+    failed=true;
+    console.error('FAIL mobile A4 print margin regression',error);
+    await page.setViewportSize({width:1440,height:900});
+  }
+
   // Fixed label sizes and one-page diplomas must refuse content that would be hidden.
   try{
     await page.locator('[data-tab="labels"]').click();
