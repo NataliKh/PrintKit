@@ -114,7 +114,10 @@ function scheduleContentFits(sheet){
  const table=sheet.querySelector(".schedule-table, .habit");
  if(!table)return true;
  const rect=sheet.getBoundingClientRect();
- const padding=parseFloat(getComputedStyle(sheet).paddingBottom)||0;
+ // Both the page and table rectangles are scaled in the mobile preview.
+ // Scale the CSS padding too, otherwise valid A4 pages appear overflowing.
+ const scale=sheet.offsetWidth?rect.width/sheet.offsetWidth:1;
+ const padding=(parseFloat(getComputedStyle(sheet).paddingBottom)||0)*scale;
  return table.getBoundingClientRect().bottom<=rect.bottom-padding+1;
 }
 function paginateSchedulePages(paper){
