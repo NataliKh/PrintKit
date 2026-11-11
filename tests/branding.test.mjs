@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
-const modes=['math','cards','labels','diploma','schedule','habits','print-check'];
+const modes=['math','writing','cards','labels','diploma','schedule','habits','print-check'];
 const publicPages=['index.html',...modes.map(mode=>'tools/'+mode+'/index.html')];
 
 test('all public pages use Listokia branding, canonical URLs and their real URLs',()=>{
@@ -18,10 +18,10 @@ test('all public pages use Listokia branding, canonical URLs and their real URLs
  }
 });
 
-test('sitemap and robots point only to the new domain and all eight indexable pages',()=>{
+test('sitemap and robots point only to the new domain and all nine indexable pages',()=>{
  const sitemap=read('sitemap.xml');
  const urls=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match=>match[1]);
- assert.equal(urls.length,8);
+ assert.equal(urls.length,9);
  assert.deepEqual(urls,['https://listokia.ru/',...modes.map(mode=>'https://listokia.ru/tools/'+mode+'/')]);
  const robots=read('robots.txt');
  assert.match(robots,/^User-agent: \*$/m);
