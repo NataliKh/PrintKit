@@ -3,8 +3,8 @@ import {readFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 
 const base=new URL('../',import.meta.url);
-const modes=['math','cards','labels','diploma','schedule','habits'];
-const defaultKits={math:'brackets',cards:'animals',labels:'notebooks',diploma:'effort',schedule:'school',habits:'healthy'};
+const modes=['math','writing','cards','labels','diploma','schedule','habits'];
+const defaultKits={math:'brackets',writing:'digits',cards:'animals',labels:'notebooks',diploma:'effort',schedule:'school',habits:'healthy'};
 const manifest=JSON.parse(await readFile(new URL('../previews/manifest.json',import.meta.url),'utf8'));
 assert.equal(manifest.previews.length,42,'exactly 42 real A4 previews');
 assert.equal(new Set(manifest.previews.map(x=>x.file)).size,42,'unique previews');
@@ -33,6 +33,9 @@ try{
  assert.equal(await page.locator('#paper .calibration-page').count(),1,'calibration loads by default');
  await page.goto(new URL('index.html',base).href);
  assert.equal(await page.locator('a[href="./tools/print-check/"]').count(),2,'visible print-check entry points');
+ assert.equal(await page.locator('.guide-links a[href="./tools/writing/"]').count(),1,'indexable digit tracing guide linked from home');
+ assert.ok((await readFile(new URL('../tools/writing/index.html',import.meta.url),'utf8')).includes('Рукописные русские буквы, слоги и соединения временно недоступны'),
+  'new guide must explain the unavailable handwritten letter modes');
  assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'),'https://listokia.ru/');
  assert.equal(await page.locator('meta[property="og:url"]').getAttribute('content'),'https://listokia.ru/');
  assert.equal(await page.locator('link[rel=icon]').getAttribute('href'),'./favicon.svg');
